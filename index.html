@@ -1,0 +1,3570 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FC알리미 — 갱신시간 놓치지 마세요</title>
+<meta name="description" content="FC온라인 선수마다 다른 가격 갱신 시간을 자동 추적하고, 기준가가 바뀌기 전에 알려드려요.">
+<meta property="og:title" content="FC알리미 — FC온라인 갱신시간 알리미">
+<meta property="og:description" content="선수 갱신 시간 자동 추적 · 즐겨찾기 알림 · 유저 제보 커뮤니티">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://fcalrimi.pages.dev/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230B0F14'/%3E%3Ccircle cx='16' cy='18' r='5' fill='%23C4FF3D'/%3E%3Ctext x='34' y='46' font-family='Arial,sans-serif' font-weight='bold' font-size='30' fill='%23C4FF3D' text-anchor='middle'%3EFC%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<!-- 폰트 CSS는 비동기 로드: 폰트 서버가 느려도 페이지 렌더링을 막지 않음 -->
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Pretendard:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Pretendard:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet"></noscript>
+<style>
+  :root{
+    --bg: #0B0F14;
+    --surface: #121923;
+    --surface-2: #1A2330;
+    --line: #232E3D;
+    --text: #E9EEF3;
+    --text-dim: #7C8B9C;
+    --lime: #C4FF3D;
+    --red: #FF5C6A;
+    --font-display: 'Barlow Condensed', sans-serif;
+    --font-body: 'Pretendard', -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  a{ color:inherit; text-decoration:none; }
+  ::selection{ background: var(--lime); color:#0B0F14; }
+
+  /* ---------- 로그인 모달 ---------- */
+  .modal-overlay{
+    position: fixed;
+    inset: 0;
+    background: rgba(5,8,12,0.7);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+  .modal-overlay.show{ display: flex; }
+  .modal{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 36px 32px;
+    width: 100%;
+    max-width: 380px;
+    margin: 20px;
+  }
+  .modal h2{
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .modal .modal-sub{ font-size: 13px; color: var(--text-dim); margin-bottom: 24px; }
+  .modal label{
+    display:block;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin: 14px 0 6px;
+  }
+  .modal input{
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .modal input:focus{ border-color: var(--lime); }
+  .modal .auth-error{
+    color: var(--red);
+    font-size: 12px;
+    margin-top: 10px;
+    min-height: 16px;
+  }
+  .modal .auth-submit{
+    width: 100%;
+    margin-top: 16px;
+    background: var(--lime);
+    color: #0B0F14;
+    border: none;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 16px;
+    padding: 13px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform .12s;
+  }
+  .modal .auth-submit:hover{ transform: translateY(-1px); }
+  .auth-submit{ transition: transform .12s, opacity .15s, filter .15s; }
+  /* 입력 완료 전 흐림 → 완료 시 점등 */
+  .auth-submit.dim{ opacity: .4; filter: grayscale(.5); cursor: not-allowed; }
+  .auth-submit.dim:hover{ transform: none; }
+  .modal .auth-switch{
+    margin-top: 16px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  .modal .auth-switch a{ color: var(--lime); cursor: pointer; margin-left: 6px; }
+  .modal .modal-close{
+    float: right;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 20px;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .user-chip{
+    display: none;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    margin-left: auto;
+    padding-right: 0;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+  }
+  .user-chip .nick{ color: var(--lime); font-weight: 600; margin-right: 2px; }
+  .user-chip .logout-btn{
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 100px;
+    cursor: pointer;
+    font-family: var(--font-body);
+  }
+  .user-chip .logout-btn:hover{ color: var(--text); }
+  .alarm-select{
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 100px;
+    cursor: pointer;
+  }
+  .sound-btn{
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+  }
+  .sound-btn.muted{ opacity: .45; }
+
+  /* ---------- 검색 드롭다운 시즌 그룹 ---------- */
+  .group-label{
+    padding: 10px 18px 6px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    color: var(--lime);
+    display:flex; align-items:center; gap:6px;
+    border-top: 1px solid var(--line);
+  }
+  .group-label:first-child{ border-top: none; }
+  .group-label img{ width:14px; height:14px; object-fit:contain; }
+
+  /* ---------- 선수 상세 / 게시판 뷰 ---------- */
+  .subpage{ max-width: 900px; margin: 0 auto; padding: 48px 24px 80px; }
+  .back-btn{
+    background:none; border:1px solid var(--line); color:var(--text-dim);
+    padding:8px 18px; border-radius:100px; cursor:pointer; font-family:var(--font-body);
+    font-size:13px; margin-bottom:28px;
+  }
+  .back-btn:hover{ color:var(--text); border-color:var(--text-dim); }
+  .subpage h1{ font-family:var(--font-display); font-size:34px; margin-bottom:6px; }
+  .subpage .page-sub{ color:var(--text-dim); font-size:14px; margin-bottom:30px; }
+  .card-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; }
+  .p-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:14px;
+    padding:18px;
+  }
+  .p-card .p-season{ display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+  .p-card .p-season img{ width:18px; height:18px; object-fit:contain; }
+  .p-card .p-season .code{ font-family:var(--font-mono); font-size:12px; color:var(--lime); }
+  .p-card .p-refresh{ font-size:15px; font-weight:600; }
+  .p-card .p-refresh.none{ color:var(--text-dim); font-weight:400; }
+  .p-card .p-timer{ font-family:var(--font-mono); font-size:12px; color:var(--text-dim); margin-top:6px; }
+  .p-card .report-chip{
+    display:inline-block; margin-top:8px; font-size:11px; color:#F5B84B;
+    border:1px solid rgba(245,184,75,.35); padding:2px 8px; border-radius:100px;
+  }
+  /* 게시판 */
+  .board-search{ margin: 0 auto 22px; max-width: 560px; }
+  .board-row{
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    padding:14px 18px; margin-bottom:10px; flex-wrap:wrap;
+  }
+  .board-row .b-left{ display:flex; align-items:center; gap:12px; min-width:200px; }
+  .board-row .b-name{ font-weight:600; }
+  .report-form{ display:flex; align-items:center; gap:8px; }
+  .report-form select, .report-form input{
+    background:var(--bg); border:1px solid var(--line); color:var(--text);
+    border-radius:8px; padding:8px 10px; font-family:var(--font-body); font-size:13px;
+  }
+  .report-form input{ width:64px; }
+  .report-form button{
+    background:var(--lime); color:#0B0F14; border:none; border-radius:8px;
+    padding:8px 16px; font-weight:700; cursor:pointer; font-family:var(--font-body); font-size:13px;
+  }
+  .report-done{ font-size:12px; color:#F5B84B; }
+
+  /* 게시판 허브 */
+  .board-menu{ display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:14px; }
+  .board-menu-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:14px;
+    padding:24px; cursor:pointer; transition:border-color .15s, transform .12s;
+  }
+  .board-menu-card:hover{ border-color:var(--lime); transform:translateY(-2px); }
+  .board-menu-card .bm-title{ font-family:var(--font-display); font-size:20px; font-weight:700; margin-bottom:8px; }
+  .board-menu-card .bm-desc{ font-size:13px; color:var(--text-dim); line-height:1.5; }
+  /* 자유게시판 글쓰기 */
+  .free-write{ display:flex; flex-direction:column; gap:10px; margin-bottom:24px; }
+  .free-write-actions{ display:flex; gap:10px; justify-content:flex-end; align-items:center; }
+  /* 자유게시판 툴바 (검색 + 글쓰기) */
+  .free-toolbar{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+  .free-search{ display:flex; align-items:center; gap:8px; }
+  .free-search-bottom{ justify-content:center; margin-top:24px; }
+  .free-select{
+    background:var(--bg); border:1px solid var(--line); color:var(--text);
+    border-radius:8px; padding:9px 10px; font-family:var(--font-body); font-size:13px; cursor:pointer;
+  }
+  .free-search-input{
+    background:var(--bg); border:1px solid var(--line); color:var(--text);
+    border-radius:8px; padding:9px 12px; font-family:var(--font-body); font-size:13px; outline:none; min-width:180px;
+  }
+  .free-search-input:focus{ border-color:var(--lime); }
+  .write-btn{
+    background:var(--lime); color:#0B0F14; border:none; border-radius:8px;
+    padding:9px 20px; font-family:var(--font-display); font-weight:700; font-size:14px; cursor:pointer;
+  }
+  /* 자유게시판 테이블 */
+  .free-table{ width:100%; border-collapse:collapse; font-size:14px; }
+  .free-table th{
+    text-align:left; color:var(--text-dim); font-weight:500; font-size:12px;
+    padding:10px 12px; border-bottom:1px solid var(--line);
+  }
+  .free-table td{ padding:13px 12px; border-bottom:1px solid var(--line); color:var(--text); }
+  .free-table tbody tr{ cursor:pointer; transition:background .12s; }
+  .free-table tbody tr:hover{ background:var(--surface); }
+  .free-table .c-no{ width:56px; color:var(--text-dim); }
+  .free-table .c-title{ font-weight:500; }
+  .free-table .c-cat{ width:92px; white-space:nowrap; }
+  .free-table .c-nick{ width:120px; color:var(--text-dim); }
+  .cat-tabs{ display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .cat-tab{
+    background:var(--surface); border:1px solid var(--line); color:var(--text-dim);
+    padding:8px 18px; border-radius:100px; cursor:pointer; font-family:var(--font-body); font-size:13px;
+  }
+  .cat-tab:hover{ color:var(--text); }
+  .cat-tab.active{ background:var(--lime); color:#0B0F14; border-color:var(--lime); font-weight:600; }
+  .cat-badge{ font-size:11px; padding:2px 8px; border-radius:100px; border:1px solid var(--line); color:var(--text-dim); white-space:nowrap; display:inline-block; }
+  .cat-badge.notice{ color:#F5B84B; border-color:rgba(245,184,75,.4); }
+  tr.notice-row{ background:rgba(245,184,75,.05); }
+  .free-table .c-date{ width:110px; color:var(--text-dim); font-size:12px; }
+  .free-table .c-num{ width:60px; text-align:right; color:var(--text-dim); font-family:var(--font-mono); font-size:12px; }
+  .free-table td.c-num{ text-align:right; }
+  .free-empty{ text-align:center; color:var(--text-dim); padding:40px 0; }
+  /* 글 상세 */
+  .free-read{ background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:24px; margin-bottom:20px; }
+  .free-read .fr-title{ font-family:var(--font-display); font-size:22px; font-weight:700; margin-bottom:8px; }
+  .free-read .fr-meta{ font-size:12px; color:var(--text-dim); margin-bottom:8px; display:flex; gap:14px; flex-wrap:wrap; }
+  .free-read .fr-body{ font-size:15px; line-height:1.7; white-space:pre-wrap; color:var(--text); padding:18px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); margin-bottom:16px; }
+  .free-read .fr-actions{ display:flex; gap:10px; }
+  .like-btn{
+    background:none; border:1px solid var(--line); color:var(--text-dim);
+    padding:8px 18px; border-radius:100px; cursor:pointer; font-family:var(--font-body); font-size:13px;
+  }
+  .like-btn:hover{ color:var(--lime); border-color:var(--lime); }
+  .free-input{
+    background:var(--bg); border:1px solid var(--line); color:var(--text);
+    border-radius:10px; padding:12px 14px; font-family:var(--font-body); font-size:14px;
+    outline:none; resize:vertical;
+  }
+  .free-input:focus{ border-color:var(--lime); }
+  .free-write .search-btn{ align-self:flex-end; }
+  .free-image-row{ display:flex; align-items:center; gap:10px; }
+  .img-upload-btn{
+    display:inline-block; background:var(--surface-2); border:1px solid var(--line);
+    color:var(--text); padding:8px 16px; border-radius:8px; cursor:pointer; font-size:13px;
+  }
+  .img-upload-btn:hover{ border-color:var(--lime); }
+  .fr-image{ max-width:100%; border-radius:10px; margin:12px 0; }
+  .free-post{
+    background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    padding:16px 18px; margin-bottom:10px;
+  }
+  .free-post .fp-title{ font-weight:600; margin-bottom:4px; }
+  .free-post .fp-meta{ font-size:12px; color:var(--text-dim); margin-bottom:8px; }
+  .free-post .fp-body{ font-size:14px; color:var(--text); white-space:pre-wrap; line-height:1.5; }
+  .report-btn{
+    background:none; border:1px solid var(--red); color:var(--red);
+    font-size:12px; padding:6px 14px; border-radius:100px; cursor:pointer; font-family:var(--font-body);
+  }
+  .report-btn:hover{ background:var(--red); color:#0B0F14; }
+  .b-name-link{ cursor:pointer; }
+  .b-name-link:hover{ color:var(--lime); text-decoration:underline; }
+  /* 신고 선수 상세 (댓글) */
+  .rd-head{
+    display:flex; align-items:center; gap:12px; margin-bottom:8px;
+  }
+  .rd-head .class-chip{ font-size:12px; }
+  .rd-current{ color:var(--text-dim); font-size:14px; margin-bottom:24px; }
+  .comment-write{ display:flex; gap:8px; margin-bottom:20px; }
+  .comment-write input{
+    flex:1; background:var(--bg); border:1px solid var(--line); color:var(--text);
+    border-radius:10px; padding:12px 14px; font-family:var(--font-body); font-size:14px; outline:none;
+  }
+  .comment-write input:focus{ border-color:var(--lime); }
+  .comment-item{
+    background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    padding:14px 16px; margin-bottom:10px;
+  }
+  .comment-item .ci-meta{ font-size:12px; color:var(--text-dim); margin-bottom:6px; display:flex; gap:10px; }
+  .comment-item .ci-nick{ color:var(--lime); }
+  .comment-item .ci-body{ font-size:14px; line-height:1.5; white-space:pre-wrap; }
+
+  /* 달성률 페이지 */
+  .stat-summary{
+    display:flex; gap:16px; flex-wrap:wrap; margin-bottom:28px;
+  }
+  .stat-box{
+    background:var(--surface); border:1px solid var(--line); border-radius:14px;
+    padding:18px 24px; flex:1; min-width:150px;
+  }
+  .stat-box .sv{ font-family:var(--font-display); font-size:30px; font-weight:700; color:var(--lime); }
+  .stat-box .sl{ font-size:13px; color:var(--text-dim); margin-top:4px; }
+  .ach-row{
+    display:flex; align-items:center; gap:14px;
+    padding:12px 0; border-bottom:1px solid var(--line);
+  }
+  .ach-row .a-season{ display:flex; align-items:center; gap:8px; width:170px; flex-shrink:0; }
+  .ach-row .a-season img{ width:18px; height:18px; object-fit:contain; }
+  .ach-row .a-season .code{ font-family:var(--font-mono); font-size:13px; }
+  .ach-bar{ flex:1; height:8px; background:var(--surface-2); border-radius:100px; overflow:hidden; }
+  .ach-bar span{ display:block; height:100%; background:var(--lime); border-radius:100px; }
+  .ach-row .a-num{ font-family:var(--font-mono); font-size:12px; color:var(--text-dim); width:110px; text-align:right; flex-shrink:0; }
+  .ach-row .a-pct{ font-family:var(--font-display); font-weight:700; width:56px; text-align:right; flex-shrink:0; }
+
+  /* 즐겨찾기 */
+  .fav-btn{
+    margin-left:auto;
+    background:none; border:none; cursor:pointer;
+    font-size:18px; line-height:1;
+    color: var(--text-dim);
+    padding:2px 4px;
+    transition: transform .12s;
+  }
+  .fav-btn:hover{ transform: scale(1.15); }
+  .fav-btn.on{ color:#F5B84B; }
+  .fav-row{
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    padding:14px 18px; margin-bottom:10px; flex-wrap:wrap;
+    cursor:pointer;
+  }
+  .fav-row:hover{ border-color: var(--text-dim); }
+  .fav-row .f-left{ display:flex; align-items:center; gap:12px; }
+  .fav-row .f-name{ font-weight:600; }
+  .fav-row .f-right{ display:flex; align-items:center; gap:16px; }
+  .fav-row .f-timer{ font-family:var(--font-mono); font-size:13px; color:var(--lime); }
+  .fav-row .f-refresh{ font-size:12px; color:var(--text-dim); }
+  .fav-remove{
+    background:none; border:1px solid var(--line); color:var(--text-dim);
+    font-size:12px; padding:6px 12px; border-radius:100px; cursor:pointer;
+  }
+  .fav-remove:hover{ color:var(--red); border-color:var(--red); }
+
+  /* ---------- HEADER ---------- */
+  header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 22px 16px 22px 40px;
+    max-width: none;
+    margin: 0 auto;
+    gap: 16px;
+    position: relative;
+  }
+  .logo{
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 24px;
+    letter-spacing: 0.5px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .logo .dot{
+    width:8px; height:8px; border-radius:50%;
+    background: var(--lime);
+    box-shadow: 0 0 10px var(--lime);
+  }
+  nav{ display:flex; gap:32px; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); }
+  nav a{
+    font-size: 14px;
+    color: var(--text-dim);
+    font-weight: 500;
+    transition: color .15s;
+  }
+  nav a:hover{ color: var(--text); }
+  .nav-cta{
+    border: 1px solid var(--line);
+    padding: 8px 18px;
+    border-radius: 100px;
+    font-size: 13px;
+    color: var(--text) !important;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 90px 24px 60px;
+    text-align: center;
+  }
+  .eyebrow{
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--lime);
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+  }
+  h1{
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 58px;
+    line-height: 1.08;
+    letter-spacing: -0.5px;
+  }
+  h1 .accent{ color: var(--lime); }
+  .hero p.sub{
+    margin-top: 20px;
+    color: var(--text-dim);
+    font-size: 16px;
+    max-width: 480px;
+    margin-left:auto; margin-right:auto;
+  }
+
+  /* ---------- SEARCH ---------- */
+  .search-box{
+    margin-top: 40px;
+    position: relative;
+    max-width: 560px;
+    margin-left:auto; margin-right:auto;
+  }
+  .search-input-row{
+    display:flex;
+    align-items:center;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 6px 6px 6px 20px;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .search-input-row:focus-within{
+    border-color: var(--lime);
+    box-shadow: 0 0 0 3px rgba(196,255,61,0.12);
+  }
+  .search-input-row svg{ flex-shrink:0; color: var(--text-dim); }
+  .search-input-row input[type="text"]{
+    flex:1;
+    background:none;
+    border:none;
+    outline:none;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 16px;
+    padding: 14px 12px;
+    min-width: 0;
+  }
+  .search-input-row input[type="text"]::placeholder{ color: #4E5C6C; }
+  /* 시즌 선택 드롭다운 */
+  .season-select-btn{
+    display:flex; align-items:center; gap:6px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    color: var(--text);
+    border-radius: 10px;
+    padding: 11px 14px;
+    margin-right: 6px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 14px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .season-select-btn:hover{ border-color: var(--text-dim); }
+  .season-select-btn img{ width:16px; height:16px; object-fit:contain; }
+  .season-select-btn .sd-caret{ color: var(--text-dim); font-size:11px; margin-left:2px; }
+  .season-dropdown{
+    display:none;
+    position:absolute; z-index:60; top:64px; left:0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    width: 280px;
+    max-height: 380px;
+    overflow-y:auto;
+    padding: 6px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.5);
+    text-align:left;
+  }
+  .season-dropdown.show{ display:block; }
+  .season-dropdown .sd-filter{
+    width:100%;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 13px;
+    outline:none;
+    margin-bottom: 6px;
+    position: sticky; top: 0;
+  }
+  .season-dropdown .sd-filter:focus{ border-color: var(--lime); }
+  .sd-item{
+    display:flex; align-items:center; gap:8px;
+    padding: 9px 10px;
+    border-radius: 8px;
+    cursor:pointer;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .sd-item:hover{ background: var(--surface-2); }
+  .sd-item.active{ color: var(--lime); font-weight:600; }
+  .sd-item img{ width:18px; height:18px; object-fit:contain; }
+  .search-btn{
+    background: var(--lime);
+    color: #0B0F14;
+    border:none;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 15px;
+    padding: 12px 24px;
+    border-radius: 10px;
+    cursor:pointer;
+    transition: transform .12s;
+  }
+  .search-btn:hover{ transform: translateY(-1px); }
+  .search-btn:active{ transform: translateY(0); }
+
+  .results{
+    margin-top: 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow:hidden;
+    overflow-y:auto;
+    max-height: 480px;
+    text-align:left;
+    display:none;
+  }
+  .results.show{ display:block; }
+  .result-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line);
+    cursor:pointer;
+    transition: background .1s;
+  }
+  .result-row:last-child{ border-bottom:none; }
+  .result-row:hover{ background: var(--surface-2); }
+  .result-left{ display:flex; align-items:center; gap:12px; }
+  .result-badge{
+    width:36px; height:36px;
+    border-radius: 8px;
+    background: var(--surface-2);
+    display:flex; align-items:center; justify-content:center;
+    font-family: var(--font-display);
+    font-weight:700;
+    font-size: 14px;
+    color: var(--text-dim);
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .result-badge img{
+    position:absolute; inset:0;
+    width:100%; height:100%;
+    object-fit:cover; object-position:top;
+    background: var(--surface-2);
+  }
+  .p-card .p-photo{
+    width:64px; height:64px;
+    border-radius:12px;
+    object-fit:cover; object-position:top;
+    background: var(--surface-2);
+    float:right;
+    margin-left:10px;
+  }
+  .result-name{ font-weight:600; font-size:15px; display:flex; align-items:center; gap:7px; }
+  .class-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    color: var(--lime);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    padding: 2px 8px;
+    border-radius: 100px;
+    white-space: nowrap;
+  }
+  .class-chip img{
+    width: 14px;
+    height: 14px;
+    object-fit: contain;
+    display:block;
+  }
+  .result-meta{ font-size:12px; color: var(--text-dim); margin-top:2px; }
+  .result-right{ text-align:right; font-family: var(--font-mono); }
+  .result-timer{ font-size: 14px; color: var(--lime); font-weight:600; }
+  .timer-soon{ color: var(--red) !important; }
+  /* 갱신 정각: 무지개 광택이 흐르며 번쩍이는 텍스트 */
+  .timer-now{
+    font-weight: 700;
+    background: linear-gradient(100deg, #C4FF3D 0%, #7CF6FF 25%, #FF5C6A 50%, #FFD34E 75%, #C4FF3D 100%);
+    background-size: 300% auto;
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; color: transparent;
+    animation: timerNowShine 1.4s linear infinite, timerNowBlink 1s ease-in-out infinite;
+  }
+  @keyframes timerNowShine{ to{ background-position: 300% center; } }
+  @keyframes timerNowBlink{ 0%,100%{ opacity:1; } 50%{ opacity:.45; } }
+  /* 갱신 구간(20분)이지만 반짝임 시간대(0~15초)가 아닐 때: 고정 강조 */
+  .timer-hot{ color: var(--lime) !important; font-weight: 700; }
+  @media (prefers-reduced-motion: reduce){
+    .timer-now{ animation: none; }
+  }
+  .toast-box{
+    position: fixed; right: 20px; bottom: 20px; z-index: 200;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .toast{
+    background: var(--surface); border: 1px solid var(--lime);
+    color: var(--text); padding: 14px 18px; border-radius: 12px;
+    font-size: 14px; max-width: 320px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.4);
+    animation: toast-in .2s ease;
+  }
+  @keyframes toast-in{ from{ opacity:0; transform: translateY(10px); } to{ opacity:1; transform:none; } }
+  .no-result{ padding: 20px; color: var(--text-dim); font-size:14px; text-align:center; }
+
+  .tag:hover{ color: var(--text); border-color: var(--text-dim); }
+
+  /* ---------- STATS STRIP ---------- */
+  .stats{
+    max-width: 900px;
+    margin: 70px auto 0;
+    display:flex;
+    justify-content:center;
+    gap: 60px;
+    padding: 0 24px;
+  }
+  .stat{ text-align:center; }
+  .stat .num{
+    font-family: var(--font-display);
+    font-size: 40px;
+    font-weight: 700;
+    color: var(--lime);
+  }
+  .stat .label{ font-size: 13px; color: var(--text-dim); margin-top:4px; }
+
+  /* ---------- HOW IT WORKS ---------- */
+  .section{
+    max-width: 1000px;
+    margin: 130px auto 0;
+    padding: 0 24px;
+  }
+  .section-head{ text-align:center; margin-bottom: 56px; }
+  .section-eyebrow{
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--lime);
+    letter-spacing: 2px;
+    margin-bottom: 14px;
+  }
+  .section-title{
+    font-family: var(--font-display);
+    font-size: 36px;
+    font-weight: 700;
+  }
+  .steps{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .step{
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 30px 26px;
+  }
+  .step-num{
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 20px;
+  }
+  .step h3{
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .step p{ font-size: 14px; color: var(--text-dim); }
+
+  /* ---------- LIVE PANEL ---------- */
+  .panel{
+    margin-top: 130px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 44px;
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items:center;
+  }
+  .panel h2{
+    font-family: var(--font-display);
+    font-size: 34px;
+    font-weight: 700;
+    line-height:1.15;
+  }
+  .panel h2 span{ color: var(--lime); }
+  .panel p{ color: var(--text-dim); font-size: 14px; margin-top:16px; max-width:380px; }
+  .clock-visual{
+    display:flex; justify-content:center;
+  }
+  .clock{
+    width: 220px; height:220px;
+    border-radius:50%;
+    border: 2px solid var(--line);
+    position:relative;
+    background: radial-gradient(circle at 50% 50%, var(--surface-2), var(--bg));
+  }
+  .clock .center-dot{
+    position:absolute; top:50%; left:50%;
+    width:8px; height:8px; border-radius:50%;
+    background: var(--lime);
+    transform: translate(-50%,-50%);
+  }
+  .clock .hand{
+    position:absolute; bottom:50%; left:50%;
+    width:2px; background: var(--lime);
+    transform-origin: bottom center;
+  }
+  .clock .hand.min{ height:80px; transform: translateX(-50%) rotate(0deg); animation: spin 8s linear infinite; }
+  .clock .hand.hr{ height:55px; background: var(--text-dim); transform: translateX(-50%) rotate(45deg); }
+  @keyframes spin{ from{ transform: translateX(-50%) rotate(0deg);} to{ transform: translateX(-50%) rotate(360deg);} }
+  .clock .tick-label{
+    position:absolute; bottom: -34px; left:50%; transform:translateX(-50%);
+    font-family: var(--font-mono); font-size:12px; color: var(--text-dim);
+  }
+
+  /* ---------- FOOTER ---------- */
+  footer{
+    margin-top: 130px;
+    border-top: 1px solid var(--line);
+    padding: 40px 24px 60px;
+    text-align:center;
+  }
+  footer .logo{ justify-content:center; margin-bottom: 12px; font-size:18px; }
+  footer p{ font-size: 13px; color: var(--text-dim); }
+  footer .foot-links{ margin-top: 18px; display:flex; justify-content:center; gap:20px; }
+  footer .foot-links a{ font-size:13px; color: var(--text-dim); }
+  footer .foot-links a:hover{ color: var(--text); }
+
+  /* 모바일 햄버거 메뉴 */
+  .menu-btn{
+    display:none;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    color: var(--text);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .mobile-menu{
+    display:none;
+    position: fixed;
+    top: 62px;
+    right: 12px;
+    z-index: 95;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 8px;
+    min-width: 190px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.55);
+  }
+  .mobile-menu.show{ display:block; }
+  .mobile-menu a{
+    display:block;
+    padding: 13px 16px;
+    border-radius: 8px;
+    font-size: 15px;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .mobile-menu a:hover{ background: var(--surface-2); }
+
+  @media (max-width: 720px){
+    header{ padding: 12px 12px 12px 16px; gap: 8px; }
+    .logo{ font-size: 19px; white-space: nowrap; flex-shrink: 0; }
+    nav{ display:none; }
+    .menu-btn{ display:inline-flex; }
+    .user-chip{ flex-wrap: wrap; white-space: normal; justify-content: flex-end; gap: 5px; }
+    .user-chip .nick{ display:none; }   /* 좁은 화면에선 닉네임 생략해 한 줄 유지 */
+    .alarm-select{ max-width: 96px; font-size: 11px; padding: 6px 6px; }
+    .user-chip .logout-btn{ padding: 6px 9px; font-size: 11px; }
+    .sound-btn{ padding: 6px 8px; }
+    .mm-hide{ display:none !important; }   /* 모바일: 로그아웃 외 사용자 버튼은 햄버거 메뉴로 */
+    h1{ font-size: 38px; }
+    .stats{ gap: 30px; }
+    .stat .num{ font-size: 30px; }
+    .steps{ grid-template-columns: 1fr; }
+    .panel{ grid-template-columns: 1fr; padding: 30px 24px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .clock .hand.min{ animation: none; }
+  }
+</style>
+</head>
+<body>
+
+  <header>
+    <div class="logo" onclick="showHome()" style="cursor:pointer;"><span class="dot"></span>FC알리미</div>
+    <nav>
+      <a href="#how" onclick="showHome()">이용 방법</a>
+      <a href="#" onclick="showAchievement(); return false;">시즌별 달성률</a>
+      <a href="#" onclick="showBoardHub(); return false;">커뮤니티</a>
+      <a href="#" onclick="showFavorites(); return false;">즐겨찾기</a>
+    </nav>
+    <div style="display:flex; align-items:center; gap:8px; margin-left:auto; min-width:0;">
+      <a href="#" class="nav-cta" id="loginBtn" onclick="openAuth(); return false;">로그인</a>
+      <div class="user-chip" id="userChip">
+        <span class="nick" id="userNick"></span>
+        <select id="alarmLead" class="alarm-select mm-hide" onchange="onAlarmLeadChange(this)" title="갱신 몇 분 전에 알림">
+          <option value="3">3분 전 알림</option>
+          <option value="5">5분 전 알림</option>
+          <option value="10">10분 전 알림</option>
+          <option value="1+10">10분 전 + 1분 전 알림</option>
+          <option value="custom">사용자 설정…</option>
+        </select>
+        <button class="logout-btn mm-hide" onclick="openProfile()" title="닉네임·비밀번호 변경">내 정보</button>
+        <button class="logout-btn" onclick="logout()">로그아웃</button>
+        <button class="logout-btn mm-hide" onclick="testAlarm()" title="알림이 뜨는지 확인">알림 테스트</button>
+        <button id="soundToggle" class="sound-btn mm-hide" onclick="toggleSound()" title="알림 소리">🔔</button>
+      </div>
+      <button id="menuBtn" class="menu-btn" onclick="toggleMobileMenu(event)" title="메뉴">☰</button>
+    </div>
+  </header>
+
+  <!-- 모바일 메뉴 (720px 이하에서 ☰ 버튼으로 열림) -->
+  <div id="mobileMenu" class="mobile-menu">
+    <a onclick="mmNav('how')">이용 방법</a>
+    <a onclick="mmNav('ach')">시즌별 달성률</a>
+    <a onclick="mmNav('board')">커뮤니티</a>
+    <a onclick="mmNav('fav')">즐겨찾기</a>
+    <div id="mmUserSec" style="display:none; border-top:1px solid var(--line); margin-top:6px; padding-top:6px;">
+      <a onclick="closeMobileMenu(); openProfile();">👤 내 정보</a>
+      <a onclick="closeMobileMenu(); openCustomLead();">⏰ 알림 시점 설정</a>
+      <a onclick="closeMobileMenu(); testAlarm();">🔎 알림 테스트</a>
+      <a id="mmSound" onclick="toggleSound();">🔔 알림 소리 켜짐</a>
+    </div>
+  </div>
+
+  <!-- 로그인/회원가입 모달 -->
+  <div class="modal-overlay" id="authOverlay" onclick="if(event.target===this) closeAuth()">
+    <div class="modal">
+      <button class="modal-close" onclick="closeAuth()">&times;</button>
+      <h2 id="authTitle">로그인</h2>
+      <p class="modal-sub" id="authSub">알림 목록을 저장하려면 로그인하세요.</p>
+
+      <div id="nickField" style="display:none;">
+        <label for="authNick">닉네임</label>
+        <input type="text" id="authNick" placeholder="사용할 닉네임" autocomplete="nickname">
+      </div>
+
+      <label for="authId">아이디</label>
+      <input type="text" id="authId" placeholder="영문/숫자 4자 이상" autocomplete="username">
+
+      <label for="authPw">비밀번호</label>
+      <input type="password" id="authPw" placeholder="8자 이상" autocomplete="current-password">
+
+      <div class="auth-error" id="authError"></div>
+      <button class="auth-submit" id="authSubmit" onclick="submitAuth()">로그인</button>
+
+      <div class="auth-switch" id="authSwitch">
+        계정이 없으신가요?<a onclick="toggleAuthMode()">회원가입</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 신고 확인 모달 -->
+  <div class="modal-overlay" id="flagOverlay" onclick="if(event.target===this) closeFlagModal()">
+    <div class="modal">
+      <button class="modal-close" onclick="closeFlagModal()">&times;</button>
+      <h2>틀린 시간 신고</h2>
+      <p class="modal-sub">갱신시간은 2시간 거래량이 바뀐 후 0~20분 사이에 갱신됩니다. 이를 인지하셨나요?</p>
+      <label for="flagSign">확인하셨다면 아래 칸에 <b style="color:var(--lime);">인지</b> 라고 입력 후 신고해주세요.</label>
+      <div style="display:flex; align-items:center; gap:10px; margin-top:6px;">
+        <input type="text" id="flagSign" placeholder="인지" maxlength="4" style="width:130px; flex:0 0 auto;">
+        <span style="font-size:16px; font-weight:600; color:var(--text);">했습니다</span>
+      </div>
+      <div class="auth-error" id="flagError"></div>
+      <button class="auth-submit dim" id="flagSubmitBtn" onclick="submitFlag()">신고하기</button>
+    </div>
+  </div>
+
+  <!-- 내 정보 (닉네임·비밀번호 변경) -->
+  <div class="modal-overlay" id="profileOverlay" onclick="if(event.target===this) closeProfile()">
+    <div class="modal">
+      <button class="modal-close" onclick="closeProfile()">&times;</button>
+      <h2>내 정보</h2>
+      <p class="modal-sub" id="profileIdLine"></p>
+      <label for="profNick">닉네임</label>
+      <input type="text" id="profNick" maxlength="12" autocomplete="nickname">
+      <label for="profPw1">새 비밀번호 (변경할 때만 입력)</label>
+      <input type="password" id="profPw1" placeholder="8자 이상" autocomplete="new-password">
+      <label for="profPw2">새 비밀번호 확인</label>
+      <input type="password" id="profPw2" autocomplete="new-password">
+      <div class="auth-error" id="profileError"></div>
+      <button class="auth-submit" onclick="submitProfile()">저장</button>
+    </div>
+  </div>
+
+  <!-- 사용자 알림 시점 설정 팝업 -->
+  <div class="modal-overlay" id="leadOverlay" onclick="if(event.target===this) closeCustomLead()">
+    <div class="modal">
+      <button class="modal-close" onclick="closeCustomLead()">&times;</button>
+      <h2>사용자 알림 설정</h2>
+      <p class="modal-sub">갱신 몇 분 전에 알림을 받을지 입력하세요. 최대 2개까지, 각 0~30분. (예: 15분 + 2분)</p>
+      <label for="leadInput1">첫 번째 알림 (분 전)</label>
+      <input type="number" id="leadInput1" min="0" max="30" placeholder="예: 15">
+      <label for="leadInput2">두 번째 알림 (분 전 · 선택)</label>
+      <input type="number" id="leadInput2" min="0" max="30" placeholder="예: 2 (선택 입력)">
+      <div class="auth-error" id="leadError"></div>
+      <button class="auth-submit" onclick="submitCustomLead()">저장</button>
+    </div>
+  </div>
+
+  <!-- 갱신 알림 팝업 (확인 전까지 소리 반복) -->
+  <div class="modal-overlay" id="alarmOverlay">
+    <div class="modal" style="text-align:center; border-color:var(--lime);">
+      <h2 style="color:var(--lime);">🔔 갱신 알림</h2>
+      <p class="modal-sub" id="alarmMsg" style="font-size:15px; color:var(--text); margin-bottom:20px;"></p>
+      <div id="alarmMore" style="font-size:13px; color:var(--text-dim); margin-bottom:20px; display:none;"></div>
+      <button class="auth-submit" onclick="dismissAlarm()">확인</button>
+    </div>
+  </div>
+
+  <!-- 모바일앱 QR 팝업 -->
+  <div class="modal-overlay" id="qrOverlay" onclick="if(event.target===this) closeAppQR()">
+    <div class="modal" style="text-align:center;">
+      <button class="modal-close" onclick="closeAppQR()">&times;</button>
+      <h2>모바일에서 이어보기</h2>
+      <p class="modal-sub">휴대폰 카메라로 QR을 스캔하면 모바일에서 FC알리미를 바로 열 수 있어요.</p>
+      <div id="qrBox" style="display:flex; justify-content:center; align-items:center; padding:16px; background:#fff; border-radius:12px; margin:12px auto; width:fit-content; min-width:200px; min-height:200px;"></div>
+      <p style="font-size:12px; color:var(--text-dim); margin-top:8px; word-break:break-all;" id="qrUrl"></p>
+    </div>
+  </div>
+
+  <main id="viewHome">
+  <section class="hero">
+    <div class="eyebrow">FC ONLINE 가격 갱신 알리미</div>
+    <h1>갱신 시간, <span class="accent">이제 외우지 마세요</span></h1>
+    <p class="sub">선수마다 다른 갱신 시간을 자동으로 추적하고, 거래량이 발생하면 기준가가 바뀌기 전에 알려드려요.</p>
+
+    <div class="search-box" id="search">
+      <div class="search-input-row">
+        <button type="button" class="season-select-btn" id="seasonSelectBtn" onclick="toggleSeasonDropdown(event)">클래스 선택 <span class="sd-caret">▾</span></button>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="playerSearch" placeholder="선수 이름을 검색하세요 (예: 호날두)" autocomplete="off">
+        <button class="search-btn" onclick="goSearch()">검색</button>
+      </div>
+      <div class="season-dropdown" id="seasonDropdown"></div>
+      <div class="results" id="results"></div>
+    </div>
+  </section>
+
+  <div class="stats">
+    <div class="stat"><div class="num" id="statConfirmed">0</div><div class="label">갱신시간 등록선수</div></div>
+    <div class="stat"><div class="num" id="statAlerts">0</div><div class="label">오늘 발송된 알림</div></div>
+    <div class="stat"><div class="num" id="statNew">0</div><div class="label">신규 등록된 선수</div></div>
+  </div>
+
+  <section class="section" id="how">
+    <div class="section-head">
+      <div class="section-eyebrow">사용법</div>
+      <h2 class="section-title">3단계면 충분해요</h2>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01 / 검색</div>
+        <h3>선수를 검색하세요</h3>
+        <p>이름만 입력하면 해당 선수의 갱신 시간을 바로 찾아드려요.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02 / 등록</div>
+        <h3>즐겨찾기에 추가하세요</h3>
+        <p>관심 있는 선수를 등록하면 갱신 시간마다 자동으로 추적을 시작해요.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03 / 알림</div>
+        <h3>기준가 변경 전에 알려드려요</h3>
+        <p>거래량이 발생해 20분 이내 기준가가 바뀔 가능성이 있으면 바로 알림을 보내요.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="alerts">
+    <div class="panel">
+      <div>
+        <h2>선수마다 <span>다른 갱신 시간</span>,<br>이제 헷갈리지 않아도 돼요</h2>
+        <p>홀수시 55분, 짝수시 10분처럼 선수별로 제각각인 갱신 시간을 FC알리미가 대신 기억하고, 거래량이 발생한 순간부터 카운트를 시작해요.</p>
+      </div>
+      <div class="clock-visual">
+        <div class="clock">
+          <div class="hand hr"></div>
+          <div class="hand min"></div>
+          <div class="center-dot"></div>
+          <div class="tick-label">다음 갱신까지</div>
+        </div>
+      </div>
+    </div>
+  </section>
+  </main>
+
+  <!-- 선수 상세 (시즌별 카드) -->
+  <main id="viewPlayer" class="subpage" style="display:none;">
+    <div class="search-box board-search">
+      <div class="search-input-row">
+        <button type="button" class="season-select-btn" id="seasonSelectBtn2" onclick="toggleSeasonDropdown(event, '2')">클래스 선택 <span class="sd-caret">▾</span></button>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="playerSearch2" placeholder="선수 이름을 검색하세요 (예: 호날두)" autocomplete="off">
+        <button class="search-btn" onclick="goSearchFrom('playerSearch2')">검색</button>
+      </div>
+      <div class="season-dropdown" id="seasonDropdown2"></div>
+      <div class="results" id="results2"></div>
+    </div>
+    <h1 id="playerTitle"></h1>
+    <p class="page-sub" id="playerSub"></p>
+    <div class="card-grid" id="playerCards"></div>
+  </main>
+
+  <!-- 커뮤니티 허브 -->
+  <main id="viewBoardHub" class="subpage" style="display:none;">
+    <h1>커뮤니티</h1>
+    <p class="page-sub">원하는 게시판을 선택하세요.</p>
+    <div class="board-menu">
+      <div class="board-menu-card" onclick="showFreeBoard()">
+        <div class="bm-title">자유게시판</div>
+        <div class="bm-desc">유저들과 자유롭게 이야기를 나눠보세요.</div>
+      </div>
+      <div class="board-menu-card" onclick="showBoard()">
+        <div class="bm-title">유저참여게시판</div>
+        <div class="bm-desc">갱신 시간이 미등록된 선수의 시간을 제보해주세요.</div>
+      </div>
+      <div class="board-menu-card" onclick="showReportBoard()">
+        <div class="bm-title">신고게시판</div>
+        <div class="bm-desc">틀린 갱신 시간이 있다면 신고해주세요.</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 자유게시판 (목록/글쓰기/글보기) -->
+  <main id="viewFreeBoard" class="subpage" style="display:none;">
+    <h1>자유게시판</h1>
+
+    <!-- 목록 화면 -->
+    <div id="freeListView">
+      <div class="cat-tabs">
+        <button class="cat-tab active" data-cat="전체" onclick="setFreeCat('전체')">전체</button>
+        <button class="cat-tab" data-cat="공지사항" onclick="setFreeCat('공지사항')">공지사항</button>
+        <button class="cat-tab" data-cat="자유" onclick="setFreeCat('자유')">자유</button>
+        <button class="cat-tab" data-cat="기능문의" onclick="setFreeCat('기능문의')">기능문의</button>
+      </div>
+      <div class="free-toolbar" style="justify-content:flex-end;">
+        <button class="write-btn" onclick="openFreeWrite()">글쓰기</button>
+      </div>
+      <table class="free-table">
+        <thead>
+          <tr><th class="c-cat">분류</th><th class="c-title">제목</th><th class="c-nick">작성자</th><th class="c-date">등록일</th><th class="c-num">조회</th><th class="c-num">추천</th></tr>
+        </thead>
+        <tbody id="freeTableBody"></tbody>
+      </table>
+      <div class="free-search free-search-bottom">
+        <select id="freeSearchField" class="free-select">
+          <option value="title">제목</option>
+          <option value="nick">작성자</option>
+        </select>
+        <input type="text" id="freeSearchInput" class="free-search-input" placeholder="검색어를 입력하세요" autocomplete="off">
+        <button class="search-btn" onclick="renderFreePosts()">검색</button>
+      </div>
+    </div>
+
+    <!-- 글쓰기 화면 -->
+    <div id="freeWriteView" style="display:none;">
+      <div class="free-write">
+        <select id="freeCategory" class="free-input" style="cursor:pointer;">
+          <option value="자유">자유</option>
+          <option value="기능문의">기능문의</option>
+          <option value="공지사항" id="catNoticeOpt">공지사항 (관리자)</option>
+        </select>
+        <input type="text" id="freeTitle" class="free-input" placeholder="제목" maxlength="60">
+        <textarea id="freeBody" class="free-input" placeholder="내용을 입력하세요" rows="6" maxlength="2000"></textarea>
+        <div class="free-image-row">
+          <span style="font-size:12px; color:var(--text-dim);">💡 이미지를 복사한 뒤 내용란에 붙여넣기(Ctrl+V) 하면 사진이 첨부돼요.</span>
+          <span id="freeImageName" style="font-size:12px; color:var(--text-dim);"></span>
+          <button type="button" id="freeImageClear" onclick="clearFreeImage()" style="display:none; background:none; border:1px solid var(--line); color:var(--text-dim); border-radius:100px; padding:4px 12px; font-size:12px; cursor:pointer;">사진 제거</button>
+        </div>
+        <img id="freeImagePreview" style="display:none; max-width:100%; max-height:220px; border-radius:10px; margin-top:4px; object-fit:contain;">
+        <div class="free-write-actions">
+          <button class="back-btn" style="margin:0;" onclick="closeFreeWrite()">취소</button>
+          <button class="search-btn" onclick="submitFreePost()">등록</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 글 상세 화면 -->
+    <div id="freeReadView" style="display:none;">
+      <div class="free-read" id="freeReadBox"></div>
+      <button class="back-btn" onclick="closeFreeRead()">&larr; 목록으로</button>
+    </div>
+  </main>
+
+  <!-- 유저참여게시판: 미등록 선수 갱신시간 제보 -->
+  <main id="viewBoard" class="subpage" style="display:none;">
+    <h1 style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">유저참여게시판
+      <button class="write-btn" id="exportReportsBtn" style="display:none; font-size:13px; padding:8px 16px;" onclick="exportReportsCSV()">📥 제보 목록 내보내기 (CSV)</button>
+    </h1>
+    <p class="page-sub">갱신 시간이 아직 등록되지 않은 선수를 검색하고, 알고 있는 갱신 시간을 제보해주세요. 제보가 모이면 데이터에 반영됩니다.</p>
+    <div class="search-box board-search">
+      <div class="search-input-row">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="boardSearch" placeholder="미등록 선수 이름을 검색하세요" autocomplete="off">
+        <button class="search-btn" onclick="runBoardSearch()">검색</button>
+      </div>
+    </div>
+    <div id="boardResults"></div>
+  </main>
+
+  <!-- 신고게시판: 등록된 선수의 틀린 갱신시간 신고 -->
+  <main id="viewReportBoard" class="subpage" style="display:none;">
+    <h1>신고게시판</h1>
+    <p class="page-sub">틀린 갱신 시간이 있다면 신고해주세요. 갱신 시간이 등록된 선수를 검색해 신고할 수 있습니다.</p>
+    <div class="search-box board-search">
+      <div class="search-input-row">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="reportSearch" placeholder="등록된 선수 이름을 검색하세요" autocomplete="off">
+        <button class="search-btn" onclick="runReportSearch()">검색</button>
+      </div>
+    </div>
+    <div id="reportResults"></div>
+  </main>
+
+  <!-- 신고 선수 상세 (댓글) -->
+  <main id="viewReportDetail" class="subpage" style="display:none;">
+    <button class="back-btn" onclick="history.back()">&larr; 뒤로가기</button>
+    <div class="rd-head" id="rdHead"></div>
+    <div class="rd-current" id="rdCurrent"></div>
+    <div class="comment-write">
+      <input type="text" id="commentInput" placeholder="댓글을 입력하세요" maxlength="300" autocomplete="off">
+      <button class="search-btn" onclick="submitComment()">등록</button>
+    </div>
+    <div id="commentList"></div>
+  </main>
+
+  <!-- 즐겨찾기 -->
+  <main id="viewFavorites" class="subpage" style="display:none;">
+    <h1 style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">즐겨찾기
+      <button class="write-btn" onclick="openAppQR()" style="font-size:13px; padding:8px 16px;">📱 모바일앱 바로가기</button>
+      <span id="favClock" style="font-family:var(--font-mono); font-size:36px; font-weight:700; color:var(--text); letter-spacing:1px;" title="현재 시각 · 15초 카운트"></span>
+    </h1>
+    <p class="page-sub" id="favSub">자주 확인하는 카드를 모아두고 갱신 시간을 한눈에 확인하세요.</p>
+    <div id="favList"></div>
+  </main>
+
+  <!-- 시즌별 달성률 -->
+  <main id="viewAchievement" class="subpage" style="display:none;">
+    <h1>시즌별 달성률</h1>
+    <p class="page-sub">각 시즌(클래스)의 갱신 시간 등록 현황입니다. 유저 제보가 반영되면 함께 올라갑니다.</p>
+    <div class="stat-summary" id="achSummary"></div>
+    <div id="achList"></div>
+  </main>
+
+  <footer>
+    <div class="logo"><span class="dot"></span>FC알리미</div>
+    <p>FC Online 선수 가격 갱신 시간 추적 서비스 · 본 서비스는 넥슨(FC Online)과 관련이 없는 팬 제작 도구입니다.</p>
+    <p id="verTag" style="margin-top:8px; font-size:11px; color:#3E4C5C;">v28</p>
+    <div class="foot-links">
+      <a href="#search">선수 검색</a>
+      <a href="#how">이용 방법</a>
+      <a href="#alerts">알림 설정</a>
+    </div>
+  </footer>
+
+<script>
+  // ---------- 로드 오류 진단 ----------
+  // 초기화 중 오류가 나면 첫 오류를 페이지 하단 버전 태그에 표시해 원인 파악을 돕는다.
+  window.__fcErr = null;
+  window.addEventListener('error', function(e){
+    if(window.__fcErr) return;
+    window.__fcErr = (e.message || 'unknown') + (e.lineno ? (' @줄' + e.lineno) : '');
+    try{
+      var vt = document.getElementById('verTag');
+      if(vt) vt.textContent += ' · ⚠오류: ' + window.__fcErr;
+    }catch(_){}
+  });
+  document.addEventListener('DOMContentLoaded', function(){
+    try{
+      if(window.__fcErr){
+        var vt = document.getElementById('verTag');
+        if(vt && vt.textContent.indexOf('오류') === -1) vt.textContent += ' · ⚠오류: ' + window.__fcErr;
+      }
+    }catch(_){}
+  });
+
+  // ---------- 저장 데이터 자동 복구 ----------
+  // 배포 버전이 바뀌면 문제를 일으킬 수 있는 '임시 상태'만 자동 청소한다.
+  // 즐겨찾기·계정·게시글 등 중요한 데이터는 절대 건드리지 않는다.
+  // 큰 구조 변경이 있는 배포를 할 때 아래 숫자를 1 올려주세요.
+  const DATA_VER = '2';
+  (function sanitizeStorage(){
+    try{
+      const ls = window.localStorage;
+      // 1) 버전이 다르면 임시 상태 청소 (새로고침 화면 복원 상태 등)
+      if(ls.getItem('fc_data_ver') !== DATA_VER){
+        try{ sessionStorage.removeItem('fc_view_state'); }catch(e){}
+        ls.setItem('fc_data_ver', DATA_VER);
+      }
+      // 2) JSON 키가 깨져 있으면 그 키만 제거 (다른 데이터는 유지)
+      ['fc_users', 'fc_favs', 'fc_free_posts', 'fc_reports', 'fc_report_flags', 'fc_report_comments'].forEach(k => {
+        const v = ls.getItem(k);
+        if(v == null) return;
+        try{ JSON.parse(v); }catch(e){ ls.removeItem(k); }
+      });
+      // 3) 알림 설정 값이 형식에 안 맞으면 기본값으로 복구
+      const lead = ls.getItem('fc_alarm_lead');
+      if(lead != null && !/^\d{1,2}(\+\d{1,2})?$/.test(lead)){ ls.removeItem('fc_alarm_lead'); }
+      // 4) 세션이 가리키는 계정이 없으면 세션 제거 (로그인 화면 꼬임 방지)
+      try{
+        const uid = ls.getItem('fc_session');
+        if(uid){
+          const users = JSON.parse(ls.getItem('fc_users') || '{}');
+          if(!users[uid]) ls.removeItem('fc_session');
+        }
+      }catch(e){}
+    }catch(e){ /* 저장소 접근 불가 환경은 무시 */ }
+  })();
+
+  // ---------- 내장 선수 데이터 (인기 선수 · 티커/추천용, 가격은 데모 값) ----------
+  const players = [
+    { name: "호날두", position: "ST", price: "62.4억", change: 2.1, refresh: "홀수시 55분", nextIn: 47 },
+    { name: "메시", position: "CAM", price: "58.9억", change: -1.4, refresh: "짝수시 10분", nextIn: 12 },
+    { name: "손흥민", position: "LW", price: "31.2억", change: 3.6, refresh: "홀수시 25분", nextIn: 25 },
+    { name: "음바페", position: "ST", price: "71.0억", change: 0.8, refresh: "홀수시 40분", nextIn: 33 },
+    { name: "홀란드", position: "ST", price: "45.7억", change: -2.2, refresh: "짝수시 05분", nextIn: 5 },
+    { name: "데 브라위너", position: "CM", price: "28.3억", change: 1.2, refresh: "짝수시 50분", nextIn: 51 },
+    { name: "벤제마", position: "ST", price: "22.8억", change: -0.5, refresh: "홀수시 15분", nextIn: 8 },
+    { name: "이강인", position: "CAM", price: "9.4억", change: 4.8, refresh: "짝수시 30분", nextIn: 19 },
+    { name: "네이마르", position: "LW", price: "38.6억", change: 1.7, refresh: "홀수시 20분", nextIn: 41 },
+    { name: "비니시우스", position: "LW", price: "42.1억", change: 2.9, refresh: "짝수시 45분", nextIn: 27 },
+    { name: "벨링엄", position: "CM", price: "35.5억", change: 3.1, refresh: "홀수시 05분", nextIn: 14 },
+    { name: "케인", position: "ST", price: "27.9억", change: -0.9, refresh: "홀수시 35분", nextIn: 52 },
+    { name: "살라", position: "RW", price: "24.6억", change: 0.4, refresh: "짝수시 20분", nextIn: 9 },
+    { name: "모드리치", position: "CM", price: "18.2억", change: -1.1, refresh: "짝수시 40분", nextIn: 36 },
+    { name: "크로스", position: "CM", price: "19.7억", change: 0.6, refresh: "홀수시 05분", nextIn: 22 },
+    { name: "레반도프스키", position: "ST", price: "21.3억", change: -0.3, refresh: "짝수시 55분", nextIn: 44 },
+    { name: "그리즈만", position: "CF", price: "16.8억", change: 1.9, refresh: "홀수시 15분", nextIn: 7 },
+    { name: "지단", position: "CAM", price: "88.7억", change: 4.2, refresh: "홀수시 25분", nextIn: 58 },
+    { name: "앙리", position: "ST", price: "76.3억", change: -1.8, refresh: "짝수시 40분", nextIn: 16 },
+    { name: "호나우두", position: "ST", price: "95.2억", change: 3.4, refresh: "짝수시 55분", nextIn: 49 },
+    { name: "호나우지뉴", position: "CAM", price: "69.8억", change: 2.6, refresh: "홀수시 10분", nextIn: 31 },
+    { name: "베컴", position: "RM", price: "54.1억", change: 0.9, refresh: "짝수시 25분", nextIn: 11 },
+    { name: "피구", position: "RW", price: "48.5억", change: -0.7, refresh: "홀수시 35분", nextIn: 38 },
+    { name: "카카", position: "CAM", price: "51.9억", change: 1.5, refresh: "홀수시 45분", nextIn: 24 },
+    { name: "피를로", position: "CDM", price: "39.4억", change: -1.3, refresh: "짝수시 15분", nextIn: 55 },
+    { name: "말디니", position: "CB", price: "61.7억", change: 2.3, refresh: "짝수시 20분", nextIn: 3 },
+    { name: "네스타", position: "CB", price: "44.8억", change: 0.2, refresh: "홀수시 50분", nextIn: 42 },
+    { name: "라모스", position: "CB", price: "26.5억", change: -2.4, refresh: "짝수시 35분", nextIn: 18 },
+    { name: "판데이크", position: "CB", price: "29.1억", change: 1.1, refresh: "홀수시 45분", nextIn: 29 },
+    { name: "칸나바로", position: "CB", price: "37.6억", change: 0.8, refresh: "홀수시 30분", nextIn: 50 },
+    { name: "카푸", position: "RB", price: "33.2억", change: -0.6, refresh: "짝수시 50분", nextIn: 13 },
+    { name: "카를로스", position: "LB", price: "41.9억", change: 2.8, refresh: "짝수시 10분", nextIn: 45 },
+    { name: "부폰", position: "GK", price: "36.4억", change: 1.4, refresh: "홀수시 40분", nextIn: 21 },
+    { name: "노이어", position: "GK", price: "23.7억", change: -1.6, refresh: "짝수시 05분", nextIn: 57 },
+    { name: "야신", position: "GK", price: "58.3억", change: 3.8, refresh: "홀수시 30분", nextIn: 6 },
+    { name: "박지성", position: "CM", price: "12.6억", change: 2.2, refresh: "홀수시 15분", nextIn: 34 },
+    { name: "차범근", position: "ST", price: "15.9억", change: 1.6, refresh: "짝수시 30분", nextIn: 26 },
+    { name: "김민재", position: "CB", price: "11.3억", change: 3.3, refresh: "짝수시 25분", nextIn: 40 },
+    { name: "황희찬", position: "ST", price: "7.8억", change: -0.8, refresh: "홀수시 55분", nextIn: 15 },
+    { name: "베르캄프", position: "CF", price: "47.2억", change: 0.5, refresh: "짝수시 10분", nextIn: 53 },
+  ];
+
+  // ---------- 전체 선수 로드 (넥슨 공식 정적 메타데이터) ----------
+  // 페이지가 열릴 때 전체 선수 목록(약 2만 명)을 불러와 검색에 사용.
+  // 네트워크/CORS 문제로 실패하면 위 내장 데이터로만 동작.
+  let allPlayers = null;   // [{ id, name, season }]
+  let seasonMap = {};
+
+  async function loadAllPlayers(){
+    // 1순위: 로컬 선수 DB에서 내보낸 players.json (build_db.py 산출물)
+    try{
+      const res = await fetch('players.json');
+      if(res.ok){
+        const compact = await res.json();  // [[spid, 이름, 클래스, 홀짝, 분, 포지션, OVR], ...]
+        allPlayers = compact.map(([id, name, season, hj, min, pos, ovr]) =>
+          ({ id, name, season, hj: hj || '', min: (min == null ? -1 : min), pos: pos || '', ovr: ovr || 0 }));
+        // 최신 시즌 우선, 같은 시즌 안에서는 OVR 높은 순
+        allPlayers.sort((a, b) => {
+          const sa = Math.floor(a.id / 1000000), sb = Math.floor(b.id / 1000000);
+          return sb !== sa ? sb - sa : b.ovr - a.ovr;
+        });
+        const confirmedCount = allPlayers.filter(p => p.hj).length;
+        animateNum(document.getElementById('statConfirmed'), confirmedCount, '명');
+        buildSeasonDropdown();
+        restoreViewState();
+        return;
+      }
+    }catch(e){ /* players.json 없음 — 넥슨 API 폴백 */ }
+
+    // 2순위: 넥슨 공식 정적 메타데이터 직접 호출
+    try{
+      const [spidRes, seasonRes] = await Promise.all([
+        fetch('https://open.api.nexon.com/static/fconline/meta/spid.json'),
+        fetch('https://open.api.nexon.com/static/fconline/meta/seasonid.json'),
+      ]);
+      if(!spidRes.ok || !seasonRes.ok) throw new Error('meta fetch failed');
+      const spids = await spidRes.json();
+      const seasons = await seasonRes.json();
+      seasons.forEach(s => { seasonMap[s.seasonId] = s.className.split('(')[0].trim(); });
+      allPlayers = spids.map(p => ({
+        id: p.id,
+        name: p.name,
+        season: seasonMap[Math.floor(p.id / 1000000)] || '',
+        hj: '', min: -1, pos: '', ovr: 0,
+      }));
+      allPlayers.sort((a, b) => b.id - a.id);  // 최신 시즌 우선
+      animateNum(document.getElementById('statConfirmed'), allPlayers.filter(p => p.hj).length, '명');
+      buildSeasonDropdown();
+      restoreViewState();
+    }catch(e){
+      console.warn('전체 선수 데이터 로드 실패 — 내장 데이터로 동작합니다.', e);
+      restoreViewState();
+    }
+  }
+
+  // ---------- 시계 오차 보정 ----------
+  // 방문자 기기 시계가 틀어져 있어도 정확하도록, 서버(Cloudflare) 시간과의 오차를 재서
+  // 모든 갱신시간 계산에 적용한다. 3초 이상 어긋날 때만 보정(정상 기기는 그대로).
+  let clockOffsetMs = 0;
+  async function syncClock(){
+    try{
+      const t0 = Date.now();
+      const res = await fetch(window.location.href, { method: 'HEAD', cache: 'no-store' });
+      const t1 = Date.now();
+      const dateHdr = res.headers.get('date');
+      if(!dateHdr) return;
+      const serverMs = new Date(dateHdr).getTime() + 500;   // Date 헤더는 초 단위 → 중앙 보정
+      const off = serverMs - (t0 + t1) / 2;
+      clockOffsetMs = Math.abs(off) > 3000 ? off : 0;
+    }catch(e){ /* file:// 등 실패 시 기기 시계 사용 */ }
+  }
+  // 보정된 현재 시각 — 갱신시간 관련 계산은 모두 이걸 사용
+  function nowDate(){ return new Date(Date.now() + clockOffsetMs); }
+
+  // ---------- 실제 갱신시간 계산 ----------
+  // hj: '홀'(홀수시) | '짝'(짝수시), min: 0~59  — 갱신은 2시간에 한 번
+  function refreshLabel(hj, min){
+    if(!hj || min < 0) return '';
+    const t = hj === '홀' ? '홀수시' : hj === '짝' ? '짝수시' : '';
+    if(!t) return '';
+    return `${t} ${String(min).padStart(2,'0')}분`;
+  }
+  function nextInMin(hj, min){
+    if((hj !== '홀' && hj !== '짝') || min < 0) return -1;
+    const now = nowDate();
+    for(let add = 0; add <= 25; add++){
+      const h = (now.getHours() + add) % 24;
+      const parityOk = hj === '홀' ? h % 2 === 1 : h % 2 === 0;
+      if(!parityOk) continue;
+      const diff = add * 60 + (min - now.getMinutes());
+      if(diff >= 0) return diff;   // 0 = 지금이 갱신 정각
+    }
+    return -1;
+  }
+  // 마지막 갱신시각 이후 경과 분 (0~119). 갱신은 정각 후 0~20분 사이에 일어나므로
+  // 경과 20분 미만이면 '현재 갱신시간' 구간으로 본다.
+  function sinceRefreshMin(hj, min){
+    if((hj !== '홀' && hj !== '짝') || min < 0) return -1;
+    const now = nowDate();
+    for(let back = 0; back <= 25; back++){
+      const h = (now.getHours() - back + 48) % 24;
+      const parityOk = hj === '홀' ? h % 2 === 1 : h % 2 === 0;
+      if(!parityOk) continue;
+      const diff = back * 60 + (now.getMinutes() - min);
+      if(diff >= 0) return diff;
+    }
+    return -1;
+  }
+
+  // ---------- Supabase 백엔드 ----------
+  // 계정·즐겨찾기는 서버(Supabase)에 저장되어 기기 간 동기화됩니다.
+  // 서버 연결 실패 시에도 사이트는 게스트 모드(localStorage)로 정상 동작합니다.
+  const SUPABASE_URL = 'https://gqkkuuvsraimgpctyohy.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_-iFLiXQ_y4VVKtbeWliMRA_8-XDNErM';
+  const AUTH_EMAIL_DOMAIN = '@fcalrimi.app';   // 아이디 → 가상 이메일 변환용
+  let sb = null;          // Supabase 클라이언트 (라이브러리 로드 성공 시)
+  let sbProfile = null;   // 로그인 상태: { id, nick, is_admin }
+  let _sbLibPromise = null;
+  function loadSupabase(){
+    if(sb) return Promise.resolve(sb);
+    if(_sbLibPromise) return _sbLibPromise;
+    _sbLibPromise = new Promise((resolve) => {
+      const sc = document.createElement('script');
+      sc.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+      sc.async = true;
+      sc.onload = () => {
+        try{ sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); }catch(e){ sb = null; }
+        resolve(sb);
+      };
+      sc.onerror = () => resolve(null);   // 차단/오프라인 → 게스트 모드
+      document.head.appendChild(sc);
+    });
+    return _sbLibPromise;
+  }
+  async function loadProfile(user){
+    const fallbackNick = (user.email || '').split('@')[0] || '유저';
+    const loginId = (user.email || '').split('@')[0];
+    try{
+      const { data } = await sb.from('profiles').select('nick,is_admin').eq('id', user.id).single();
+      sbProfile = { id: user.id, loginId, nick: (data && data.nick) || fallbackNick, is_admin: !!(data && data.is_admin) };
+    }catch(e){
+      sbProfile = { id: user.id, loginId, nick: fallbackNick, is_admin: false };
+    }
+  }
+
+  // ---------- 로그인 / 회원가입 ----------
+  let authMode = 'login';  // 'login' | 'signup'
+
+  function store(){
+    try{ return window.localStorage; }catch(e){ return null; }
+  }
+
+  async function hashPw(pw){
+    // SHA-256 해시 (https/localhost에서 동작). 미지원 환경은 간이 해시 폴백.
+    try{
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+    }catch(e){
+      let h = 0;
+      for(let i=0;i<pw.length;i++){ h = (h*31 + pw.charCodeAt(i)) | 0; }
+      return 'weak_' + h;
+    }
+  }
+
+  function setAuthMode(mode){
+    authMode = mode;
+    const isSignup = authMode === 'signup';
+    document.getElementById('authTitle').textContent = isSignup ? '회원가입' : '로그인';
+    document.getElementById('authSub').textContent = isSignup
+      ? '무료 계정으로 알림 목록을 저장하세요.'
+      : '알림 목록을 저장하려면 로그인하세요.';
+    document.getElementById('authSubmit').textContent = isSignup ? '가입하기' : '로그인';
+    document.getElementById('nickField').style.display = isSignup ? 'block' : 'none';
+    document.getElementById('authSwitch').innerHTML = isSignup
+      ? '이미 계정이 있으신가요?<a onclick="toggleAuthMode()">로그인</a>'
+      : '계정이 없으신가요?<a onclick="toggleAuthMode()">회원가입</a>';
+    document.getElementById('authError').textContent = '';
+  }
+
+  function openAuth(){
+    setAuthMode('login');   // 열 때는 항상 로그인 모드에서 시작
+    document.getElementById('authId').value = '';
+    document.getElementById('authPw').value = '';
+    document.getElementById('authNick').value = '';
+    document.getElementById('authOverlay').classList.add('show');
+    document.getElementById('authId').focus();
+  }
+  function closeAuth(){
+    document.getElementById('authOverlay').classList.remove('show');
+  }
+  function toggleAuthMode(){
+    setAuthMode(authMode === 'login' ? 'signup' : 'login');
+  }
+
+  async function submitAuth(){
+    const errEl = document.getElementById('authError');
+    const userId = document.getElementById('authId').value.trim().toLowerCase();
+    const pw = document.getElementById('authPw').value;
+    if(!/^[a-z0-9_]{4,20}$/.test(userId)){ errEl.textContent = '아이디는 영문/숫자/밑줄 4~20자여야 해요.'; return; }
+    if(pw.length < 8){ errEl.textContent = '비밀번호는 8자 이상이어야 해요.'; return; }
+
+    errEl.textContent = '서버에 연결하는 중…';
+    const client = await loadSupabase();
+    if(!client){ errEl.textContent = '서버에 연결할 수 없어요. 네트워크 확인 후 다시 시도해주세요.'; return; }
+    const email = userId + AUTH_EMAIL_DOMAIN;
+
+    try{
+      if(authMode === 'signup'){
+        const nick = document.getElementById('authNick').value.trim();
+        if(nick.length < 2){ errEl.textContent = '닉네임은 2자 이상이어야 해요.'; return; }
+        const { data, error } = await client.auth.signUp({ email, password: pw });
+        if(error){
+          errEl.textContent = /already|registered/i.test(error.message)
+            ? '이미 사용 중인 아이디예요.' : '가입 실패: ' + error.message;
+          return;
+        }
+        if(!data.session){
+          errEl.textContent = '가입은 됐지만 자동 로그인이 안 됐어요. Supabase 대시보드에서 이메일 확인(Confirm email)을 꺼주세요.';
+          return;
+        }
+        try{ await client.from('profiles').insert({ id: data.user.id, nick }); }catch(e){}
+        sbProfile = { id: data.user.id, loginId: userId, nick, is_admin: false };
+      }else{
+        const { data, error } = await client.auth.signInWithPassword({ email, password: pw });
+        if(error){ errEl.textContent = '아이디 또는 비밀번호가 일치하지 않아요.'; return; }
+        await loadProfile(data.user);
+      }
+      await migrateGuestFavsToServer();
+      favApi._cache = null;
+      applySession();
+      closeAuth();
+      checkAlarms();
+      // 관리자라면 제보 누적 현황 알림
+      loadServerBoards().then(() => notifyAdminHotReports());
+    }catch(e){
+      errEl.textContent = '오류가 발생했어요: ' + ((e && e.message) || e);
+    }
+  }
+
+  function applySession(){
+    const loginBtn = document.getElementById('loginBtn');
+    const chip = document.getElementById('userChip');
+    const mmSec = document.getElementById('mmUserSec');
+    if(sbProfile){
+      loginBtn.style.display = 'none';
+      chip.style.display = 'flex';
+      document.getElementById('userNick').textContent = sbProfile.nick + '님';
+      if(mmSec) mmSec.style.display = '';
+      reflectAlarmLead();
+      applySoundIcon();
+    }else{
+      loginBtn.style.display = '';
+      chip.style.display = 'none';
+      if(mmSec) mmSec.style.display = 'none';
+    }
+  }
+
+  async function logout(){
+    try{ if(sb) await sb.auth.signOut(); }catch(e){}
+    sbProfile = null;
+    favApi._cache = null;
+    applySession();
+  }
+
+  // ---------- 내 정보 (닉네임·비밀번호 변경) ----------
+  function openProfile(){
+    if(!sbProfile){ openAuth(); return; }
+    document.getElementById('profileIdLine').textContent = '아이디: ' + (sbProfile.loginId || '');
+    document.getElementById('profNick').value = sbProfile.nick || '';
+    document.getElementById('profPw1').value = '';
+    document.getElementById('profPw2').value = '';
+    document.getElementById('profileError').textContent = '';
+    document.getElementById('profileOverlay').classList.add('show');
+  }
+  function closeProfile(){
+    const ov = document.getElementById('profileOverlay');
+    if(ov) ov.classList.remove('show');
+  }
+  async function submitProfile(){
+    const errEl = document.getElementById('profileError');
+    if(!sbProfile){ closeProfile(); openAuth(); return; }
+    const nick = document.getElementById('profNick').value.trim();
+    const p1 = document.getElementById('profPw1').value;
+    const p2 = document.getElementById('profPw2').value;
+    if(nick.length < 2){ errEl.textContent = '닉네임은 2자 이상이어야 해요.'; return; }
+    if(p1 || p2){
+      if(p1.length < 8){ errEl.textContent = '새 비밀번호는 8자 이상이어야 해요.'; return; }
+      if(p1 !== p2){ errEl.textContent = '새 비밀번호가 서로 달라요.'; return; }
+    }
+    errEl.textContent = '저장하는 중…';
+    const client = await loadSupabase();
+    if(!client){ errEl.textContent = '서버에 연결할 수 없어요. 잠시 후 다시 시도해주세요.'; return; }
+    try{
+      if(nick !== sbProfile.nick){
+        const { error } = await client.from('profiles').update({ nick }).eq('id', sbProfile.id);
+        if(error){ errEl.textContent = '닉네임 변경 실패: ' + error.message; return; }
+        sbProfile.nick = nick;
+        applySession();
+      }
+      if(p1){
+        const { error } = await client.auth.updateUser({ password: p1 });
+        if(error){ errEl.textContent = '비밀번호 변경 실패: ' + error.message; return; }
+      }
+      closeProfile();
+      showToast('내 정보가 저장됐어요.');
+    }catch(e){ errEl.textContent = '오류가 발생했어요: ' + ((e && e.message) || e); }
+  }
+
+  document.addEventListener('keydown', (e) => {
+    try{
+      if(e.key === 'Escape'){ closeAuth(); closeFlagModal(); dismissAlarm(); closeAppQR(); closeCustomLead(); closeProfile(); }
+    }catch(err){}
+  });
+  try{ applySession(); }catch(e){ console.warn('applySession 실패', e); }
+
+  // ---------- 카운트 애니메이션 ----------
+  function animateNum(el, target, suffix=''){
+    let cur = 0;
+    const step = Math.max(1, Math.round(target / 40));
+    const t = setInterval(() => {
+      cur += step;
+      if(cur >= target){ cur = target; clearInterval(t); }
+      el.textContent = cur.toLocaleString() + suffix;
+    }, 25);
+  }
+  // 신규 등록된 선수 수 — 데이터 연동 전까지 이 값을 수동으로 바꿔주세요.
+  // 초기 버전: 갱신시간 등록선수와 동일하게 6,551명으로 표시.
+  const NEW_PLAYERS_COUNT = 6551;
+  try{
+    animateNum(document.getElementById('statNew'), NEW_PLAYERS_COUNT, '명');
+  }catch(e){ console.warn('통계 애니메이션 실패', e); }
+
+  // '오늘 발송된 알림': 서버(alert_stats) 실집계 표시. 연결 실패 시 0건.
+  async function refreshAlertStat(){
+    const el = document.getElementById('statAlerts');
+    if(!el) return;
+    try{
+      const client = await loadSupabase();
+      if(!client){ el.textContent = '0건'; return; }
+      const day = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);   // 한국(KST) 날짜 — 자정 리셋
+      const { data } = await client.from('alert_stats').select('count').eq('day', day).maybeSingle();
+      animateNum(el, (data && Number(data.count)) || 0, '건');
+    }catch(e){ el.textContent = '0건'; }
+  }
+
+  // ---------- 검색 ----------
+  function formatTimer(min){
+    const h = Math.floor(min/60);
+    const m = min % 60;
+    return h > 0 ? `${h}시간 ${m}분` : `${m}분`;
+  }
+
+  // 갱신까지 남은 시간을 표시하는 칩. data 속성으로 hj/min을 담아 두면
+  // 전역 타이머(tickTimers)가 현재 시각 기준으로 30초마다 자동 갱신한다.
+  // 10분 이하로 남으면 빨간색(.timer-soon)으로 표시.
+  // 카드 타이머 상태: 갱신 후 0~20분 구간이면 '현재 갱신시간이에요'를 20분 내내 표시.
+  // 매분 0~15초 구간에만 초 카운트 + 반짝임, 그 외에는 고정 강조(라임색).
+  // 카운트는 현재 시각의 초에서 직접 계산해 실제 시계와 항상 일치.
+  function timerStatus(hj, min){
+    const since = sinceRefreshMin(hj, min);
+    if(since >= 0 && since < 20){
+      const sec = nowDate().getSeconds();
+      const blink = sec <= 15;
+      return {
+        now: true, blink, soon: false,
+        text: blink ? `현재 갱신시간이에요 · ${sec}초` : '현재 갱신시간이에요',
+      };
+    }
+    const n = nextInMin(hj, min);
+    if(n < 0) return { now: false, blink: false, soon: false, text: '' };
+    return { now: false, blink: false, soon: n <= 10, text: formatTimer(n) + ' 후 갱신' };
+  }
+  function timerChip(hj, min, cls){
+    const st = timerStatus(hj, min);
+    // 갱신 구간(20분) 내내 반짝임 유지, 15초 카운트는 0~15초 구간에만 표시
+    return `<span class="live-timer ${cls || ''}${st.soon ? ' timer-soon' : ''}${st.now ? ' timer-now' : ''}" data-hj="${hj}" data-min="${min}">${st.text}</span>`;
+  }
+
+  function tickTimers(){
+    // 카드 타이머 (변경된 것만 DOM 반영해 매초 갱신에도 가볍게)
+    document.querySelectorAll('.live-timer').forEach(el => {
+      const hj = el.getAttribute('data-hj');
+      const min = parseInt(el.getAttribute('data-min'), 10);
+      const st = timerStatus(hj, min);
+      if(el.textContent !== st.text) el.textContent = st.text;
+      el.classList.toggle('timer-soon', st.soon);
+      el.classList.toggle('timer-now', st.now);   // 갱신 구간 20분 내내 반짝임
+    });
+    // 즐겨찾기 상단 실시간 시계: 항상 현재 시각 표시, 0~15초 구간에는 안내 문구 + 반짝임
+    const fc = document.getElementById('favClock');
+    if(fc){
+      const d = nowDate();
+      const sec = d.getSeconds();
+      const pad = x => String(x).padStart(2, '0');
+      const blink = sec <= 15;
+      const t = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(sec)}` + (blink ? ' · 갱신시간인 선수를 확인하세요' : '');
+      if(fc.textContent !== t) fc.textContent = t;
+      fc.classList.toggle('timer-now', blink);
+    }
+  }
+  setInterval(() => { try{ tickTimers(); }catch(e){} }, 1000);   // 매초 화면 타이머 갱신 (실제 시계와 초 단위 동기화)
+
+  // 알림 확인은 화면 상태와 무관하게 독립적으로 20초마다 실행
+  setInterval(() => { try{ checkAlarms(); }catch(e){} }, 20000);
+
+  // ---------- 알림 소리 ----------
+  function isSoundOn(){
+    const s = store();
+    return !(s && s.getItem('fc_sound') === 'off');   // 기본 켜짐
+  }
+  function toggleSound(){
+    const s = store();
+    const on = !isSoundOn();
+    if(s) s.setItem('fc_sound', on ? 'on' : 'off');
+    applySoundIcon();
+    if(on) playAlarmSound();   // 켤 때 미리듣기
+  }
+  function applySoundIcon(){
+    const on = isSoundOn();
+    const btn = document.getElementById('soundToggle');
+    if(btn){
+      btn.textContent = on ? '🔔' : '🔕';
+      btn.classList.toggle('muted', !on);
+    }
+    const mm = document.getElementById('mmSound');
+    if(mm) mm.textContent = on ? '🔔 알림 소리 켜짐' : '🔕 알림 소리 꺼짐';
+  }
+  // 짧은 알림음 (WebAudio, 외부 파일 불필요)
+  let _audioCtx = null;
+  function playAlarmSound(){
+    if(!isSoundOn()) return;
+    try{
+      _audioCtx = _audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const ctx = _audioCtx;
+      if(ctx.state === 'suspended') ctx.resume();
+      const now = ctx.currentTime;
+      [880, 1175].forEach((freq, i) => {   // 두 음 '띵-동'
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        const t = now + i * 0.18;
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.exponentialRampToValueAtTime(0.25, t + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(t); osc.stop(t + 0.18);
+      });
+    }catch(e){ /* 오디오 미지원 환경 무시 */ }
+  }
+
+  // ---------- 갱신 알림 팝업 (확인 전까지 소리 반복) ----------
+  let _alarmLoop = null;
+  let _alarmQueue = [];
+  function showAlarmModal(msg){
+    const overlay = document.getElementById('alarmOverlay');
+    const already = overlay.classList.contains('show');
+    if(already){
+      // 이미 팝업이 떠 있으면 추가 메시지를 아래에 누적
+      if(msg && !_alarmQueue.includes(msg)){
+        _alarmQueue.push(msg);
+        const more = document.getElementById('alarmMore');
+        more.style.display = '';
+        more.innerHTML = _alarmQueue.map(m => '· ' + esc(m)).join('<br>');
+      }
+      return;
+    }
+    _alarmQueue = [];
+    document.getElementById('alarmMore').style.display = 'none';
+    document.getElementById('alarmMore').innerHTML = '';
+    document.getElementById('alarmMsg').textContent = msg || '';
+    overlay.classList.add('show');
+    playAlarmSound();
+    if(_alarmLoop) clearInterval(_alarmLoop);
+    _alarmLoop = setInterval(playAlarmSound, 1500);   // 확인 누를 때까지 반복
+  }
+  function dismissAlarm(){
+    document.getElementById('alarmOverlay').classList.remove('show');
+    if(_alarmLoop){ clearInterval(_alarmLoop); _alarmLoop = null; }
+    _alarmQueue = [];
+  }
+
+  // ---------- 모바일앱 QR (웹 → 모바일 이어보기) ----------
+  // 앱스토어 출시 후 아래 값을 스토어 링크로 교체하세요.
+  const APP_URL = (location.protocol === 'http:' || location.protocol === 'https:')
+    ? location.origin + location.pathname
+    : 'https://fcalrimi.pages.dev';
+  // QR 라이브러리는 페이지 로드를 막지 않도록 'QR 열 때'만 필요 시 불러온다.
+  let _qrLibPromise = null;
+  function ensureQRLib(){
+    if(window.QRCode) return Promise.resolve(true);
+    if(_qrLibPromise) return _qrLibPromise;
+    _qrLibPromise = new Promise((resolve) => {
+      const sc = document.createElement('script');
+      sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+      sc.async = true;
+      sc.onload = () => resolve(true);
+      sc.onerror = () => resolve(false);   // 실패해도 폴백으로 처리
+      document.head.appendChild(sc);
+    });
+    return _qrLibPromise;
+  }
+  function openAppQR(){
+    const box = document.getElementById('qrBox');
+    box.innerHTML = '<span style="color:#333; font-size:12px;">QR 생성 중…</span>';
+    document.getElementById('qrUrl').textContent = APP_URL;
+    document.getElementById('qrOverlay').classList.add('show');
+    ensureQRLib().then((okLib) => {
+      box.innerHTML = '';
+      if(okLib && window.QRCode){
+        try{
+          new QRCode(box, { text: APP_URL, width: 200, height: 200, colorDark: '#0B0F14', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M });
+        }catch(e){ qrFallback(box); }
+      }else{
+        qrFallback(box);
+      }
+    });
+  }
+  function qrFallback(box){
+    box.innerHTML = '<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data='
+      + encodeURIComponent(APP_URL) + '" width="200" height="200" alt="QR" '
+      + 'onerror="this.parentNode.innerHTML=\'<span style=color:#333;font-size:12px>QR 생성 실패 — 주소를 직접 입력해주세요</span>\'">';
+  }
+  function closeAppQR(){ document.getElementById('qrOverlay').classList.remove('show'); }
+
+  // ---------- 갱신 알림 ----------
+  // 즐겨찾기한 카드의 갱신 시간이 다가오면 알려준다.
+  // 리드타임: 비로그인 기본 5분. 로그인 시 3/5/10분 또는 "1+10"(10분·1분 두 번) 선택.
+  // 항상 알림을 보낼 '분' 목록을 내림차순 배열로 반환한다.
+  function getAlarmLeads(){
+    const s = store();
+    const raw = (s && s.getItem('fc_alarm_lead')) || '5';
+    // 'a+b' 형태(사용자 설정/프리셋 1+10 포함): 각 값 0~30 유효, 큰 값부터 내림차순
+    if(String(raw).includes('+')){
+      const parts = String(raw).split('+').map(x => parseInt(x, 10)).filter(n => !isNaN(n) && n >= 0 && n <= 30);
+      const uniq = [...new Set(parts)].sort((a, b) => b - a);
+      return uniq.length ? uniq : [5];
+    }
+    const v = parseInt(raw, 10);
+    return (v >= 0 && v <= 30) ? [v] : [5];
+  }
+  function setAlarmLead(v){
+    const s = store();
+    if(s) s.setItem('fc_alarm_lead', String(v));
+  }
+  // 드롭다운 변경: '사용자 설정' 선택 시 팝업, 그 외에는 바로 저장
+  function onAlarmLeadChange(sel){
+    if(sel.value === 'custom'){ openCustomLead(); return; }
+    setAlarmLead(sel.value);
+  }
+  // 저장된 알림 시점을 드롭다운에 반영 (사용자 설정 값이면 옵션을 만들어 선택)
+  const LEAD_PRESETS = ['3', '5', '10', '1+10'];
+  function reflectAlarmLead(){
+    const sel = document.getElementById('alarmLead');
+    if(!sel) return;
+    const raw = (store() && store().getItem('fc_alarm_lead')) || '5';
+    if(LEAD_PRESETS.includes(raw)){ sel.value = raw; return; }
+    // 사용자 설정 값 (단일 또는 복수) → 옵션 생성/갱신
+    const leads = getAlarmLeads();   // 내림차순
+    if(!leads.length){ sel.value = '5'; return; }
+    let opt = document.getElementById('customLeadOpt');
+    if(!opt){
+      opt = document.createElement('option');
+      opt.id = 'customLeadOpt';
+      sel.insertBefore(opt, sel.querySelector('option[value="custom"]'));
+    }
+    opt.value = raw;
+    opt.textContent = leads.map(n => n + '분').join(' + ') + ' 전 알림 (사용자 설정)';
+    sel.value = raw;
+  }
+  function openCustomLead(){
+    const raw = (store() && store().getItem('fc_alarm_lead')) || '';
+    let vals = [];
+    if(raw && !LEAD_PRESETS.includes(raw)){
+      vals = String(raw).split('+').map(x => parseInt(x, 10)).filter(n => !isNaN(n) && n >= 0 && n <= 30);
+    }
+    document.getElementById('leadInput1').value = vals.length > 0 ? vals[0] : '';
+    document.getElementById('leadInput2').value = vals.length > 1 ? vals[1] : '';
+    document.getElementById('leadError').textContent = '';
+    document.getElementById('leadOverlay').classList.add('show');
+    document.getElementById('leadInput1').focus();
+  }
+  function closeCustomLead(){
+    document.getElementById('leadOverlay').classList.remove('show');
+    reflectAlarmLead();   // 취소 시 저장된 값으로 드롭다운 복원
+  }
+  function submitCustomLead(){
+    const err = document.getElementById('leadError');
+    const inputs = [['첫 번째', 'leadInput1'], ['두 번째', 'leadInput2']];
+    const vals = [];
+    for(const [label, id] of inputs){
+      const raw = document.getElementById(id).value.trim();
+      if(raw === '') continue;
+      const n = parseInt(raw, 10);
+      if(isNaN(n) || n < 0 || n > 30){ err.textContent = label + ' 알림은 0~30 사이의 숫자여야 해요.'; return; }
+      vals.push(n);
+    }
+    if(vals.length === 0){ err.textContent = '알림 시점을 최소 1개 입력해주세요.'; return; }
+    const uniq = [...new Set(vals)].sort((a, b) => b - a);
+    setAlarmLead(uniq.join('+'));   // 예: "15+2" (1개면 "15")
+    document.getElementById('leadOverlay').classList.remove('show');
+    reflectAlarmLead();
+  }
+
+  let alarmed = {};   // "spid:갱신시각:리드분" -> 이미 알린 항목 (중복 알림 방지)
+  let prevLeft = {};  // spid -> 직전 관측된 남은 분 (리드타임 통과 감지용)
+
+  async function checkAlarms(){
+    if(!allPlayers) return;
+    // 브라우저 알림 권한이 없으면 조용히 넘어감 (버튼으로 요청)
+    const canNotify = ('Notification' in window) && window.Notification.permission === 'granted';
+    const favs = await favApi.list();
+    if(!favs) return;
+    const leads = getAlarmLeads();
+    for(const spid of Object.keys(favs).map(Number)){
+      const p = bySpid(spid);
+      if(!p || !p.hj) continue;
+      const n = nextInMin(p.hj, p.min);
+      if(n < 0){ prevLeft[spid] = n; continue; }
+      const cycleKey = spid + ':' + refreshLabel(p.hj, p.min);
+      const prev = (spid in prevLeft) ? prevLeft[spid] : null;
+
+      for(const lead of leads){
+        const key = cycleKey + ':' + lead;
+        if(alarmed[key]) continue;
+        // 리드타임을 '위에서 아래로 통과'한 순간에만 발동.
+        // 즐겨찾기 직후(prev === null)엔 이미 지나친 리드는 건너뛰고, 다음 사이클부터 정상 발동.
+        const crossedDown = (prev === null)
+          ? (n === lead)                    // 등록 직후엔 정확히 그 분일 때만
+          : (prev > lead && n <= lead);     // 평소엔 lead를 갓 통과했을 때
+        if(!crossedDown) continue;
+        alarmed[key] = true;
+        const msg = `${p.name} (${p.season}) · ${refreshLabel(p.hj, p.min)} 갱신 ${n}분 전`;
+        if(canNotify){
+          try{ new window.Notification('FC알리미 갱신 알림', { body: msg }); }catch(e){}
+        }
+        showAlarmModal(msg);   // 팝업 + 확인 누를 때까지 알림음 반복
+        // 서버에 오늘 알림 발송 1건 집계 (실패해도 무시)
+        try{ loadSupabase().then(c => { if(c) c.rpc('bump_alerts', { n: 1 }).then(()=>{}, ()=>{}); }); }catch(e){}
+      }
+      prevLeft[spid] = n;
+    }
+    // 오래된 alarmed 키 정리 (하루 지나면 리셋되도록 크기 제한)
+    const keys = Object.keys(alarmed);
+    if(keys.length > 500) alarmed = {};
+  }
+
+  // 알림 권한이 없을 때 쓰는 화면 내 토스트
+  function showToast(msg){
+    let box = document.getElementById('toastBox');
+    if(!box){
+      box = document.createElement('div');
+      box.id = 'toastBox';
+      box.className = 'toast-box';
+      document.body.appendChild(box);
+    }
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = '🔔 ' + msg;
+    box.appendChild(t);
+    setTimeout(() => t.remove(), 8000);
+  }
+
+  // 로그인 후 첫 알림 시점에 브라우저 알림 권한 요청
+  function ensureNotifyPermission(){
+    if(('Notification' in window) && window.Notification.permission === 'default'){
+      window.Notification.requestPermission();
+    }
+  }
+
+  // 알림이 실제로 뜨는지 즉시 확인용
+  function testAlarm(){
+    const msg = '알림이 정상 작동합니다. 즐겨찾기한 카드의 갱신이 임박하면 이렇게 알려드려요. (확인을 누르기 전까지 소리가 반복됩니다)';
+    if(('Notification' in window)){
+      if(window.Notification.permission === 'granted'){
+        try{ new window.Notification('FC알리미 알림 테스트', { body: msg }); }catch(e){}
+      }else if(window.Notification.permission === 'default'){
+        window.Notification.requestPermission();
+      }
+    }
+    showAlarmModal(msg);   // 팝업 + 확인 누를 때까지 알림음 반복
+  }
+
+  const MAX_RESULTS = 20;
+
+  function seasonIcon(seasonId){
+    return seasonId ? `<img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/${seasonId}.png" alt="" loading="lazy" onerror="this.remove()">` : '';
+  }
+  // 얼굴 사진: 시즌 무관 선수 고유번호(spid 뒤 6자리) 기준. 실패 시 이미지 제거 → 포지션 배지 노출
+  function faceImg(spid){
+    if(!spid) return '';
+    const pid = spid % 1000000;
+    return `<img src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p${pid}.png" alt="" loading="lazy" onerror="this.remove()">`;
+  }
+  // 카드 액션샷: 카드(spid)별. 없으면 얼굴 사진으로, 그것도 없으면 숨김
+  function actionImg(spid){
+    if(!spid) return '';
+    const pid = spid % 1000000;
+    return `<img class="p-photo" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p${spid}.png" alt="" loading="lazy"
+      onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p${pid}.png';}else{this.remove();}">`;
+  }
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+  // ---------- 초성 검색 지원 ----------
+  // 'ㅅㅎㅁ' 처럼 초성만 입력해도 '손흥민'이 검색되도록 한다.
+  const CHO = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+  const _choCache = new Map();   // 이름 -> 초성 문자열
+  function toChosung(name){
+    let c = _choCache.get(name);
+    if(c !== undefined) return c;
+    c = '';
+    for(const ch of name){
+      const code = ch.charCodeAt(0);
+      c += (code >= 0xAC00 && code <= 0xD7A3) ? CHO[Math.floor((code - 0xAC00) / 588)] : ch;
+    }
+    _choCache.set(name, c);
+    return c;
+  }
+  function isChosungQuery(q){ return /^[ㄱ-ㅎ]+$/.test(q); }
+  // 이름 매칭: 초성만 입력이면 초성으로, 아니면 일반 포함 검색
+  function nameMatches(name, q, qIsCho){
+    return qIsCho ? toChosung(name).includes(q) : name.includes(q);
+  }
+
+  // ---------- 검색 결과: 이름(+선택된 시즌 필터)으로 선수 표시 (선수 단위) ----------
+  function buildPlayerList(q, season){
+    const qIsCho = q ? isChosungQuery(q) : false;
+    const byName = new Map();
+    for(const p of allPlayers){
+      if(season && p.season !== season) continue;
+      if(q && !nameMatches(p.name, q, qIsCho)) continue;
+      if(!season && !q) continue;   // 시즌·검색어 모두 없으면 결과 없음
+      let e = byName.get(p.name);
+      if(!e){
+        e = { name: p.name, id: p.id, position: p.pos || '', ovr: p.ovr || 0, cards: 0, confirmed: 0 };
+        byName.set(p.name, e);
+      }
+      e.cards++;
+      if(p.hj) e.confirmed++;
+      if((p.ovr || 0) > e.ovr){ e.ovr = p.ovr; e.id = p.id; e.position = p.pos || e.position; }
+    }
+    return [...byName.values()].sort((a, b) => b.ovr - a.ovr);
+  }
+
+  // 검색 결과 한 줄. 사진(배지)·이름 클릭 → 신고게시판 선수 댓글 화면, 그 외 영역 클릭 → 선수 상세
+  // season이 있으면 상세 진입 시 해당 클래스 카드만 표시
+  function resultRowHtml(p, season){
+    return `
+      <div class="result-row" onclick="showPlayer('${esc(p.name)}', '${esc(season || '')}')">
+        <div class="result-left">
+          <div class="result-badge" style="cursor:pointer;" title="선수 게시판(댓글) 열기" onclick="event.stopPropagation(); openReportDetail(${p.id})">${p.position || '-'}${faceImg(p.id)}</div>
+          <div>
+            <div class="result-name b-name-link" title="선수 게시판(댓글) 열기" onclick="event.stopPropagation(); openReportDetail(${p.id})">${esc(p.name)}</div>
+            <div class="result-meta">카드 ${p.cards}장 · 갱신 시간 확인 ${p.confirmed}장</div>
+          </div>
+        </div>
+        <div class="result-right">
+          ${p.ovr ? `<div class="result-timer">OVR ${p.ovr}</div>` : ''}
+        </div>
+      </div>`;
+  }
+
+  // showAll=true면 전체를 표시하되, 브라우저가 멈추지 않게 300명씩 끊어 스크롤 시 이어서 로드
+  // season: 클래스 선택 검색이면 그 클래스명 (행 클릭 시 해당 클래스 카드만 표시)
+  function renderResults(list, boxId, showAll, season){
+    const box = document.getElementById(boxId || 'results');
+    const row = p => resultRowHtml(p, season);
+    box.onscroll = null;
+    if(list.length === 0){
+      box.innerHTML = `<div class="no-result">검색 결과가 없어요. 다른 이름이나 클래스로 검색해보세요.</div>`;
+      box.classList.add('show');
+      return;
+    }
+    const total = list.length;
+    if(!showAll){
+      const RESULT_CAP = 30;
+      const shown = list.slice(0, RESULT_CAP);
+      box.innerHTML = `<div class="group-label">일치 선수 ${total.toLocaleString()}명${total > RESULT_CAP ? ` (상위 ${RESULT_CAP}명 표시)` : ''}</div>`
+        + shown.map(row).join('');
+      box.classList.add('show');
+      return;
+    }
+    // 전체 표시 모드 (클래스 전체 등): 300명씩 점진 로드
+    const CHUNK = 300;
+    let idx = CHUNK;
+    box.innerHTML = `<div class="group-label">일치 선수 ${total.toLocaleString()}명${total > CHUNK ? ' — 아래로 스크롤하면 계속 표시됩니다' : ''}</div>`
+      + list.slice(0, CHUNK).map(row).join('');
+    box.classList.add('show');
+    box.scrollTop = 0;
+    if(total > CHUNK){
+      box.onscroll = () => {
+        try{
+          if(idx >= total){ box.onscroll = null; return; }
+          if(box.scrollTop + box.clientHeight >= box.scrollHeight - 300){
+            const holder = document.createElement('div');
+            holder.innerHTML = list.slice(idx, idx + CHUNK).map(row).join('');
+            while(holder.firstChild) box.appendChild(holder.firstChild);
+            idx += CHUNK;
+          }
+        }catch(e){}
+      };
+    }
+  }
+
+  function runSearch(){
+    const q = document.getElementById('playerSearch').value.trim();
+    if(q === ''){
+      document.getElementById('results').classList.remove('show');
+      return;
+    }
+
+    if(allPlayers){
+      renderResults(buildPlayerList(q), 'results');
+      return;
+    }
+
+    // 폴백: 내장 인기 선수만 검색
+    const featured = players.filter(p => p.name.includes(q))
+      .map(p => ({ name: p.name, id: 0, position: p.position, ovr: 0, cards: 1, confirmed: 1 }));
+    renderResults(featured, 'results');
+  }
+
+  // ---------- 뷰 전환 ----------
+  // 뷰 이동 히스토리 (뒤로가기용)
+  let currentView = 'viewHome';
+  const ALL_VIEWS = ['viewHome','viewPlayer','viewBoardHub','viewFreeBoard','viewBoard','viewReportBoard','viewReportDetail','viewAchievement','viewFavorites'];
+
+  function applyView(id){
+    if(id !== 'viewPlayer'){
+      try{ detachCardsScroll(); }catch(e){}
+      try{ resetSeason2(); }catch(e){}   // 갱신시간 페이지를 벗어나면 클래스 선택 초기화
+    }
+    for(const v of ALL_VIEWS){
+      document.getElementById(v).style.display = v === id ? 'block' : 'none';
+    }
+    document.getElementById('results').classList.remove('show');
+    document.getElementById('results2').classList.remove('show');
+    document.getElementById('playerSearch2').value = '';
+    currentView = id;
+    window.scrollTo(0, 0);
+    saveViewState();
+  }
+
+  // 새로고침 후에도 보던 화면을 유지하기 위해 현재 화면/맥락을 저장·복원 (같은 탭 한정)
+  function saveViewState(){
+    try{
+      sessionStorage.setItem('fc_view_state', JSON.stringify({
+        view: currentView,
+        player: (typeof lastPlayerName === 'string') ? lastPlayerName : '',
+        playerSeason: (typeof lastPlayerSeason === 'string') ? lastPlayerSeason : '',
+        searchQ: (typeof lastSearchQ === 'string') ? lastSearchQ : '',
+        searchSeason: (typeof lastSearchSeason === 'string') ? lastSearchSeason : '',
+        reportSpid: (typeof reportDetailSpid !== 'undefined') ? reportDetailSpid : null,
+      }));
+    }catch(e){}
+  }
+  function restoreViewState(){
+    // 어떤 경우에도 복원 로직이 초기 로딩을 깨뜨리지 않도록 전체를 방어 처리
+    try{
+      let st = null;
+      try{ st = JSON.parse(sessionStorage.getItem('fc_view_state') || 'null'); }catch(e){}
+      if(!st || !st.view || st.view === 'viewHome') return;
+      switch(st.view){
+        case 'viewPlayer':
+          if(st.searchQ || st.searchSeason) showSearchCards(st.searchQ || '', st.searchSeason || '');
+          else if(st.player) showPlayer(st.player, st.playerSeason || '');
+          break;
+        case 'viewFavorites':    showFavorites(); break;
+        case 'viewAchievement':  showAchievement(); break;
+        case 'viewBoardHub':     showBoardHub(); break;
+        case 'viewFreeBoard':    showFreeBoard(); break;
+        case 'viewBoard':        showBoard(); break;
+        case 'viewReportBoard':  showReportBoard(); break;
+        case 'viewReportDetail': if(st.reportSpid != null) openReportDetail(st.reportSpid); break;
+      }
+    }catch(e){ /* 복원 실패는 무시하고 홈 유지 */ }
+  }
+
+  // 새 화면으로 이동: 브라우저 히스토리에 상태를 쌓아 뒤로가기 버튼과 연동
+  function switchView(id){
+    if(id !== currentView){
+      try{ history.pushState({ view: id }, '', ''); }catch(e){}
+    }
+    applyView(id);
+  }
+
+  // 브라우저 뒤로/앞으로 가기 → 해당 상태의 뷰로 복원
+  window.addEventListener('popstate', (e) => {
+    try{
+      const id = (e.state && e.state.view) ? e.state.view : 'viewHome';
+      applyView(id);
+    }catch(err){}
+  });
+  // 초기 홈 상태를 히스토리에 심어, 첫 이동부터 뒤로가기가 홈으로 정확히 돌아오게 함
+  try{ history.replaceState({ view: 'viewHome' }, '', ''); }catch(e){}
+
+  function showHome(){
+    // 홈으로 돌아가면 선택된 클래스와 검색어를 초기화
+    const ps = document.getElementById('playerSearch');
+    if(ps) ps.value = '';
+    if(typeof pickSeason === 'function') pickSeason('');   // '클래스 선택' 기본값으로 리셋
+    switchView('viewHome');
+  }
+
+  // ---------- 모바일 햄버거 메뉴 ----------
+  function toggleMobileMenu(ev){
+    if(ev) ev.stopPropagation();
+    const mm = document.getElementById('mobileMenu');
+    if(mm) mm.classList.toggle('show');
+  }
+  function closeMobileMenu(){
+    const mm = document.getElementById('mobileMenu');
+    if(mm) mm.classList.remove('show');
+  }
+  function mmNav(target){
+    closeMobileMenu();
+    try{
+      if(target === 'how'){
+        showHome();
+        setTimeout(() => { try{ document.getElementById('how').scrollIntoView({ behavior: 'smooth' }); }catch(e){} }, 80);
+      }
+      else if(target === 'ach') showAchievement();
+      else if(target === 'board') showBoardHub();
+      else if(target === 'fav') showFavorites();
+    }catch(e){}
+  }
+  // 메뉴 바깥을 누르면 닫기
+  document.addEventListener('click', (e) => {
+    try{
+      const mm = document.getElementById('mobileMenu');
+      const btn = document.getElementById('menuBtn');
+      if(mm && mm.classList.contains('show') && !mm.contains(e.target) && (!btn || !btn.contains(e.target))){
+        mm.classList.remove('show');
+      }
+    }catch(err){}
+  });
+
+  // ---------- 선수 상세: 해당 선수의 시즌 카드만 표시 ----------
+  // seasonFilter가 있으면 그 클래스 카드만 표시 (클래스 선택 검색에서 진입 시)
+  async function showPlayer(name, seasonFilter){
+    lastPlayerName = name;
+    lastPlayerSeason = seasonFilter || '';
+    lastSearchQ = ''; lastSearchSeason = '';
+    const source = allPlayers
+      ? allPlayers.filter(p => p.name === name && (!seasonFilter || p.season === seasonFilter))
+      : players.filter(p => p.name === name).map(p => ({ id:0, name:p.name, season:'', hj:'', min:-1 }));
+    if(source.length === 0){ return; }
+
+    const favs = (await favApi.list()) || {};
+
+    // 시즌 중복 제거
+    const cards = [];
+    const seen = new Set();
+    const reports = getReports();
+    for(const p of source){
+      if(seen.has(p.season)) continue;
+      seen.add(p.season);
+      const rep = (!p.hj && reports[p.id]) ? reports[p.id] : null;
+      cards.push({
+        id: p.id,
+        season: p.season, seasonId: Math.floor(p.id / 1000000),
+        pos: p.pos || '', ovr: p.ovr || 0,
+        hj: p.hj || '', min: (p.min == null ? -1 : p.min),
+        refresh: refreshLabel(p.hj, p.min),
+        nextIn: nextInMin(p.hj, p.min),
+        report: rep,
+      });
+    }
+
+    // OVR 높은 순 정렬 (OVR 동일하면 최신 시즌 우선)
+    cards.sort((a, b) => (b.ovr || 0) - (a.ovr || 0) || b.seasonId - a.seasonId);
+
+    const titleEl = document.getElementById('playerTitle');
+    titleEl.textContent = name;
+    titleEl.style.cursor = ''; titleEl.title = ''; titleEl.onclick = null;
+    const confirmed = cards.filter(c => c.refresh).length;
+    const subEl = document.getElementById('playerSub');
+    if(seasonFilter){
+      subEl.innerHTML = `${esc(seasonFilter)} 카드만 표시 · 갱신 시간 확인 ${confirmed}장 · `
+        + `<a style="color:var(--lime); cursor:pointer;" onclick="showPlayer('${esc(name)}')">전체 클래스 보기</a>`;
+    }else{
+      subEl.textContent = `시즌 카드 ${cards.length}장 · 갱신 시간 확인 ${confirmed}장`;
+    }
+    document.getElementById('playerCards').innerHTML = cards.map(c => `
+      <div class="p-card">
+        <span style="cursor:pointer;" title="선수 게시판(댓글) 열기" onclick="openReportDetail(${c.id})">${actionImg(c.id)}</span>
+        <div class="p-season"><span class="b-name-link" style="display:inline-flex; align-items:center; gap:8px;" title="${esc(c.season)} 갱신시간 페이지 열기" onclick="showSearchCards('', '${esc(c.season)}')">${seasonIcon(c.seasonId)}<span class="code">${esc(c.season || '기본')}</span></span><button class="fav-btn ${favs[c.id] ? 'on' : ''}" data-spid="${c.id}" title="즐겨찾기" onclick="toggleFav(${c.id})">${favs[c.id] ? '★' : '☆'}</button></div>
+        ${c.pos || c.ovr ? `<div class="p-timer" style="margin:0 0 8px;">${esc(c.pos)}${c.pos && c.ovr ? ' · ' : ''}${c.ovr ? 'OVR ' + c.ovr : ''}</div>` : ''}
+        ${c.refresh
+          ? `<div class="p-refresh">${c.refresh}</div>
+             <div class="p-timer">${c.hj ? timerChip(c.hj, c.min) : ''}</div>`
+          : `<div class="p-refresh none">갱신 시간 미확인</div>
+             ${c.report
+               ? `<span class="report-chip">유저 제보: ${refreshLabel(c.report.hj, c.report.min)}</span>`
+               : `<div class="p-timer">커뮤니티 &gt; 유저참여게시판에서 제보할 수 있어요</div>`}`}
+      </div>
+    `).join('');
+    switchView('viewPlayer');
+  }
+
+  // 엔터/검색 버튼: 클래스 선택 여부와 무관하게 항상 갱신시간 카드 화면으로 이동.
+  // 일치 선수가 1명이면 그 선수 상세로, 여러 명이면 관련 선수 전원의 카드를 한 화면에 표시.
+  // 클래스만 선택하고 이름이 비어 있으면 해당 클래스 전체 목록(스크롤 로드) 표시.
+  function goSearchFrom(inputId){
+    const q = document.getElementById(inputId).value.trim();
+    const useSeason = (inputId === 'playerSearch') ? selectedSeason : selectedSeason2;
+    const boxId = inputId === 'playerSearch2' ? 'results2' : 'results';
+    if(!allPlayers){
+      // 데이터 미로드 폴백: 내장 인기 선수 목록
+      if(q) renderResults(players.filter(p => p.name.includes(q))
+        .map(p => ({ name: p.name, id: 0, position: p.position, ovr: 0, cards: 1, confirmed: 1 })), boxId);
+      return;
+    }
+    if(!q){
+      // 이름 없이 클래스만 선택 → 해당 클래스(시즌) 갱신시간 페이지로 이동
+      if(useSeason) showSearchCards('', useSeason);
+      return;
+    }
+    const list = buildPlayerList(q, useSeason);
+    if(list.length === 0){ renderResults([], boxId); return; }
+    if(list.length === 1){ showPlayer(list[0].name, useSeason); return; }
+    showSearchCards(q, useSeason);   // 여러 명 → 관련 선수 전원 갱신시간 카드 화면
+  }
+  function goSearch(){ goSearchFrom('playerSearch'); }
+
+  // ---------- 검색 결과 카드 화면: 관련 선수 전원의 카드를 갱신시간과 함께 표시 ----------
+  function multiCardHtml(c, favs){
+    return `
+      <div class="p-card">
+        <span style="cursor:pointer;" title="선수 게시판(댓글) 열기" onclick="openReportDetail(${c.id})">${actionImg(c.id)}</span>
+        <div style="font-weight:700; margin-bottom:6px;"><span class="b-name-link" title="선수 게시판(댓글) 열기" onclick="openReportDetail(${c.id})">${esc(c.name)}</span></div>
+        <div class="p-season"><span class="b-name-link" style="display:inline-flex; align-items:center; gap:8px;" title="${esc(c.season)} 갱신시간 페이지 열기" onclick="showSearchCards('', '${esc(c.season)}')">${seasonIcon(c.seasonId)}<span class="code">${esc(c.season || '기본')}</span></span><button class="fav-btn ${favs[c.id] ? 'on' : ''}" data-spid="${c.id}" title="즐겨찾기" onclick="toggleFav(${c.id})">${favs[c.id] ? '★' : '☆'}</button></div>
+        ${c.pos || c.ovr ? `<div class="p-timer" style="margin:0 0 8px;">${esc(c.pos)}${c.pos && c.ovr ? ' · ' : ''}${c.ovr ? 'OVR ' + c.ovr : ''}</div>` : ''}
+        ${c.refresh
+          ? `<div class="p-refresh">${c.refresh}</div><div class="p-timer">${timerChip(c.hj, c.min)}</div>`
+          : `<div class="p-refresh none">갱신 시간 미확인</div>${c.report ? `<span class="report-chip">유저 제보: ${refreshLabel(c.report.hj, c.report.min)}</span>` : ''}`}
+      </div>`;
+  }
+
+  // 카드 페이지 자동 이어보기(스크롤) 리스너 관리
+  let _cardsScrollHandler = null;
+  function detachCardsScroll(){
+    if(_cardsScrollHandler){
+      try{ window.removeEventListener('scroll', _cardsScrollHandler); }catch(e){}
+      _cardsScrollHandler = null;
+    }
+  }
+
+  // q가 비어 있고 season만 있으면 '해당 시즌 전체 갱신시간 페이지'로 동작
+  async function showSearchCards(q, season){
+    if(!allPlayers) return;
+    if(!q && !season) return;
+    lastSearchQ = q || ''; lastSearchSeason = season || '';
+    lastPlayerName = null; lastPlayerSeason = '';
+    detachCardsScroll();
+    const favs = (await favApi.list()) || {};
+    const reports = getReports();
+    // 일치 선수 전원의 카드 수집 (선수별 시즌 중복 제거)
+    const cards = [];
+    const qIsCho = q ? isChosungQuery(q) : false;
+    const seenBy = new Map();   // name -> Set(season)
+    for(const p of allPlayers){
+      if(season && p.season !== season) continue;
+      if(q && !nameMatches(p.name, q, qIsCho)) continue;
+      let s = seenBy.get(p.name);
+      if(!s){ s = new Set(); seenBy.set(p.name, s); }
+      if(s.has(p.season)) continue;
+      s.add(p.season);
+      const rep = (!p.hj && reports[p.id]) ? reports[p.id] : null;
+      cards.push({
+        id: p.id, name: p.name, season: p.season, seasonId: Math.floor(p.id / 1000000),
+        pos: p.pos || '', ovr: p.ovr || 0, hj: p.hj || '', min: (p.min == null ? -1 : p.min),
+        refresh: refreshLabel(p.hj, p.min), report: rep,
+      });
+    }
+    cards.sort((a, b) => (b.ovr || 0) - (a.ovr || 0) || b.seasonId - a.seasonId);
+
+    const titleEl = document.getElementById('playerTitle');
+    titleEl.textContent = q ? `"${q}" 검색 결과` : `${season} 갱신시간`;
+    titleEl.style.cursor = ''; titleEl.title = ''; titleEl.onclick = null;
+    document.getElementById('playerSub').textContent =
+      `일치 선수 ${seenBy.size.toLocaleString()}명 · 카드 ${cards.length.toLocaleString()}장`
+      + (q && season ? ` · ${season} 카드만 표시` : '') + ' · OVR 높은 순'
+      + (cards.length > 60 ? ' · 아래로 스크롤하면 계속 표시됩니다' : '');
+
+    // 카드가 많으면 60장씩 나눠 '더 보기'로 이어서 표시 (브라우저 멈춤 방지)
+    const box = document.getElementById('playerCards');
+    box.innerHTML = '';
+    const CHUNK = 60;
+    let idx = 0;
+    const appendChunk = () => {
+      const oldBtn = document.getElementById('moreCardsBtn');
+      if(oldBtn) oldBtn.remove();
+      const holder = document.createElement('div');
+      holder.innerHTML = cards.slice(idx, idx + CHUNK).map(c => multiCardHtml(c, favs)).join('');
+      while(holder.firstChild) box.appendChild(holder.firstChild);
+      idx += CHUNK;
+      if(idx < cards.length){
+        const b = document.createElement('button');
+        b.id = 'moreCardsBtn';
+        b.className = 'back-btn';
+        b.style.cssText = 'grid-column:1/-1; margin:10px 0 0;';
+        b.textContent = `더 보기 (${(cards.length - idx).toLocaleString()}장 남음)`;
+        b.onclick = appendChunk;
+        box.appendChild(b);
+      }
+    };
+    appendChunk();
+    // 페이지 하단 근처까지 스크롤하면 자동으로 다음 60장 로드 ('더 보기' 버튼은 예비용)
+    if(cards.length > CHUNK){
+      _cardsScrollHandler = () => {
+        try{
+          if(currentView !== 'viewPlayer' || idx >= cards.length){ detachCardsScroll(); return; }
+          if(window.innerHeight + window.scrollY >= document.body.scrollHeight - 600) appendChunk();
+        }catch(e){}
+      };
+      window.addEventListener('scroll', _cardsScrollHandler);
+    }
+    switchView('viewPlayer');
+  }
+
+  // ---------- 시즌 선택 드롭다운 (which: '' = 홈 검색, '2' = 갱신시간 페이지) ----------
+  let selectedSeason = '';   // '' = 전체 시즌 (홈 검색 필터)
+  let selectedSeason2 = '';  // 갱신시간 페이지 검색 필터
+  let _seasonBuiltMap = {};
+  function seasonIdOf(season){
+    if(!allPlayers) return 0;
+    const p = allPlayers.find(x => x.season === season);
+    return p ? Math.floor(p.id / 1000000) : 0;
+  }
+  function buildSeasonDropdown(which){
+    which = which || '';
+    if(_seasonBuiltMap[which] || !allPlayers) return;
+    const dd = document.getElementById('seasonDropdown' + which);
+    if(!dd) return;
+    _seasonBuiltMap[which] = true;
+    const map = new Map();
+    for(const p of allPlayers){ if(!map.has(p.season)) map.set(p.season, Math.floor(p.id / 1000000)); }
+    const seasons = [...map.entries()].map(([s, id]) => ({ s, id })).sort((a, b) => b.id - a.id);
+    dd.innerHTML =
+      `<input class="sd-filter" id="seasonFilter${which}" placeholder="클래스명 검색 (예: TOTY)" autocomplete="off">`
+      + `<div class="sd-item ${(which === '' ? selectedSeason : selectedSeason2) === '' ? 'active' : ''}" data-season="">전체 클래스</div>`
+      + seasons.map(x => `<div class="sd-item" data-season="${esc(x.s)}">${seasonIcon(x.id)}<span>${esc(x.s)}</span></div>`).join('');
+    // 시즌 클릭 (위임)
+    dd.addEventListener('click', (e) => {
+      const item = e.target.closest('.sd-item');
+      if(!item) return;
+      pickSeasonFrom(which, item.getAttribute('data-season') || '');
+    });
+    // 시즌명 필터 입력
+    const filter = document.getElementById('seasonFilter' + which);
+    filter.addEventListener('input', function(){
+      const q = this.value.trim().toUpperCase();
+      dd.querySelectorAll('.sd-item[data-season]').forEach(it => {
+        if(it.getAttribute('data-season') === '') return;   // '전체 클래스'는 항상 표시
+        const s = (it.getAttribute('data-season') || '').toUpperCase();
+        it.style.display = (!q || s.includes(q)) ? '' : 'none';
+      });
+    });
+    filter.addEventListener('keydown', e => {
+      if(e.key === 'Enter'){
+        e.preventDefault(); e.stopPropagation();
+        const visible = [...dd.querySelectorAll('.sd-item[data-season]')]
+          .filter(it => it.getAttribute('data-season') !== '' && it.style.display !== 'none');
+        if(visible.length >= 1){
+          // 입력값과 정확히 일치하는 클래스가 있으면 우선 선택 (예: 'GR' 입력 시 GRU가 아닌 GR)
+          const nq = filter.value.trim().toUpperCase();
+          const exact = visible.find(it => (it.getAttribute('data-season') || '').toUpperCase() === nq);
+          pickSeasonFrom(which, (exact || visible[0]).getAttribute('data-season'));
+        }
+        return;
+      }
+      e.stopPropagation();
+    });
+  }
+  function toggleSeasonDropdown(ev, which){
+    which = which || '';
+    if(ev) ev.stopPropagation();
+    buildSeasonDropdown(which);
+    const dd = document.getElementById('seasonDropdown' + which);
+    if(!dd) return;
+    const open = dd.classList.toggle('show');
+    if(open){
+      const f = document.getElementById('seasonFilter' + which);
+      if(f){ f.value = ''; f.dispatchEvent(new Event('input')); f.focus(); }
+    }
+  }
+  // 갱신시간 페이지의 클래스 선택 초기화 (다른 페이지로 나갈 때 호출)
+  function resetSeason2(){
+    selectedSeason2 = '';
+    const btn = document.getElementById('seasonSelectBtn2');
+    if(btn) btn.innerHTML = '클래스 선택 <span class="sd-caret">▾</span>';
+    document.querySelectorAll('#seasonDropdown2 .sd-item').forEach(it => {
+      it.classList.toggle('active', (it.getAttribute('data-season') || '') === '');
+    });
+  }
+
+  // 선택 처리: 두 위치 모두 '선택만' 하고, 검색 버튼/엔터를 눌러야 이동
+  function pickSeasonFrom(which, season){
+    if(which === '2'){
+      selectedSeason2 = season;
+      const btn = document.getElementById('seasonSelectBtn2');
+      if(btn){
+        btn.innerHTML = season
+          ? `${seasonIcon(seasonIdOf(season))}<span>${esc(season)}</span> <span class="sd-caret">▾</span>`
+          : `클래스 선택 <span class="sd-caret">▾</span>`;
+      }
+      document.querySelectorAll('#seasonDropdown2 .sd-item').forEach(it => {
+        it.classList.toggle('active', (it.getAttribute('data-season') || '') === season);
+      });
+      const dd = document.getElementById('seasonDropdown2');
+      if(dd) dd.classList.remove('show');
+      return;
+    }
+    pickSeason(season);
+  }
+  function pickSeason(season){
+    selectedSeason = season;
+    const btn = document.getElementById('seasonSelectBtn');
+    if(season){
+      btn.innerHTML = `${seasonIcon(seasonIdOf(season))}<span>${esc(season)}</span> <span class="sd-caret">▾</span>`;
+    }else{
+      btn.innerHTML = `클래스 선택 <span class="sd-caret">▾</span>`;
+    }
+    document.querySelectorAll('#seasonDropdown .sd-item').forEach(it => {
+      it.classList.toggle('active', (it.getAttribute('data-season') || '') === season);
+    });
+    document.getElementById('seasonDropdown').classList.remove('show');
+    // 선택만 하고 이동하지 않음 — 검색 버튼 또는 엔터를 눌러야 검색/이동 실행
+    document.getElementById('results').classList.remove('show');
+  }
+  // 바깥 클릭 시 시즌 드롭다운 닫기 (홈/갱신시간 페이지 모두)
+  document.addEventListener('click', (e) => {
+    try{
+      ['', '2'].forEach(w => {
+        const dd = document.getElementById('seasonDropdown' + w);
+        const btn = document.getElementById('seasonSelectBtn' + w);
+        if(dd && dd.classList.contains('show') && !dd.contains(e.target) && (!btn || !btn.contains(e.target))){
+          dd.classList.remove('show');
+        }
+      });
+    }catch(err){}
+  });
+
+  // ---------- 시즌별 달성률 ----------
+  function showAchievement(){
+    switchView('viewAchievement');
+    const listEl = document.getElementById('achList');
+    const sumEl = document.getElementById('achSummary');
+    if(!allPlayers){
+      listEl.innerHTML = `<div class="no-result">선수 데이터(players.json)를 불러오지 못했어요.</div>`;
+      sumEl.innerHTML = '';
+      return;
+    }
+    const reports = getReports();
+    // 시즌별 집계: 등록 = 엑셀 입력 or 유저 제보
+    const agg = {};   // season -> {seasonId, total, done}
+    for(const p of allPlayers){
+      if(!(p.season in agg)) agg[p.season] = { seasonId: Math.floor(p.id / 1000000), total: 0, done: 0 };
+      agg[p.season].total++;
+      if(p.hj || reports[p.id]) agg[p.season].done++;
+    }
+    const rows = Object.entries(agg).map(([season, v]) => ({
+      season, seasonId: v.seasonId, total: v.total, done: v.done,
+      pct: v.total ? v.done / v.total * 100 : 0,
+    }));
+    rows.sort((a, b) => b.pct - a.pct || b.total - a.total);
+
+    const grandTotal = rows.reduce((s, r) => s + r.total, 0);
+    const grandDone = rows.reduce((s, r) => s + r.done, 0);
+    const fullSeasons = rows.filter(r => r.done === r.total).length;
+    sumEl.innerHTML = `
+      <div class="stat-box"><div class="sv">${(grandTotal ? grandDone / grandTotal * 100 : 0).toFixed(1)}%</div><div class="sl">전체 달성률</div></div>
+      <div class="stat-box"><div class="sv">${grandDone.toLocaleString()}</div><div class="sl">등록된 카드</div></div>
+      <div class="stat-box"><div class="sv">${rows.length}</div><div class="sl">시즌(클래스) 수</div></div>
+      <div class="stat-box"><div class="sv">${fullSeasons}</div><div class="sl">100% 완료 시즌</div></div>
+    `;
+    listEl.innerHTML = rows.map(r => `
+      <div class="ach-row" style="cursor:pointer;" title="${esc(r.season)} 갱신시간 페이지 열기" onclick="showSearchCards('', '${esc(r.season)}')">
+        <div class="a-season">${seasonIcon(r.seasonId)}<span class="code">${esc(r.season)}</span></div>
+        <div class="ach-bar"><span style="width:${r.pct.toFixed(1)}%"></span></div>
+        <div class="a-num">${r.done.toLocaleString()} / ${r.total.toLocaleString()}</div>
+        <div class="a-pct">${r.pct.toFixed(0)}%</div>
+      </div>
+    `).join('');
+  }
+
+  // ---------- 즐겨찾기 ----------
+  // favApi: 저장 계층 추상화. 지금은 localStorage(계정별 키), 나중에 Supabase로 교체 시
+  // 이 세 함수의 내부만 서버 호출로 바꾸면 나머지 코드는 그대로 동작한다.
+  function currentUser(){ return sbProfile ? sbProfile.id : null; }
+  function currentNick(){ return sbProfile ? sbProfile.nick : ''; }
+  // 관리자: 서버 프로필의 is_admin (supabase_setup.sql 하단 안내대로 지정)
+  function isAdmin(){ return !!(sbProfile && sbProfile.is_admin); }
+
+  // 비로그인(guest) 즐겨찾기를 로그인 직후 서버로 이관
+  async function migrateGuestFavsToServer(){
+    try{
+      if(!sbProfile || !sb) return;
+      const s = store();
+      if(!s) return;
+      const all = JSON.parse(s.getItem('fc_favs') || '{}');
+      const guest = all['guest'] || {};
+      const spids = Object.keys(guest).map(Number).filter(n => !isNaN(n));
+      if(spids.length === 0) return;
+      await sb.from('favorites').upsert(spids.map(spid => ({ user_id: sbProfile.id, spid })));
+      delete all['guest'];
+      s.setItem('fc_favs', JSON.stringify(all));
+    }catch(e){}
+  }
+
+  // 즐겨찾기: 로그인 시 서버(Supabase) 저장 → 기기 간 동기화.
+  // 비로그인(guest)은 기존처럼 이 브라우저의 localStorage에 저장.
+  const favApi = {
+    _cache: null,
+    _cacheAt: 0,
+    async list(){
+      if(sbProfile && sb){
+        const now = Date.now();
+        if(favApi._cache && now - favApi._cacheAt < 60000) return favApi._cache;   // 60초 캐시
+        try{
+          const { data, error } = await sb.from('favorites').select('spid').eq('user_id', sbProfile.id);
+          if(!error && data){
+            const o = {};
+            data.forEach(r => { o[r.spid] = true; });
+            favApi._cache = o;
+            favApi._cacheAt = now;
+            return o;
+          }
+        }catch(e){}
+        return favApi._cache || {};   // 네트워크 실패 시 마지막 캐시로 동작
+      }
+      const s = store();
+      const all = JSON.parse((s && s.getItem('fc_favs')) || '{}');
+      return all['guest'] || {};
+    },
+    async add(spid){
+      if(sbProfile && sb){
+        try{
+          const { error } = await sb.from('favorites').upsert({ user_id: sbProfile.id, spid });
+          if(error) return false;
+          (favApi._cache = favApi._cache || {})[spid] = true;
+          return true;
+        }catch(e){ return false; }
+      }
+      const s = store();
+      if(!s) return false;
+      const all = JSON.parse(s.getItem('fc_favs') || '{}');
+      (all['guest'] = all['guest'] || {})[spid] = new Date().toISOString();
+      s.setItem('fc_favs', JSON.stringify(all));
+      return true;
+    },
+    async remove(spid){
+      if(sbProfile && sb){
+        try{
+          await sb.from('favorites').delete().eq('user_id', sbProfile.id).eq('spid', spid);
+          if(favApi._cache) delete favApi._cache[spid];
+          return true;
+        }catch(e){ return false; }
+      }
+      const s = store();
+      if(!s) return false;
+      const all = JSON.parse(s.getItem('fc_favs') || '{}');
+      if(all['guest']) delete all['guest'][spid];
+      s.setItem('fc_favs', JSON.stringify(all));
+      return true;
+    },
+  };
+
+  let lastPlayerName = null;   // 상세 페이지 재렌더용
+  let lastPlayerSeason = '';   // 상세 페이지에 적용된 클래스 필터 ('' = 전체)
+  let lastSearchQ = '';        // 검색 결과 카드 화면의 검색어 (새로고침 복원용)
+  let lastSearchSeason = '';   // 검색 결과 카드 화면의 클래스 필터
+
+  async function toggleFav(spid){
+    const favs = await favApi.list();
+    const nowOn = !(favs && favs[spid]);
+    if(nowOn){
+      await favApi.add(spid);
+      ensureNotifyPermission();
+      checkAlarms();
+      // 비로그인 상태에서 즐겨찾기하면 로그인 유도 안내(세션당 1회)
+      if(!currentUser() && !toggleFav._guestNotified){
+        toggleFav._guestNotified = true;
+        showToast('로그인하시면 모바일에서도 알림을 받아 보실 수 있어요.');
+      }
+    }else{
+      await favApi.remove(spid);
+    }
+    // 전체 재렌더(스크롤 튐) 대신 해당 카드의 별 버튼만 그 자리에서 갱신
+    const btn = document.querySelector(`.fav-btn[data-spid="${spid}"]`);
+    if(btn){
+      btn.classList.toggle('on', nowOn);
+      btn.textContent = nowOn ? '★' : '☆';
+    }
+  }
+
+  async function removeFav(spid){
+    await favApi.remove(spid);
+    renderFavorites();   // 목록만 갱신 — 스크롤 위치 유지
+  }
+
+  let spidIndex = null;   // spid -> 선수 (즐겨찾기 조회용, 최초 1회 생성)
+  function bySpid(spid){
+    if(!allPlayers) return null;
+    if(!spidIndex){
+      spidIndex = new Map();
+      for(const p of allPlayers) spidIndex.set(p.id, p);
+    }
+    return spidIndex.get(spid) || null;
+  }
+
+  async function showFavorites(){
+    switchView('viewFavorites');
+    await renderFavorites();
+  }
+  // 즐겨찾기 목록만 다시 그리기 (화면 전환·스크롤 이동 없음)
+  async function renderFavorites(){
+    const listEl = document.getElementById('favList');
+    const subEl = document.getElementById('favSub');
+    if(!allPlayers){
+      listEl.innerHTML = `<div class="no-result">선수 데이터(players.json)를 불러오지 못했어요.</div>`;
+      return;
+    }
+    const favs = await favApi.list();
+    const spids = Object.keys(favs || {}).map(Number);
+    if(spids.length === 0){
+      subEl.textContent = '자주 확인하는 카드를 모아두고 갱신 시간을 한눈에 확인하세요.';
+      listEl.innerHTML = `<div class="no-result">아직 즐겨찾기한 카드가 없어요. 선수 상세 페이지에서 ★을 눌러 추가해보세요.</div>`;
+      return;
+    }
+    const rows = spids.map(spid => {
+      const p = bySpid(spid);
+      if(!p) return null;
+      return {
+        id: p.id, name: p.name, season: p.season,
+        seasonId: Math.floor(p.id / 1000000),
+        hj: p.hj || '', min: (p.min == null ? -1 : p.min),
+        refresh: refreshLabel(p.hj, p.min),
+        nextIn: nextInMin(p.hj, p.min),
+      };
+    }).filter(Boolean);
+    // 갱신 임박 순 (미확인은 뒤로)
+    rows.sort((a, b) => (a.nextIn < 0 ? 1e9 : a.nextIn) - (b.nextIn < 0 ? 1e9 : b.nextIn));
+
+    subEl.textContent = currentUser()
+      ? `즐겨찾기 ${rows.length}장 · 갱신 임박한 카드부터 표시됩니다.`
+      : `즐겨찾기 ${rows.length}장 · 로그인하시면 모바일에서도 알림을 받아 보실 수 있어요.`;
+    listEl.innerHTML = rows.map(r => `
+      <div class="fav-row" onclick="showPlayer('${esc(r.name)}')">
+        <div class="f-left">
+          <div class="result-badge">-${faceImg(r.id)}</div>
+          <span class="class-chip">${seasonIcon(r.seasonId)}${esc(r.season)}</span>
+          <span class="f-name">${esc(r.name)}</span>
+        </div>
+        <div class="f-right">
+          ${r.refresh
+            ? `${timerChip(r.hj, r.min, 'f-timer')}
+               <span class="f-refresh">${r.refresh}</span>`
+            : `<span class="f-refresh">갱신 시간 미확인</span>`}
+          <button class="fav-remove" onclick="event.stopPropagation(); removeFav(${r.id})">해제</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // ---------- 커뮤니티 허브 ----------
+  function showBoardHub(){ switchView('viewBoardHub'); }
+
+  // ---------- 서버 게시판 데이터 (Supabase) ----------
+  // 자유게시판·제보·신고·댓글은 서버에 저장되어 모든 방문자가 같은 내용을 봅니다.
+  let freePostsCache = null;   // null = 아직 못 불러옴, [] = 글 없음
+  let reportsCache = {};       // spid -> 대표 제보 { hj, min, nick, at, count(총 제보수), agree(일치 건수) }
+  let reportsAll = {};         // spid -> 제보 원본 배열 (CSV 상세용)
+  let flagsCache = {};         // spid -> { nick, at }
+  let commentsCache = {};      // spid -> [{ nick, body, at }]
+  let _boardsLoaded = false;
+
+  function mapPost(r){
+    return {
+      id: r.id, title: r.title,
+      body: (r.body !== undefined) ? r.body : null,     // null = 아직 본문 미로드 (목록 요약본)
+      image: (r.image !== undefined) ? (r.image || '') : null,
+      category: r.category || '자유', nick: r.nick || '익명', authorUid: r.author,
+      at: r.created_at, views: r.views || 0, likes: r.likes || 0,
+      likedBy: r.liked_by || [], editedAt: r.edited_at,
+    };
+  }
+
+  // 제보 집계: 같은 선수의 여러 제보 중 가장 많이 일치하는 시간(홀짝+분)을 대표값으로.
+  // count = 총 제보 수, agree = 대표 시간과 일치하는 제보 수 (신뢰도 판단용)
+  function buildReportCaches(rows){
+    reportsAll = {};
+    rows.forEach(r => { (reportsAll[r.spid] = reportsAll[r.spid] || []).push(r); });
+    reportsCache = {};
+    Object.entries(reportsAll).forEach(([spid, arr]) => {
+      const tally = {};
+      arr.forEach(r => { const k = r.hj + ':' + r.min; tally[k] = (tally[k] || 0) + 1; });
+      let bestK = null, bestN = 0;
+      Object.entries(tally).forEach(([k, n]) => { if(n > bestN){ bestN = n; bestK = k; } });
+      const [hj, minStr] = bestK.split(':');
+      const latest = arr.reduce((a, b) => (String(a.created_at) > String(b.created_at) ? a : b));
+      reportsCache[spid] = {
+        hj, min: parseInt(minStr, 10),
+        nick: latest.nick || '', at: latest.created_at,
+        count: arr.length, agree: bestN,
+      };
+    });
+  }
+
+  // 글 하나의 본문·사진까지 전체 로드 (목록은 요약만 받아 전송량 절약)
+  async function fetchPostFull(id){
+    const client = await loadSupabase();
+    if(!client) return null;
+    try{
+      const { data } = await client.from('free_posts').select('*').eq('id', id).maybeSingle();
+      return data ? mapPost(data) : null;
+    }catch(e){ return null; }
+  }
+
+  async function loadServerBoards(force){
+    const client = await loadSupabase();
+    if(!client) return false;
+    if(_boardsLoaded && !force) return true;
+    try{
+      const [posts, reps, flags] = await Promise.all([
+        // 목록에는 본문(body)·사진(image)을 제외해 전송량을 크게 절약 — 글 열 때만 로드
+        client.from('free_posts')
+          .select('id,author,nick,category,title,views,likes,liked_by,created_at,edited_at')
+          .order('created_at', { ascending: false }).limit(500),
+        client.from('reports').select('spid,hj,min,nick,created_at'),
+        client.from('report_flags').select('spid,nick,created_at'),
+      ]);
+      if(posts.data) freePostsCache = posts.data.map(mapPost);
+      if(reps.data) buildReportCaches(reps.data);
+      if(flags.data){
+        flagsCache = {};
+        flags.data.forEach(r => { flagsCache[r.spid] = { nick: r.nick || '', at: r.created_at }; });
+      }
+      _boardsLoaded = true;
+      return true;
+    }catch(e){ return false; }
+  }
+
+  // ---------- 자유게시판 (목록/글쓰기/상세) ----------
+  function getFreePosts(){ return freePostsCache || []; }
+
+  // 게시판 진입 시 항상 목록 화면
+  let freeCat = '전체';   // 현재 선택된 카테고리 필터
+  function setFreeCat(cat){
+    freeCat = cat;
+    document.querySelectorAll('.cat-tab').forEach(t => {
+      t.classList.toggle('active', t.getAttribute('data-cat') === cat);
+    });
+    renderFreePosts();
+  }
+  function showFreeBoard(){
+    switchView('viewFreeBoard');
+    showFreeList();
+    // 서버에서 최신 글 새로고침 후 다시 렌더
+    loadServerBoards(true).then(ok => { if(ok) renderFreePosts(); });
+  }
+  function showFreeList(){
+    document.getElementById('freeListView').style.display = '';
+    document.getElementById('freeWriteView').style.display = 'none';
+    document.getElementById('freeReadView').style.display = 'none';
+    renderFreePosts();
+  }
+  let editingPostId = null;   // null이면 새 글, 값 있으면 수정
+  async function openFreeWrite(editId){
+    if(!currentUser()){ openAuth(); return; }
+    editingPostId = editId || null;
+    // 공지사항 옵션은 관리자에게만 노출
+    const noticeOpt = document.getElementById('catNoticeOpt');
+    if(noticeOpt) noticeOpt.style.display = isAdmin() ? '' : 'none';
+    pendingImageBlob = null;
+    if(editingPostId){
+      let p = getFreePosts().find(x => x.id === editingPostId);
+      if(p && p.body == null){   // 목록 요약본이면 본문·사진 로드
+        const full = await fetchPostFull(editingPostId);
+        if(full) Object.assign(p, full);
+      }
+      document.getElementById('freeTitle').value = p ? p.title : '';
+      document.getElementById('freeBody').value = (p && p.body) ? p.body : '';
+      pendingImage = (p && p.image) ? p.image : '';
+      document.getElementById('freeCategory').value = (p && p.category) ? p.category : '자유';
+    }else{
+      document.getElementById('freeTitle').value = '';
+      document.getElementById('freeBody').value = '';
+      pendingImage = '';
+      document.getElementById('freeCategory').value = '자유';
+    }
+    // 이미지 미리보기 초기화
+    document.getElementById('freeImageName').textContent = '';
+    updateImagePreview();
+    document.getElementById('freeListView').style.display = 'none';
+    document.getElementById('freeReadView').style.display = 'none';
+    document.getElementById('freeWriteView').style.display = '';
+    document.getElementById('freeTitle').focus();
+  }
+  function closeFreeWrite(){ editingPostId = null; clearFreeImage(); showFreeList(); }
+  function closeFreeRead(){ showFreeList(); }
+
+  // ---------- 이미지 첨부 (파일 → 압축 → Supabase Storage 업로드) ----------
+  let pendingImage = '';        // 미리보기/기존 이미지 주소 (URL 또는 objectURL)
+  let pendingImageBlob = null;  // 새로 첨부한 압축 이미지 (등록 시 Storage에 업로드)
+  function updateImagePreview(){
+    const prev = document.getElementById('freeImagePreview');
+    const clr = document.getElementById('freeImageClear');
+    if(pendingImage){
+      prev.src = pendingImage; prev.style.display = '';
+      clr.style.display = '';
+    }else{
+      prev.style.display = 'none'; clr.style.display = 'none';
+    }
+  }
+  function clearFreeImage(){
+    if(pendingImage && pendingImage.startsWith('blob:')){ try{ URL.revokeObjectURL(pendingImage); }catch(e){} }
+    pendingImage = '';
+    pendingImageBlob = null;
+    document.getElementById('freeImageName').textContent = '';
+    updateImagePreview();
+  }
+  // 파일(붙여넣기 포함)을 받아 축소(800px)·압축(품질 0.7) 후 첨부 대기
+  function attachImageFile(file){
+    if(!file) return;
+    if(!file.type || !file.type.startsWith('image/')){ showToast('이미지 파일만 첨부할 수 있어요.'); return; }
+    document.getElementById('freeImageName').textContent = file.name || '붙여넣은 이미지';
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const max = 800;
+        let { width: w, height: h } = img;
+        if(w > max || h > max){
+          if(w >= h){ h = Math.round(h * max / w); w = max; }
+          else { w = Math.round(w * max / h); h = max; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        canvas.toBlob(blob => {
+          if(!blob){ showToast('이미지 압축에 실패했어요.'); return; }
+          if(pendingImage && pendingImage.startsWith('blob:')){ try{ URL.revokeObjectURL(pendingImage); }catch(e){} }
+          pendingImageBlob = blob;
+          pendingImage = URL.createObjectURL(blob);
+          updateImagePreview();
+        }, 'image/jpeg', 0.7);
+      };
+      img.onerror = () => { clearFreeImage(); showToast('이미지를 불러오지 못했어요.'); };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  }
+  // 내용란에 이미지 붙여넣기(Ctrl+V) → 첨부
+  function onBodyPaste(e){
+    const cd = e.clipboardData || window.clipboardData;
+    if(!cd || !cd.items) return;
+    for(const it of cd.items){
+      if(it.type && it.type.startsWith('image/')){
+        const file = it.getAsFile();
+        if(file){ e.preventDefault(); attachImageFile(file); showToast('사진이 첨부됐어요.'); return; }
+      }
+    }
+  }
+
+  async function submitFreePost(){
+    if(!currentUser()){ openAuth(); return; }
+    const title = document.getElementById('freeTitle').value.trim();
+    const body = document.getElementById('freeBody').value.trim();
+    if(!title || !body) return;
+    let category = document.getElementById('freeCategory').value;
+    if(category === '공지사항' && !isAdmin()) category = '자유';   // 비관리자 공지 차단 (서버에서도 한 번 더 차단됨)
+    const uid = currentUser();
+    const client = await loadSupabase();
+    if(!client || !sbProfile){ showToast('서버에 연결할 수 없어 글을 저장하지 못했어요.'); return; }
+    try{
+      // 이미지 처리: 새로 첨부한 사진은 Storage에 업로드 후 URL 저장.
+      // (기존 사진 유지 시 pendingImage에 URL이 그대로 들어 있음)
+      let image = (pendingImage && !pendingImage.startsWith('blob:')) ? pendingImage : '';
+      if(pendingImageBlob){
+        const path = uid + '/' + Date.now() + '.jpg';
+        const up = await client.storage.from('post-images')
+          .upload(path, pendingImageBlob, { contentType: 'image/jpeg', upsert: false });
+        if(up.error){ showToast('사진 업로드 실패: ' + up.error.message); return; }
+        const pub = client.storage.from('post-images').getPublicUrl(path);
+        image = (pub.data && pub.data.publicUrl) || '';
+      }
+      if(editingPostId){
+        // 수정: 작성자 본인(또는 관리자)만 — 서버 정책으로도 검증됨
+        const { error } = await client.from('free_posts')
+          .update({ title, body, image, category, edited_at: new Date().toISOString() })
+          .eq('id', editingPostId);
+        if(error){ showToast('수정 실패: ' + error.message); return; }
+      }else{
+        const { error } = await client.from('free_posts')
+          .insert({ author: uid, nick: currentNick() || '익명', category, title, body, image });
+        if(error){
+          showToast(category === '공지사항' ? '공지사항은 관리자만 작성할 수 있어요.' : '등록 실패: ' + error.message);
+          return;
+        }
+      }
+      editingPostId = null; clearFreeImage();
+      await loadServerBoards(true);   // 최신 목록 반영
+      showFreeList();
+    }catch(e){ showToast('오류가 발생했어요: ' + ((e && e.message) || e)); }
+  }
+
+  // 글 삭제: 실수 방지를 위해 버튼을 두 번 눌러야 삭제 (4초 안에)
+  let _delConfirmId = null;
+  async function deleteFreePost(id){
+    const btn = document.getElementById('delPostBtn');
+    if(_delConfirmId !== id){
+      _delConfirmId = id;
+      if(btn) btn.textContent = '⚠ 한 번 더 누르면 삭제됩니다';
+      setTimeout(() => {
+        if(_delConfirmId === id){
+          _delConfirmId = null;
+          const b = document.getElementById('delPostBtn');
+          if(b) b.textContent = '🗑 삭제';
+        }
+      }, 4000);
+      return;
+    }
+    _delConfirmId = null;
+    const client = await loadSupabase();
+    if(!client || !sbProfile){ showToast('서버에 연결할 수 없어요.'); return; }
+    try{
+      // 첨부 사진 경로 확보 (삭제 후 저장소 정리용)
+      const p = getFreePosts().find(x => x.id === id);
+      let imageUrl = p ? p.image : null;
+      if(imageUrl == null){ const full = await fetchPostFull(id); imageUrl = full && full.image; }
+      const { error } = await client.from('free_posts').delete().eq('id', id);
+      if(error){ showToast('삭제 실패: ' + error.message); return; }
+      // 첨부 사진 파일 정리 (본인 업로드만 가능 — 실패해도 무시)
+      if(imageUrl && imageUrl.includes('/post-images/')){
+        const path = decodeURIComponent(imageUrl.split('/post-images/')[1] || '');
+        if(path) client.storage.from('post-images').remove([path]).then(()=>{}, ()=>{});
+      }
+      showToast('글이 삭제됐어요.');
+      await loadServerBoards(true);
+      showFreeList();
+    }catch(e){ showToast('삭제 중 오류가 발생했어요.'); }
+  }
+
+  function renderFreePosts(){
+    const tbody = document.getElementById('freeTableBody');
+    const all = getFreePosts();
+    // 검색 (제목 or 작성자)
+    const field = document.getElementById('freeSearchField').value;
+    const q = document.getElementById('freeSearchInput').value.trim();
+    let posts = all.slice();
+    if(freeCat !== '전체') posts = posts.filter(p => (p.category || '자유') === freeCat);
+    if(q) posts = posts.filter(p => (field === 'nick' ? p.nick : p.title).includes(q));
+
+    // 공지사항은 항상 최상단에 고정 (선택된 카테고리가 '기능문의' 등일 땐 제외)
+    const showNotice = (freeCat === '전체' || freeCat === '공지사항');
+    let notices = [], normals = [];
+    for(const p of posts){
+      if((p.category || '자유') === '공지사항') notices.push(p);
+      else normals.push(p);
+    }
+    const ordered = showNotice ? notices.concat(normals) : normals;
+
+    if(ordered.length === 0){
+      const msg = freePostsCache === null
+        ? '게시글을 불러오는 중이에요… 잠시 후에도 안 보이면 서버 연결을 확인해주세요.'
+        : (q ? '검색 결과가 없어요.' : '아직 글이 없어요.');
+      tbody.innerHTML = `<tr><td colspan="6" class="free-empty">${msg}</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = ordered.map(p => {
+      const cat = p.category || '자유';
+      const isNotice = cat === '공지사항';
+      const d = new Date(p.at);
+      const today = new Date();
+      const dateStr = (d.toDateString() === today.toDateString())
+        ? `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`
+        : `${d.getFullYear().toString().slice(2)}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+      return `
+      <tr class="${isNotice ? 'notice-row' : ''}" onclick="openFreeRead(${p.id})">
+        <td class="c-cat"><span class="cat-badge ${isNotice ? 'notice' : ''}">${esc(cat)}</span></td>
+        <td class="c-title">${isNotice ? '📌 ' : ''}${esc(p.title)}</td>
+        <td class="c-nick">${esc(p.nick)}</td>
+        <td class="c-date">${dateStr}</td>
+        <td class="c-num">${p.views || 0}</td>
+        <td class="c-num">${p.likes || 0}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderFreeRead(p){
+    const uid = currentUser();
+    const liked = uid && (p.likedBy || []).includes(uid);
+    const d = new Date(p.at);
+    document.getElementById('freeReadBox').innerHTML = `
+      <div class="fr-title">${esc(p.title)}</div>
+      <div class="fr-meta">
+        <span>작성자 ${esc(p.nick)}</span>
+        <span>${d.toLocaleString('ko-KR')}</span>
+        <span>조회 ${p.views}</span>
+        <span>추천 ${p.likes || 0}</span>
+      </div>
+      <div class="fr-body">${esc(p.body)}${p.image ? `<br><img src="${esc(p.image)}" alt="첨부 이미지" style="max-width:100%; border-radius:10px; margin-top:14px;" onerror="this.style.display='none'">` : ''}</div>
+      <div class="fr-actions">
+        <button class="like-btn" onclick="likeFreePost(${p.id})">👍 추천 ${p.likes || 0}${liked ? ' (완료)' : ''}</button>
+        ${(uid && (p.authorUid === uid || isAdmin())) ? `<button class="like-btn" onclick="openFreeWrite(${p.id})">✏️ 수정</button><button class="like-btn" id="delPostBtn" style="color:var(--red); border-color:var(--red);" onclick="deleteFreePost(${p.id})">🗑 삭제</button>` : ''}
+      </div>`;
+    document.getElementById('freeListView').style.display = 'none';
+    document.getElementById('freeWriteView').style.display = 'none';
+    document.getElementById('freeReadView').style.display = '';
+  }
+
+  async function openFreeRead(id){
+    const posts = getFreePosts();
+    const p = posts.find(x => x.id === id);
+    if(!p) return;
+    p.views = (p.views || 0) + 1;   // 화면 즉시 반영
+    // 서버 조회수 증가 (실패해도 무시)
+    loadSupabase().then(client => { if(client) client.rpc('increment_views', { post_id: id }).then(()=>{}, ()=>{}); });
+    if(p.body == null){
+      // 목록 요약본 → 본문·사진 로드
+      document.getElementById('freeReadBox').innerHTML = `<div class="no-result">글을 불러오는 중…</div>`;
+      document.getElementById('freeListView').style.display = 'none';
+      document.getElementById('freeWriteView').style.display = 'none';
+      document.getElementById('freeReadView').style.display = '';
+      const full = await fetchPostFull(id);
+      if(!full){ document.getElementById('freeReadBox').innerHTML = `<div class="no-result">글을 불러오지 못했어요. 잠시 후 다시 시도해주세요.</div>`; return; }
+      full.views = p.views;   // 방금 올린 조회수 유지
+      Object.assign(p, full);
+    }
+    renderFreeRead(p);
+  }
+
+  async function likeFreePost(id){
+    if(!currentUser()){ openAuth(); return; }
+    const uid = currentUser();
+    const posts = getFreePosts();
+    const p = posts.find(x => x.id === id);
+    if(!p) return;
+    p.likedBy = p.likedBy || [];
+    if(p.likedBy.includes(uid)) return;   // 1인 1추천
+    const client = await loadSupabase();
+    if(!client){ showToast('서버에 연결할 수 없어요.'); return; }
+    try{
+      const { data, error } = await client.rpc('toggle_like', { post_id: id });
+      if(error){ showToast('추천 실패: ' + error.message); return; }
+      p.likedBy.push(uid);
+      p.likes = (typeof data === 'number') ? data : (p.likes || 0) + 1;
+      renderFreeRead(p);
+    }catch(e){ showToast('추천 중 오류가 발생했어요.'); }
+  }
+
+  // ---------- 신고게시판: 등록된 선수의 틀린 갱신시간 신고 ----------
+  function getReportFlags(){ return flagsCache; }
+  // 관리자: 신고 해제 (해제 후 다른 유저가 다시 신고 가능)
+  async function clearFlag(spid){
+    if(!isAdmin()){ showToast('관리자만 사용할 수 있어요.'); return; }
+    const client = await loadSupabase();
+    if(!client){ showToast('서버에 연결할 수 없어요.'); return; }
+    try{
+      const { error } = await client.from('report_flags').delete().eq('spid', spid);
+      if(error){ showToast('해제 실패: ' + error.message); return; }
+      delete flagsCache[spid];
+      runReportSearch();
+      showToast('신고를 해제했어요.');
+    }catch(e){ showToast('해제 중 오류가 발생했어요.'); }
+  }
+  function showReportBoard(){
+    switchView('viewReportBoard');
+    runReportSearch();
+    document.getElementById('reportSearch').focus();
+    loadServerBoards(true).then(ok => { if(ok && currentView === 'viewReportBoard') runReportSearch(); });
+  }
+  function runReportSearch(){
+    const boxEl = document.getElementById('reportResults');
+    if(!allPlayers){
+      boxEl.innerHTML = `<div class="no-result">선수 데이터를 불러오지 못해 게시판을 사용할 수 없어요.</div>`;
+      return;
+    }
+    const q = document.getElementById('reportSearch').value.trim();
+    const flags = getReportFlags();
+    // 등록됨 = 갱신시간(홀/짝+분)이 입력된 카드
+    let list = allPlayers.filter(p => p.hj && (q === '' || p.name.includes(q)));
+    const totalCount = list.length;
+    list = list.slice(0, 30);
+
+    if(list.length === 0){
+      boxEl.innerHTML = `<div class="no-result">${q ? '해당 이름의 등록된 선수가 없어요.' : '검색어를 입력해 선수를 찾아보세요.'}</div>`;
+      return;
+    }
+    boxEl.innerHTML = list.map(p => {
+      const flagged = flags[p.id];
+      return `
+      <div class="board-row">
+        <div class="b-left">
+          <span class="class-chip">${seasonIcon(Math.floor(p.id / 1000000))}${esc(p.season)}</span>
+          <span class="b-name b-name-link" onclick="openReportDetail(${p.id})">${esc(p.name)}</span>
+          <span class="report-done" style="color:var(--text-dim);">현재: ${refreshLabel(p.hj, p.min)}</span>
+        </div>
+        ${flagged
+          ? `<span class="report-done">신고 완료${flagged.nick ? ' (' + esc(flagged.nick) + ')' : ''}</span>${isAdmin() ? `<button class="fav-remove" onclick="clearFlag(${p.id})" title="신고 해제 (관리자)">해제</button>` : ''}`
+          : `<button class="report-btn" onclick="openFlagModal(${p.id})">틀린 시간 신고</button>`}
+      </div>`;
+    }).join('') + (totalCount > list.length
+      ? `<div class="no-result">외 ${(totalCount - list.length).toLocaleString()}건 — 이름으로 검색해 범위를 좁혀보세요.</div>` : '');
+  }
+  let flagTargetSpid = null;
+  function openFlagModal(spid){
+    if(!currentUser()){ openAuth(); return; }
+    flagTargetSpid = spid;
+    document.getElementById('flagSign').value = '';
+    document.getElementById('flagError').textContent = '';
+    updateFlagBtn();
+    document.getElementById('flagOverlay').classList.add('show');
+    document.getElementById('flagSign').focus();
+  }
+  // '인지'를 정확히 입력하면 신고하기 버튼 점등
+  function updateFlagBtn(){
+    const el = document.getElementById('flagSign');
+    const btn = document.getElementById('flagSubmitBtn');
+    if(!el || !btn) return;
+    btn.classList.toggle('dim', el.value.trim() !== '인지');
+  }
+  function closeFlagModal(){
+    document.getElementById('flagOverlay').classList.remove('show');
+    flagTargetSpid = null;
+  }
+  async function submitFlag(){
+    const spid = flagTargetSpid;
+    if(spid == null) return;
+    const errEl = document.getElementById('flagError');
+    const sign = document.getElementById('flagSign').value.trim();
+    if(sign !== '인지'){
+      errEl.textContent = '"인지" 라고 정확히 입력해주세요.'; return;
+    }
+    const client = await loadSupabase();
+    if(!client || !sbProfile){ errEl.textContent = '서버에 연결할 수 없어요. 잠시 후 다시 시도해주세요.'; return; }
+    try{
+      const { error } = await client.from('report_flags')
+        .upsert({ spid, nick: currentNick(), author: sbProfile.id });
+      if(error){ errEl.textContent = '신고 실패: ' + error.message; return; }
+      flagsCache[spid] = { nick: currentNick(), at: new Date().toISOString() };
+      closeFlagModal();
+      runReportSearch();
+      showToast('신고 감사합니다!!');
+    }catch(e){ errEl.textContent = '신고 중 오류가 발생했어요.'; }
+  }
+
+  // ---------- 신고 선수 상세 (댓글) ----------
+  let reportDetailSpid = null;
+  async function loadComments(spid){
+    const client = await loadSupabase();
+    if(!client){ commentsCache[spid] = commentsCache[spid] || []; return; }
+    try{
+      const { data } = await client.from('comments')
+        .select('id,author,nick,body,created_at').eq('spid', spid).order('created_at');
+      commentsCache[spid] = (data || []).map(c => ({ id: c.id, author: c.author, nick: c.nick, body: c.body, at: c.created_at }));
+    }catch(e){ commentsCache[spid] = commentsCache[spid] || []; }
+  }
+  function openReportDetail(spid){
+    const p = bySpid(spid);
+    if(!p) return;
+    reportDetailSpid = spid;
+    document.getElementById('rdHead').innerHTML =
+      `<span class="class-chip">${seasonIcon(Math.floor(p.id / 1000000))}${esc(p.season)}</span>
+       <h1 style="margin:0;">${esc(p.name)}</h1>`;
+    document.getElementById('rdCurrent').textContent =
+      `현재 등록된 갱신 시간: ${refreshLabel(p.hj, p.min) || '미확인'}`;
+    document.getElementById('commentInput').value = '';
+    document.getElementById('commentList').innerHTML = `<div class="no-result">댓글을 불러오는 중…</div>`;
+    switchView('viewReportDetail');
+    loadComments(spid).then(() => { if(reportDetailSpid === spid) renderComments(); });
+  }
+  async function submitComment(){
+    if(!currentUser()){ openAuth(); return; }
+    if(reportDetailSpid == null) return;
+    const text = document.getElementById('commentInput').value.trim();
+    if(!text) return;
+    const spid = reportDetailSpid;
+    const client = await loadSupabase();
+    if(!client || !sbProfile){ showToast('서버에 연결할 수 없어 댓글을 저장하지 못했어요.'); return; }
+    try{
+      const { data, error } = await client.from('comments')
+        .insert({ spid, nick: currentNick() || '익명', author: sbProfile.id, body: text })
+        .select('id').single();
+      if(error){ showToast('댓글 등록 실패: ' + error.message); return; }
+      (commentsCache[spid] = commentsCache[spid] || []).push({
+        id: data && data.id, author: sbProfile.id,
+        nick: currentNick() || '익명', body: text, at: new Date().toISOString(),
+      });
+      document.getElementById('commentInput').value = '';
+      renderComments();
+    }catch(e){ showToast('댓글 등록 중 오류가 발생했어요.'); }
+  }
+  // 댓글 삭제: 작성자 본인 또는 관리자 (서버 정책으로도 검증)
+  async function deleteComment(cid){
+    if(!currentUser()) return;
+    const client = await loadSupabase();
+    if(!client){ showToast('서버에 연결할 수 없어요.'); return; }
+    try{
+      const { error } = await client.from('comments').delete().eq('id', cid);
+      if(error){ showToast('삭제 실패: ' + error.message); return; }
+      const arr = commentsCache[reportDetailSpid] || [];
+      commentsCache[reportDetailSpid] = arr.filter(c => c.id !== cid);
+      renderComments();
+      showToast('댓글이 삭제됐어요.');
+    }catch(e){ showToast('삭제 중 오류가 발생했어요.'); }
+  }
+
+  function renderComments(){
+    const el = document.getElementById('commentList');
+    const list = commentsCache[reportDetailSpid] || [];
+    if(list.length === 0){
+      el.innerHTML = `<div class="no-result">아직 댓글이 없어요. 첫 댓글을 남겨보세요.</div>`;
+      return;
+    }
+    const uid = currentUser();
+    el.innerHTML = list.slice().reverse().map(c => `
+      <div class="comment-item">
+        <div class="ci-meta"><span class="ci-nick">${esc(c.nick)}</span><span>${new Date(c.at).toLocaleString('ko-KR')}</span>${(uid && c.id != null && (c.author === uid || isAdmin())) ? `<button class="fav-remove" style="margin-left:auto;" onclick="deleteComment(${c.id})">삭제</button>` : ''}</div>
+        <div class="ci-body">${esc(c.body)}</div>
+      </div>
+    `).join('');
+  }
+
+  // ---------- 유저참여게시판: 미등록 선수 검색 + 갱신시간 제보 ----------
+  function getReports(){ return reportsCache; }
+
+  function showBoard(){
+    switchView('viewBoard');
+    runBoardSearch();
+    document.getElementById('boardSearch').focus();
+    updateReportAdminUI();
+    loadServerBoards(true).then(ok => {
+      if(ok && currentView === 'viewBoard') runBoardSearch();
+      updateReportAdminUI();
+    });
+  }
+
+  // 관리자용 내보내기 버튼: 총 제보 수 + 10건 이상 쌓인 선수 수 뱃지
+  const HOT_REPORT_THRESHOLD = 10;
+  function updateReportAdminUI(){
+    const exBtn = document.getElementById('exportReportsBtn');
+    if(!exBtn) return;
+    if(!isAdmin()){ exBtn.style.display = 'none'; return; }
+    exBtn.style.display = '';
+    const reps = Object.values(reportsCache);
+    const total = reps.reduce((s, r) => s + (r.count || 1), 0);
+    const hot = reps.filter(r => (r.count || 1) >= HOT_REPORT_THRESHOLD).length;
+    exBtn.textContent = `📥 제보 내보내기 (총 ${total.toLocaleString()}건${hot ? ` · ⚠ ${HOT_REPORT_THRESHOLD}건↑ 선수 ${hot}명` : ''})`;
+  }
+
+  // 관리자 로그인 시: 10건 이상 쌓인 선수가 있으면 알림 (세션당 1회)
+  let _hotNotified = false;
+  function notifyAdminHotReports(){
+    if(!isAdmin() || _hotNotified) return;
+    const hot = Object.values(reportsCache).filter(r => (r.count || 1) >= HOT_REPORT_THRESHOLD).length;
+    if(!hot) return;
+    _hotNotified = true;
+    showToast(`⚠ 제보가 ${HOT_REPORT_THRESHOLD}건 이상 쌓인 선수가 ${hot}명 있어요. 유저참여게시판에서 내보내기로 확인하세요.`);
+    playAlarmSound();
+  }
+
+  // 관리자용: 쌓인 제보를 집계 CSV로 내보내기 (제보건수·일치 건수·시간별 상세 포함, 제보 많은 순)
+  async function exportReportsCSV(){
+    if(!isAdmin()){ showToast('관리자만 사용할 수 있어요.'); return; }
+    await loadServerBoards(true);   // 최신 제보 반영
+    const entries = Object.entries(reportsAll);
+    if(entries.length === 0){ showToast('아직 제보가 없어요.'); return; }
+    const escCsv = v => {
+      const s = String(v == null ? '' : v);
+      return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    };
+    const rows = entries.map(([spid, arr]) => {
+      const p = bySpid(Number(spid));
+      const rep = reportsCache[spid] || {};
+      // 시간별 득표 상세: "홀23분×7 / 홀25분×2 / 짝10분×1"
+      const tally = {};
+      arr.forEach(r => { const k = r.hj + r.min + '분'; tally[k] = (tally[k] || 0) + 1; });
+      const detail = Object.entries(tally).sort((a, b) => b[1] - a[1])
+        .map(([k, n]) => `${k}×${n}`).join(' / ');
+      const latest = arr.reduce((a, b) => (String(a.created_at) > String(b.created_at) ? a : b));
+      return {
+        cls: p ? p.season : '', spid, name: p ? p.name : '(선수 정보 없음)',
+        count: arr.length,
+        hj: rep.hj || '', min: (rep.min != null ? rep.min : ''),
+        agree: rep.agree || arr.length, detail,
+        ovr: p ? (p.ovr || '') : '', pos: p ? (p.pos || '') : '',
+        at: latest.created_at ? new Date(latest.created_at).toLocaleString('ko-KR') : '',
+      };
+    });
+    rows.sort((a, b) => b.count - a.count || (a.cls || '').localeCompare(b.cls || ''));
+    const totalReports = rows.reduce((s, r) => s + r.count, 0);
+    const header = ['클래스', '선수ID', '선수명', '제보건수', '대표 홀짝', '대표 분', '일치건수', '제보 상세', 'OVR', '포지션', '최근 제보일시'];
+    const csv = '\uFEFF' + header.join(',') + '\n'   // BOM: 엑셀에서 한글 깨짐 방지
+      + rows.map(r => [r.cls, r.spid, r.name, r.count, r.hj, r.min, r.agree, r.detail, r.ovr, r.pos, r.at].map(escCsv).join(',')).join('\n');
+    const kstDay = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `제보목록_${kstDay}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    showToast(`선수 ${rows.length}명 · 제보 ${totalReports}건을 내보냈어요.`);
+  }
+
+  function runBoardSearch(){
+    const boxEl = document.getElementById('boardResults');
+    if(!allPlayers){
+      boxEl.innerHTML = `<div class="no-result">선수 데이터(players.json)를 불러오지 못해 게시판을 사용할 수 없어요.</div>`;
+      return;
+    }
+    const q = document.getElementById('boardSearch').value.trim();
+    const reports = getReports();
+    // 미등록 = 갱신시간(홀/짝+분)이 입력되지 않은 카드
+    let list = allPlayers.filter(p => !p.hj && (q === '' || p.name.includes(q)));
+    const totalCount = list.length;
+    list = list.slice(0, 30);
+
+    if(list.length === 0){
+      boxEl.innerHTML = `<div class="no-result">${q ? '해당 이름의 미등록 선수가 없어요.' : '모든 선수의 갱신 시간이 등록되어 있어요!'}</div>`;
+      return;
+    }
+    boxEl.innerHTML = list.map(p => {
+      const rep = reports[p.id];
+      return `
+      <div class="board-row" id="brow_${p.id}">
+        <div class="b-left">
+          <span class="class-chip">${seasonIcon(Math.floor(p.id / 1000000))}${esc(p.season)}</span>
+          <span class="b-name">${esc(p.name)}</span>
+          ${rep ? `<span class="report-done">제보 ${rep.count}건 · ${refreshLabel(rep.hj, rep.min)}${rep.count > 1 ? ` (일치 ${rep.agree}건)` : ''}</span>` : ''}
+        </div>
+        <div class="report-form">
+          <select id="rhj_${p.id}">
+            <option value="홀">홀수시</option>
+            <option value="짝">짝수시</option>
+          </select>
+          <input type="number" id="rmin_${p.id}" min="0" max="59" placeholder="분">
+          <button onclick="submitReport(${p.id})">제보</button>
+        </div>
+      </div>`;
+    }).join('') + (totalCount > list.length
+      ? `<div class="no-result">외 ${(totalCount - list.length).toLocaleString()}건 — 이름으로 검색해 범위를 좁혀보세요.</div>` : '');
+  }
+
+  async function submitReport(spid){
+    if(!currentUser()){ openAuth(); return; }
+    const hj = document.getElementById('rhj_' + spid).value;
+    const min = parseInt(document.getElementById('rmin_' + spid).value, 10);
+    if(isNaN(min) || min < 0 || min > 59){
+      document.getElementById('rmin_' + spid).focus();
+      return;
+    }
+    const client = await loadSupabase();
+    if(!client || !sbProfile){ showToast('서버에 연결할 수 없어 제보를 저장하지 못했어요.'); return; }
+    try{
+      // 1인 1선수 1제보: 같은 선수를 다시 제보하면 본인의 이전 제보를 갱신
+      const { error } = await client.from('reports')
+        .upsert({ spid, hj, min, nick: currentNick(), author: sbProfile.id }, { onConflict: 'spid,author' });
+      if(error){ showToast('제보 실패: ' + error.message); return; }
+      showToast('제보 감사합니다!!');
+      await loadServerBoards(true);   // 집계 다시 계산
+      if(currentView === 'viewBoard') runBoardSearch();
+      updateReportAdminUI();
+    }catch(e){ showToast('제보 중 오류가 발생했어요.'); }
+  }
+
+  // 안전 리스너 등록: 요소가 없거나 오류가 나도 다음 등록으로 계속 진행
+  function on(id, ev, fn){
+    try{
+      const el = document.getElementById(id);
+      if(el) el.addEventListener(ev, (e) => { try{ fn(e); }catch(err){ console.warn(id, err); } });
+    }catch(e){ console.warn('listener 등록 실패:', id, e); }
+  }
+  on('playerSearch', 'keydown', (e) => { if(e.key === 'Enter') goSearch(); });
+  on('playerSearch2', 'keydown', (e) => { if(e.key === 'Enter') goSearchFrom('playerSearch2'); });
+  on('boardSearch', 'input', runBoardSearch);
+  on('boardSearch', 'keydown', (e) => { if(e.key === 'Enter') runBoardSearch(); });
+  on('reportSearch', 'input', runReportSearch);
+  on('reportSearch', 'keydown', (e) => { if(e.key === 'Enter') runReportSearch(); });
+  on('freeSearchInput', 'keydown', (e) => { if(e.key === 'Enter') renderFreePosts(); });
+  on('freeBody', 'paste', onBodyPaste);
+  on('commentInput', 'keydown', (e) => { if(e.key === 'Enter') submitComment(); });
+  // 로그인/회원가입: 아이디·비밀번호·닉네임 입력 중 엔터로 제출
+  on('authId', 'keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); submitAuth(); } });
+  on('authPw', 'keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); submitAuth(); } });
+  on('authNick', 'keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); submitAuth(); } });
+  // 신고 서명: 엔터로 신고 + 입력 시 버튼 점등
+  on('flagSign', 'keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); submitFlag(); } });
+  on('flagSign', 'input', updateFlagBtn);
+  on('leadInput1', 'keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); submitCustomLead(); } });
+  on('leadInput2', 'keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); submitCustomLead(); } });
+  on('profNick', 'keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); submitProfile(); } });
+  on('profPw1', 'keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); submitProfile(); } });
+  on('profPw2', 'keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); submitProfile(); } });
+
+  // 전체 선수 목록 로드 시작
+  try{ loadAllPlayers(); }catch(e){ console.warn('선수 데이터 로드 실패', e); }
+
+  // 시계 오차 보정: 시작 시 + 1시간마다 재동기화
+  try{ syncClock(); setInterval(syncClock, 3600000); }catch(e){}
+
+  // Supabase 세션 복원 + 게시판 데이터 로드 (비동기 — 실패해도 게스트 모드로 정상 동작)
+  (async () => {
+    try{
+      refreshAlertStat();   // '오늘 발송된 알림' 서버 집계 표시 (연결 실패 시 0건)
+      const client = await loadSupabase();
+      if(!client) return;
+      const boardsReady = loadServerBoards();   // 게시판·제보·신고 데이터 (달성률·제보칩 표시에 사용)
+      const { data } = await client.auth.getSession();
+      if(data && data.session){
+        await loadProfile(data.session.user);
+        applySession();
+        checkAlarms();
+        boardsReady.then(() => notifyAdminHotReports());   // 관리자면 제보 누적 알림
+      }
+    }catch(e){ console.warn('세션 복원 실패', e); }
+  })();
+
+  // 스크립트가 끝까지 정상 실행됐다는 표시 (버전 태그 옆에 '정상' 점등)
+  try{
+    const vt = document.getElementById('verTag');
+    if(vt) vt.textContent += ' · 스크립트 정상';
+  }catch(e){}
+</script>
+
+</body>
+</html>
