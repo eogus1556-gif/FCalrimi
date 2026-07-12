@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>FC알리미 · 홈 화면에 추가하고 알림 받기</title>
+<meta name="theme-color" content="#0f1115" />
+<style>
+  :root{
+    --bg:#0f1115; --card:#171a21; --card2:#1e222c;
+    --line:#2a2f3a; --tx:#e8eaed; --sub:#9aa0a6;
+    --accent:#7c5cff; --accent2:#9d84ff; --ok:#2fd07a; --warn:#ffb43a;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; background:var(--bg); color:var(--tx);
+    font-family:-apple-system,BlinkMacSystemFont,"Noto Sans KR","Malgun Gothic",sans-serif;
+    line-height:1.6; -webkit-font-smoothing:antialiased;
+    width:100%; max-width:100%; overflow-x:hidden;}
+  .lead,.d,.note,.status span,.t,.step .t{word-break:keep-all; overflow-wrap:anywhere;}
+  .wrap{max-width:520px; margin:0 auto; padding:22px 18px 60px;}
+  header{text-align:center; padding:18px 0 8px;}
+  .logo{font-size:26px; font-weight:800; letter-spacing:-.5px;}
+  .logo .dot{color:var(--accent);}
+  .tag{margin-top:6px; color:var(--sub); font-size:14px;}
+  h1{font-size:20px; font-weight:800; margin:26px 0 6px; letter-spacing:-.3px;}
+  .lead{color:var(--sub); font-size:14px; margin:0 0 18px;}
+
+  /* status pill */
+  .status{display:flex; gap:10px; align-items:center; background:var(--card);
+    border:1px solid var(--line); border-radius:14px; padding:12px 14px; margin-bottom:20px;}
+  .status .ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;
+    justify-content:center;font-size:18px;flex:0 0 auto;background:var(--card2);}
+  .status>div{min-width:0;}
+  .status b{display:block;font-size:14px;}
+  .status span{display:block;color:var(--sub);font-size:12.5px;}
+
+  /* tabs */
+  .tabs{display:flex; gap:8px; background:var(--card); padding:6px; border-radius:14px;
+    border:1px solid var(--line); margin-bottom:20px;}
+  .tabs button{flex:1; border:0; background:transparent; color:var(--sub);
+    font-size:14.5px; font-weight:700; padding:11px 8px; border-radius:10px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:7px; transition:.15s;}
+  .tabs button.on{background:var(--accent); color:#fff;}
+  .tabs button .em{font-size:17px;}
+
+  /* steps */
+  .panel{display:none;} .panel.on{display:block; animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  .step{display:flex; gap:14px; background:var(--card); border:1px solid var(--line);
+    border-radius:16px; padding:15px 16px; margin-bottom:12px;}
+  .num{flex:0 0 auto; width:30px; height:30px; border-radius:50%; background:var(--accent);
+    color:#fff; font-weight:800; font-size:15px; display:flex; align-items:center; justify-content:center;}
+  .step .body{flex:1; min-width:0;}
+  .step .t{font-size:15.5px; font-weight:700; margin-bottom:2px;}
+  .step .d{font-size:13.5px; color:var(--sub);}
+  .step .d b{color:var(--tx);}
+  .chip{display:inline-flex; align-items:center; gap:5px; background:var(--card2);
+    border:1px solid var(--line); border-radius:8px; padding:2px 9px; font-size:13px;
+    font-weight:700; margin:0 2px; vertical-align:middle;}
+
+  .note{border-radius:14px; padding:14px 16px; font-size:13.5px; margin:18px 0 4px;}
+  .note.warn{background:rgba(255,180,58,.10); border:1px solid rgba(255,180,58,.35);}
+  .note.info{background:rgba(124,92,255,.10); border:1px solid rgba(124,92,255,.35);}
+  .note b{color:var(--tx);}
+  .note .h{font-weight:800; margin-bottom:4px; display:flex; align-items:center; gap:7px;}
+
+  .acc{margin-top:14px; background:var(--card); border:1px solid var(--line);
+    border-radius:14px; overflow:hidden;}
+  .acc summary{list-style:none; cursor:pointer; padding:14px 16px; font-size:14px;
+    font-weight:700; color:var(--tx); display:flex; align-items:center; gap:8px;}
+  .acc summary::-webkit-details-marker{display:none;}
+  .acc summary::after{content:"▾"; margin-left:auto; color:var(--sub); transition:.2s;}
+  .acc[open] summary::after{transform:rotate(180deg);}
+  .acc-body{padding:0 16px 16px; font-size:13.5px; color:var(--sub);}
+  .acc-body b{color:var(--tx);}
+  .mini{display:flex; gap:9px; align-items:flex-start; margin-top:9px; font-size:13.5px;}
+  .mini .mn{flex:0 0 auto; width:22px; height:22px; border-radius:50%; background:var(--card2);
+    border:1px solid var(--line); color:var(--accent2); font-weight:800; font-size:12px;
+    display:flex; align-items:center; justify-content:center;}
+  .cta{display:block; width:100%; margin-top:22px; padding:16px; border:0; border-radius:14px;
+    background:var(--accent); color:#fff; font-size:16px; font-weight:800; cursor:pointer;}
+  .cta:disabled{opacity:.5;}
+  .cta.done{background:var(--ok);}
+  .foot{text-align:center; color:var(--sub); font-size:12.5px; margin-top:26px;}
+  .foot a{color:var(--accent2); text-decoration:none;}
+  .back{display:inline-block; margin-top:14px; color:var(--accent2); font-size:14px; text-decoration:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">FC<span class="dot">알리미</span></div>
+    <div class="tag">FC온라인 선수 갱신시간 알림</div>
+  </header>
+
+  <h1>📲 홈 화면에 추가하고 알림 받기</h1>
+  <p class="lead">홈 화면에 추가하면 앱처럼 쓰고, <b style="color:var(--tx)">갱신시간 알림</b>을 폰으로 받을 수 있어요. 1분이면 끝나요.</p>
+
+  <div class="status" id="status">
+    <div class="ic" id="stIc">⏳</div>
+    <div><b id="stTitle">상태 확인 중…</b><span id="stDesc">잠시만요</span></div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button data-tab="ios" class="on"><span class="em">🍎</span> 아이폰</button>
+    <button data-tab="and"><span class="em">🤖</span> 안드로이드</button>
+  </div>
+
+  <!-- iOS -->
+  <div class="panel on" id="panel-ios">
+    <div class="note warn">
+      <div class="h">⚠️ 꼭 <b>사파리(Safari)</b>로 열어주세요</div>
+      크롬·카카오톡·인스타 안에서 열면 홈 추가가 안 돼요. 카톡 등으로 링크를 받았다면, 우측 하단 <b>···</b> 또는 <b>공유 → Safari로 열기</b>를 먼저 눌러주세요.
+    </div>
+
+    <div class="step"><div class="num">1</div><div class="body">
+      <div class="t">사파리에서 이 사이트 열기</div>
+      <div class="d"><b>fcalrimi.pages.dev</b> 를 사파리 주소창에 입력해서 들어와요.</div>
+    </div></div>
+
+    <div class="step"><div class="num">2</div><div class="body">
+      <div class="t">아래 <b>공유 버튼</b> 탭하기</div>
+      <div class="d">화면 <b>맨 아래 가운데</b>의 <span class="chip">⬆️ 상자에 화살표</span> 모양 아이콘을 눌러요. (안 보이면 화면을 한 번 위로 살짝 스크롤)</div>
+    </div></div>
+
+    <div class="step"><div class="num">3</div><div class="body">
+      <div class="t"><b>"홈 화면에 추가"</b> 선택</div>
+      <div class="d">메뉴를 아래로 내리면 <span class="chip">➕ 홈 화면에 추가</span> 가 있어요. 그걸 눌러요.</div>
+    </div></div>
+
+    <div class="step"><div class="num">4</div><div class="body">
+      <div class="t">우측 상단 <b>"추가"</b> 누르기</div>
+      <div class="d">홈 화면에 <b>FC알리미</b> 아이콘이 생겨요.</div>
+    </div></div>
+
+    <div class="step"><div class="num">5</div><div class="body">
+      <div class="t">홈 화면의 <b>FC알리미 아이콘으로 열기</b></div>
+      <div class="d">⚠️ 사파리 탭이 아니라 <b>꼭 홈 아이콘으로</b> 열어야 알림이 켜져요.</div>
+    </div></div>
+
+    <div class="step"><div class="num">6</div><div class="body">
+      <div class="t">앱의 <b>즐겨찾기</b>에서 <b>"🔔 앱 꺼도 알림 받기"</b> 누르기</div>
+      <div class="d">홈 아이콘으로 앱을 연 뒤, <b>즐겨찾기</b> 화면 상단의 <b>🔔 앱 꺼도 알림 받기</b> 버튼을 누르고 <b>허용</b>하면 끝! (아이폰은 iOS 16.4 이상에서 돼요)</div>
+    </div></div>
+  </div>
+
+  <!-- Android -->
+  <div class="panel" id="panel-and">
+    <div class="note info">
+      <div class="h">💡 <b>크롬(Chrome)</b> 또는 삼성 인터넷을 추천해요</div>
+      대부분 자동으로 <b>설치 배너</b>가 뜨는데, 안 뜨면 아래 순서대로 하면 돼요.
+    </div>
+
+    <div class="step"><div class="num">1</div><div class="body">
+      <div class="t">크롬에서 이 사이트 열기</div>
+      <div class="d"><b>fcalrimi.pages.dev</b> 로 들어와요.</div>
+    </div></div>
+
+    <div class="step"><div class="num">2</div><div class="body">
+      <div class="t">우측 상단 <b>⋮ 메뉴</b> 열기</div>
+      <div class="d">주소창 오른쪽 끝 <span class="chip">⋮ 점 3개</span> 를 눌러요. (삼성 인터넷은 <b>≡</b> 아래쪽 메뉴)</div>
+    </div></div>
+
+    <div class="step"><div class="num">3</div><div class="body">
+      <div class="t"><b>"앱 설치"</b> 또는 <b>"홈 화면에 추가"</b></div>
+      <div class="d">메뉴에서 <span class="chip">📥 앱 설치</span> 를 눌러요. (없으면 <b>홈 화면에 추가</b>)</div>
+    </div></div>
+
+    <div class="step"><div class="num">4</div><div class="body">
+      <div class="t"><b>"설치"</b> 확인</div>
+      <div class="d">홈 화면과 앱 목록에 <b>FC알리미</b> 아이콘이 생겨요.</div>
+    </div></div>
+
+    <div class="step"><div class="num">5</div><div class="body">
+      <div class="t">홈 화면의 <b>FC알리미로 열기</b></div>
+      <div class="d">설치된 앱 아이콘으로 실행해요.</div>
+    </div></div>
+
+    <div class="step"><div class="num">6</div><div class="body">
+      <div class="t">앱의 <b>즐겨찾기</b>에서 <b>"🔔 앱 꺼도 알림 받기"</b> 누르기</div>
+      <div class="d">홈 아이콘으로 앱을 연 뒤, <b>즐겨찾기</b> 화면 상단의 <b>🔔 앱 꺼도 알림 받기</b> → <b>허용</b> 하면 갱신시간마다 알림이 와요.</div>
+    </div></div>
+  </div>
+
+  <div class="note info" style="margin-top:20px">
+    <div class="h">🔔 왜 홈 화면에 추가해야 하나요?</div>
+    특히 <b>아이폰</b>은 애플 정책상, 사이트를 <b>홈 화면에 추가한 상태</b>에서만 알림을 받을 수 있어요. 그냥 사파리 탭으로 열어둔 상태에서는 알림이 오지 않아요. 그래서 <b>홈 추가 → 홈 아이콘으로 열기 → 알림 허용</b> 이 순서가 꼭 필요해요.
+  </div>
+
+  <div class="note warn">
+    <div class="h">⚠️ 한동안 접속 안 하면 알림이 안 올 수 있어요</div>
+    폰이 배터리를 아끼려고, <b>오랫동안 앱(사이트)에 한 번도 안 들어가면</b> 알림을 잠시 멈출 수 있어요 (특히 아이폰). 알림이 안 오기 시작하면 <b>앱을 한 번 열었다 닫아주면</b> 다시 정상으로 와요. <b>하루 한 번쯤 열어주는 걸</b> 추천해요. 저전력(배터리 절약) 모드에서도 늦어질 수 있어요.
+  </div>
+
+  <details class="acc">
+    <summary>🕒 PC에서 시간이 안 맞나요? (PC방 등) — 윈도우 시계 맞추는 법</summary>
+    <div class="acc-body">
+      FC알리미는 <b>서버 시간으로 자동 보정</b>하지만, PC방처럼 <b>윈도우 시계가 크게 틀어져 있으면</b> 표시가 어긋날 수 있어요. 아래처럼 맞춰주세요:
+      <div class="mini"><span class="mn">1</span>화면 오른쪽 아래 <b>시계를 마우스 우클릭</b> → <b>"날짜/시간 조정"</b></div>
+      <div class="mini"><span class="mn">2</span><b>"시간 자동 설정"</b> 과 <b>"표준 시간대 자동 설정"</b> 을 <b>켬(파랑)</b></div>
+      <div class="mini"><span class="mn">3</span>아래 <b>"지금 동기화(Sync now)"</b> 버튼 클릭</div>
+      <div class="mini"><span class="mn">4</span>표준 시간대가 <b>(UTC+09:00) 서울</b> 인지 확인</div>
+      <div class="d" style="margin-top:8px">PC방은 재부팅하면 다시 틀어질 수 있으니, 접속할 때마다 한 번 확인하면 정확해요.</div>
+    </div>
+  </details>
+
+  <button class="cta" id="notifyBtn">FC알리미 열어서 알림 켜기 →</button>
+
+  <div class="foot">
+    설정하다 막히면 언제든 문의해 주세요.<br/>
+    <a href="https://fcalrimi.pages.dev">← FC알리미로 돌아가기</a>
+  </div>
+</div>
+
+<script>
+(function(){
+  var ua = navigator.userAgent || "";
+  var isIOS = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && 'ontouchend' in document);
+  var isAndroid = /Android/i.test(ua);
+  var standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+  // 기기에 맞는 탭 자동 선택
+  function showTab(tab){
+    document.querySelectorAll('.tabs button').forEach(function(b){
+      b.classList.toggle('on', b.dataset.tab === tab);
+    });
+    document.getElementById('panel-ios').classList.toggle('on', tab==='ios');
+    document.getElementById('panel-and').classList.toggle('on', tab==='and');
+  }
+  document.querySelectorAll('.tabs button').forEach(function(b){
+    b.addEventListener('click', function(){ showTab(b.dataset.tab); });
+  });
+  if(isAndroid) showTab('and'); else showTab('ios');
+
+  // 상태 표시
+  var stIc = document.getElementById('stIc'),
+      stTitle = document.getElementById('stTitle'),
+      stDesc = document.getElementById('stDesc'),
+      btn = document.getElementById('notifyBtn');
+
+  var notifSupported = ('Notification' in window) && ('serviceWorker' in navigator) && ('PushManager' in window);
+  var perm = notifSupported ? Notification.permission : 'unsupported';
+
+  function setStatus(ic, title, desc){ stIc.textContent=ic; stTitle.textContent=title; stDesc.textContent=desc; }
+
+  if(perm === 'granted'){
+    setStatus('✅','알림이 켜져 있어요','갱신시간마다 알림을 받게 돼요');
+    btn.textContent='✅ 알림이 켜져 있습니다'; btn.classList.add('done'); btn.disabled=true;
+  } else if(standalone){
+    setStatus('🏠','홈 화면 앱으로 실행 중','아래 버튼으로 앱을 열고 알림을 켜세요');
+  } else if(isIOS){
+    setStatus('🍎','아이폰이네요','먼저 아래 순서대로 홈 화면에 추가해 주세요');
+  } else if(isAndroid){
+    setStatus('🤖','안드로이드네요','홈 화면에 추가 후 알림을 켜주세요');
+  } else {
+    setStatus('💻','PC에서 보고 계세요','알림은 폰에서 이 페이지를 열어 설정하는 걸 추천해요');
+  }
+
+  // 앱 열기 버튼 — 실제 알림 켜기는 앱(즐겨찾기의 "🔔 앱 꺼도 알림 받기")에서 진행
+  btn.addEventListener('click', function(){
+    if(isIOS && !standalone){
+      alert('아이폰은 먼저 "홈 화면에 추가"를 한 뒤,\n홈 화면의 FC알리미 아이콘으로 열어주세요.\n(사파리 탭에서는 알림이 안 돼요)');
+      showTab('ios'); window.scrollTo({top:0,behavior:'smooth'}); return;
+    }
+    location.href = './';   // FC알리미 앱으로 이동 → 즐겨찾기에서 알림 켜기
+  });
+})();
+</script>
+</body>
+</html>
