@@ -1,0 +1,19 @@
+name = "fc-push-scheduler"
+main = "index.js"
+compatibility_date = "2024-09-23"
+
+# 매 1분마다 실행
+[triggers]
+crons = ["* * * * *"]
+
+# KV 네임스페이스 (deduplication용)
+# 배포 전: wrangler kv namespace create PUSH_KV → id를 아래에 입력
+[[kv_namespaces]]
+binding = "PUSH_KV"
+id = "a94eef550d974935aafbece53a01447b"
+
+# 환경 변수 (시크릿으로 설정):
+#   wrangler secret put VAPID_PRIVATE_KEY
+#   wrangler secret put VAPID_PUBLIC_KEY
+#   wrangler secret put VAPID_SUBJECT
+#   wrangler secret put SUPABASE_SERVICE_KEY
