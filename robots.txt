@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://fcalrimi.com/sitemap.xml
