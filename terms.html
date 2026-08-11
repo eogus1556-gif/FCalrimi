@@ -44,8 +44,8 @@
 </head>
 <body>
 <header class="site-header">
-  <a href="/" class="logo"><span class="dot"></span>FC알리미</a>
-  <a href="/" class="home-link">← 홈으로</a>
+  <a href="/" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" class="logo"><span class="dot"></span>FC알리미</a>
+  <a href="/" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" class="home-link">← 홈으로</a>
 </header>
 <main class="page">
 <h1>이용약관</h1>
@@ -70,7 +70,7 @@
     <a href="/faq.html">자주 묻는 질문</a>
     <a href="/terms.html">이용약관</a>
     <a href="/privacy.html">개인정보처리방침</a>
-    <a href="/">홈 · 커뮤니티</a>
+    <a href="/" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">홈 · 커뮤니티</a>
     <a href="mailto:fcalrimi@gmail.com">문의</a>
   </div>
   <p class="foot-note">FC알리미 · FC ONLINE 선수 가격 갱신 시간 추적 서비스 · 본 서비스는 NEXON 및 EA SPORTS와 관련이 없는 팬 제작 도구입니다.</p>
