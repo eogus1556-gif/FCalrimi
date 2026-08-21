@@ -1828,7 +1828,7 @@
 
   <footer>
     <div class="logo"><span class="dot"></span>FC알리미</div>
-    <p>FC Online 선수 가격 갱신 시간 추적 서비스 · 본 서비스는 NEXON 및 EA SPORTS와 관련이 없는 팬 제작 도구입니다.</p>
+    <p>FC Online 선수 가격 갱신 시간 추적 서비스<br>본 서비스는 NEXON 및 EA SPORTS와 관련이 없는 팬 제작 도구입니다.</p>
     <p style="margin-top:6px;">이 사이트는 NEXON Open API를 사용하여 제작되었습니다.</p>
     <p style="margin-top:2px;">사이트 내 FC온라인 관련 모든 이미지의 저작권은 EA Sports 및 NEXON에 있습니다.</p>
     <p id="verTag" style="margin-top:8px; font-size:11px; color:#3E4C5C; display:none;">v39</p>
@@ -1957,7 +1957,7 @@
   async function loadAllPlayers(){
     // 1순위: 로컬 선수 DB에서 내보낸 players.json (build_db.py 산출물)
     try{
-      const res = await fetch('players.json?v=' + PLAYERS_VER);
+      const res = await fetch('/api/players?v=' + PLAYERS_VER);
       if(res.ok){
         const compact = await res.json();  // [[spid, 이름, 클래스, 홀짝, 분, 포지션, OVR], ...]
         allPlayers = compact.map(([id, name, season, hj, min, pos, ovr]) =>
