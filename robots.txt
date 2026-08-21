@@ -1,5 +1,3 @@
-# FC알리미 robots.txt
-# 검색엔진(구글·빙·네이버·다음)과 애드센스는 허용 — 색인/광고 유지
 User-agent: Googlebot
 Allow: /
 
@@ -18,7 +16,6 @@ Allow: /
 User-agent: Daum
 Allow: /
 
-# AI 학습·데이터 수집 봇 차단
 User-agent: GPTBot
 Disallow: /
 
@@ -76,7 +73,6 @@ Disallow: /
 User-agent: Go-http-client
 Disallow: /
 
-# 그 외 모든 봇: 데이터 API 직접 크롤링 금지
 User-agent: *
 Disallow: /api/
 Allow: /
