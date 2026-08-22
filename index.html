@@ -398,12 +398,13 @@
   }
   .rd-head .class-chip{ font-size:12px; }
   .rd-current{ color:var(--text-dim); font-size:14px; margin-bottom:24px; }
-  .comment-write{ display:flex; gap:8px; margin-bottom:20px; }
-  .comment-write input{
+  .comment-write{ display:flex; gap:8px; margin-bottom:20px; align-items:flex-end; }
+  .comment-write input, .comment-write textarea{
     flex:1; background:var(--bg); border:1px solid var(--line); color:var(--text);
     border-radius:10px; padding:12px 14px; font-family:var(--font-body); font-size:14px; outline:none;
   }
-  .comment-write input:focus{ border-color:var(--lime); }
+  .comment-write textarea{ resize:none; overflow-y:auto; min-height:44px; max-height:160px; line-height:1.5; }
+  .comment-write input:focus, .comment-write textarea:focus{ border-color:var(--lime); }
   .comment-item{
     background:var(--surface); border:1px solid var(--line); border-radius:12px;
     padding:14px 16px; margin-bottom:10px;
@@ -497,9 +498,10 @@
   .cimg-btn:hover{ border-color:var(--lime); }
 
   /* ── 인라인 답글 입력창 ── */
-  .inline-reply-box{ background:var(--surface-2); border:1px solid var(--lime); border-radius:10px; padding:10px; margin-top:8px; display:flex; gap:8px; align-items:center; }
-  .inline-reply-box input{ flex:1; background:transparent; border:none; color:var(--text); font-family:var(--font-body); font-size:13px; outline:none; }
-  .inline-reply-box input::placeholder{ color:var(--text-dim); }
+  .inline-reply-box{ background:var(--surface-2); border:1px solid var(--lime); border-radius:10px; padding:10px; margin-top:8px; display:flex; gap:8px; align-items:flex-end; }
+  .inline-reply-box input, .inline-reply-box textarea{ flex:1; background:transparent; border:none; color:var(--text); font-family:var(--font-body); font-size:13px; outline:none; }
+  .inline-reply-box textarea{ resize:none; overflow-y:auto; min-height:22px; max-height:120px; line-height:1.4; }
+  .inline-reply-box input::placeholder, .inline-reply-box textarea::placeholder{ color:var(--text-dim); }
   .inline-reply-close{ background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:16px; padding:0 4px; }
 
   /* 달성률 페이지 */
@@ -1587,7 +1589,7 @@
     <div id="rdReports" style="margin-bottom:24px;"></div>
     <div style="font-weight:700; margin-bottom:12px;">댓글</div>
     <div class="comment-write">
-      <input type="text" id="commentInput" placeholder="댓글을 입력하세요" maxlength="300" autocomplete="off">
+      <textarea id="commentInput" placeholder="댓글을 입력하세요" maxlength="300" rows="1" oninput="cAutoGrow(this)"></textarea>
       <button class="search-btn" onclick="submitComment()">등록</button>
     </div>
     <div id="commentList"></div>
@@ -1817,8 +1819,9 @@
       <p style="margin-top:14px;"><b>제5조 (게시물 및 제보)</b><br>이용자가 작성한 게시물·댓글·제보의 책임은 작성자 본인에게 있습니다. 서비스는 원활한 운영을 위해 부적절한 콘텐츠를 삭제하거나 노출을 제한할 수 있으며, 다수 이용자의 신고가 누적된 콘텐츠는 자동으로 정리될 수 있습니다.</p>
       <p style="margin-top:14px;"><b>제6조 (정보의 정확성 및 면책)</b><br>갱신 시간 등 서비스가 제공하는 정보는 운영 데이터와 이용자 제보에 기반한 참고용 정보로, 실제 게임 내 결과와 다를 수 있습니다. 서비스는 정보의 정확성·완전성을 보장하지 않으며, 이용자가 본 정보를 신뢰하여 발생한 손실에 대해 책임을 지지 않습니다.</p>
       <p style="margin-top:14px;"><b>제7조 (저작권 및 권리 관계)</b><br>FC알리미는 NEXON 및 EA SPORTS와 무관한 비공식 팬 제작 도구입니다. 게임 관련 명칭·이미지 등의 저작권과 상표권은 각 권리자에게 있으며, 서비스가 직접 작성한 콘텐츠(안내·가이드 등)의 저작권은 서비스에 있습니다.</p>
-      <p style="margin-top:14px;"><b>제8조 (개인정보의 보호)</b><br>서비스는 이용자의 개인정보를 관계 법령에 따라 보호하며, 자세한 내용은 <a href="#" onclick="showPrivacy(); return false;">개인정보처리방침</a>을 따릅니다.</p>
-      <p style="margin-top:14px;"><b>제9조 (문의)</b><br>서비스 이용과 관련한 문의는 <a href="#" onclick="openContact(); return false;">문의하기</a> 또는 이메일 <a href="mailto:fcalrimi@gmail.com">fcalrimi@gmail.com</a> 으로 접수합니다.</p>
+      <p style="margin-top:14px;"><b>제8조 (무단 수집 및 크롤링 금지)</b><br>이용자 또는 제3자는 서비스가 제공하는 선수 정보·갱신 시간 등 데이터와 콘텐츠를 크롤러·봇·스크래핑 등 자동화된 수단으로 무단 수집·복제·재배포할 수 없습니다. 위반이 확인될 경우 접근 차단 등 기술적 조치가 이루어질 수 있으며, 서비스가 직접 제작한 창작 콘텐츠의 무단 이용에 대해서는 관련 법령에 따라 책임을 물을 수 있습니다.</p>
+      <p style="margin-top:14px;"><b>제9조 (개인정보의 보호)</b><br>서비스는 이용자의 개인정보를 관계 법령에 따라 보호하며, 자세한 내용은 <a href="#" onclick="showPrivacy(); return false;">개인정보처리방침</a>을 따릅니다.</p>
+      <p style="margin-top:14px;"><b>제10조 (문의)</b><br>서비스 이용과 관련한 문의는 <a href="#" onclick="openContact(); return false;">문의하기</a> 또는 이메일 <a href="mailto:fcalrimi@gmail.com">fcalrimi@gmail.com</a> 으로 접수합니다.</p>
       <p style="margin-top:18px; color:var(--text-dim); font-size:13px;">본 약관은 서비스 화면에 게시함으로써 효력이 발생합니다.</p>
     </div>
   </main>
@@ -1954,12 +1957,14 @@
   // players.json 캐시 버전 — 선수 데이터(players.json)를 갱신해 배포할 때마다 이 값을 바꾸면
   // 브라우저·CDN이 옛 파일을 캐시하고 있어도 새 파일을 강제로 다시 받아옵니다.
   const PLAYERS_VER = '20260731-2';
+  // 크롤링 탐지용 표식(canary) — 실제로 존재하지 않는 선수. 화면엔 절대 노출하지 않음.
+  const CANARY_SPIDS = new Set([863990001, 863990002, 863990003]);
   async function loadAllPlayers(){
     // 1순위: 로컬 선수 DB에서 내보낸 players.json (build_db.py 산출물)
     try{
       const res = await fetch('/api/players?v=' + PLAYERS_VER);
       if(res.ok){
-        const compact = await res.json();  // [[spid, 이름, 클래스, 홀짝, 분, 포지션, OVR], ...]
+        const compact = (await res.json()).filter(r => !CANARY_SPIDS.has(r[0]));  // [[spid, 이름, 클래스, 홀짝, 분, 포지션, OVR], ...] — canary 제외
         allPlayers = compact.map(([id, name, season, hj, min, pos, ovr]) =>
           ({ id, name, season, hj: hj || '', min: (min == null ? -1 : min), pos: pos || '', ovr: ovr || 0 }));
         // 최신 시즌 우선, 같은 시즌 안에서는 OVR 높은 순
@@ -4796,7 +4801,7 @@
       <div style="border-top:1px solid var(--line); margin-top:20px; padding-top:16px;">
         <div style="font-weight:600; margin-bottom:12px;">댓글</div>
         <div class="comment-write">
-          <input type="text" id="pcInput" placeholder="댓글을 입력하세요" maxlength="300" autocomplete="off">
+          <textarea id="pcInput" placeholder="댓글을 입력하세요" maxlength="300" rows="1" oninput="cAutoGrow(this)"></textarea>
           <button class="search-btn" onclick="submitPostComment(${p.id})">등록</button>
         </div>
         <div id="pcList"><div class="no-result">댓글을 불러오는 중…</div></div>
@@ -4809,7 +4814,7 @@
     document.querySelectorAll('#freeReadBox .fr-body-rich, #freeReadBox .fr-body').forEach(linkifyIn);
     if(!isNotice){
       const inp = document.getElementById('pcInput');
-      if(inp) inp.addEventListener('keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); submitPostComment(p.id); } });
+      if(inp) inp.addEventListener('keydown', (e) => { if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); submitPostComment(p.id); } });
       loadPostComments(p.id).then(() => renderPostComments(p.id));
     }
     // 투표 데이터 비동기 로드
@@ -4919,8 +4924,8 @@
           ${canRep && !canDel ? `<button class="fav-remove" style="color:var(--red);" onclick="openUserReport('${esc(c.author)}','pcomment:${c.id}','${safeQ(c.nick)}')">🚨 신고</button>` : ''}
         </div>` : ''}
         ${isActive ? `<div class="inline-reply-box" id="inlineReply_${c.id}">
-          <input type="text" id="inlineReplyInput_${c.id}" placeholder="@${safeQ(c.nick)}에게 답글…" maxlength="300" autocomplete="off"
-            onkeydown="if(event.key==='Enter'){event.preventDefault();submitInlineReply(${postId},${c.id},'${safeQ(c.nick)}')}">
+          <textarea id="inlineReplyInput_${c.id}" placeholder="@${safeQ(c.nick)}에게 답글…" maxlength="300" rows="1" oninput="cAutoGrow(this)"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitInlineReply(${postId},${c.id},'${safeQ(c.nick)}')}"></textarea>
           <button class="search-btn" style="padding:6px 14px;font-size:13px;" onclick="submitInlineReply(${postId},${c.id},'${safeQ(c.nick)}')">등록</button>
           <button class="inline-reply-close" onclick="closeInlineReply()">✕</button>
         </div>` : ''}
@@ -5001,6 +5006,7 @@
       });
       inp.value = '';
       inp.placeholder = '댓글을 입력하세요';
+      cAutoGrow(inp);
       replyToPost = null;
       renderPostComments(postId);
     }catch(e){ showToast('댓글 등록 중 오류가 발생했어요.'); }
@@ -5242,6 +5248,7 @@
       .then(() => loadReportFlags(spid))
       .then(() => { if(reportDetailSpid === spid) renderReportSubs(spid); });
   }
+  function cAutoGrow(el){ if(!el) return; el.style.height='auto'; el.style.height=el.scrollHeight+'px'; }
   async function submitComment(){
     if(!currentUser()){ openAuth(); return; }
     if(reportDetailSpid == null) return;
@@ -5265,8 +5272,8 @@
         id: data && data.id, author: sbProfile.id,
         nick: currentNick() || '익명', body: text, parent_id: parentId, at: new Date().toISOString(),
       });
-      document.getElementById('commentInput').value = '';
-      document.getElementById('commentInput').placeholder = '댓글을 입력하세요';
+      const _ci = document.getElementById('commentInput');
+      _ci.value = ''; _ci.placeholder = '댓글을 입력하세요'; cAutoGrow(_ci);
       replyToReport = null;
       renderComments();
     }catch(e){ showToast('댓글 등록 중 오류가 발생했어요.'); }
@@ -5682,7 +5689,7 @@
   on('reportSearch', 'keydown', (e) => { if(e.key === 'Enter') runReportSearch(); });
   on('freeSearchInput', 'keydown', (e) => { if(e.key === 'Enter') renderFreePosts(); });
   on('freeBody', 'paste', onBodyPaste);
-  on('commentInput', 'keydown', (e) => { if(e.key === 'Enter') submitComment(); });
+  on('commentInput', 'keydown', (e) => { if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); submitComment(); } });
   // 로그인/회원가입: 아이디·비밀번호·닉네임 입력 중 엔터로 제출
   on('authId', 'keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); submitAuth(); } });
   on('authPw', 'keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); submitAuth(); } });
