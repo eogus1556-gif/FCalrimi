@@ -1470,6 +1470,7 @@
         <button class="cat-tab active" data-cat="전체" onclick="setFreeCat('전체')">전체</button>
         <button class="cat-tab" data-cat="공지사항" onclick="setFreeCat('공지사항')">공지사항</button>
         <button class="cat-tab" data-cat="자유" onclick="setFreeCat('자유')">자유</button>
+        <button class="cat-tab" data-cat="스쿼드" onclick="setFreeCat('스쿼드')">스쿼드</button>
         <button class="cat-tab" data-cat="기능문의" onclick="setFreeCat('기능문의')">기능문의</button>
       </div>
       <div class="free-toolbar" style="justify-content:flex-end;">
@@ -1497,6 +1498,7 @@
       <div class="free-write">
         <select id="freeCategory" class="free-input" style="cursor:pointer;">
           <option value="자유">자유</option>
+          <option value="스쿼드">스쿼드</option>
           <option value="기능문의">기능문의</option>
           <option value="공지사항" id="catNoticeOpt">공지사항 (관리자)</option>
         </select>
@@ -3264,7 +3266,7 @@
     document.getElementById('playerCards').innerHTML = cards.map(c => `
       <div class="p-card">
         <span style="cursor:pointer;" title="선수 게시판(댓글) 열기" onclick="openReportDetail(${c.id})">${actionImg(c.id)}</span>
-        <div class="p-season"><span class="b-name-link" style="display:inline-flex; align-items:center; gap:8px;" title="${esc(c.season)} 갱신시간 페이지 열기" onclick="showSearchCards('', '${esc(c.season)}')">${seasonIcon(c.seasonId)}<span class="code">${esc(c.season || '기본')}</span></span><button class="fav-btn ${favs[c.id] ? 'on' : ''}" data-spid="${c.id}" title="즐겨찾기" onclick="toggleFav(${c.id})">${favs[c.id] ? '★' : '☆'}</button></div>
+        <div class="p-season"><span style="display:inline-flex; align-items:center; gap:8px;">${seasonIcon(c.seasonId)}<span class="code">${esc(c.season || '기본')}</span></span><button class="fav-btn ${favs[c.id] ? 'on' : ''}" data-spid="${c.id}" title="즐겨찾기" onclick="toggleFav(${c.id})">${favs[c.id] ? '★' : '☆'}</button></div>
         ${c.pos || c.ovr ? `<div class="p-timer" style="margin:0 0 8px;">${esc(c.pos)}${c.pos && c.ovr ? ' · ' : ''}${c.ovr ? 'OVR ' + c.ovr : ''}</div>` : ''}
         ${c.refresh
           ? `<div class="p-refresh">${c.refresh}</div>
@@ -3292,8 +3294,12 @@
       return;
     }
     if(!q){
-      // 이름 없이 클래스만 선택 → 해당 클래스(시즌) 갱신시간 페이지로 이동
-      if(useSeason) showSearchCards('', useSeason);
+      // 클래스만 선택해서는 검색되지 않음 — 반드시 선수 이름을 입력해야 함
+      if(useSeason){
+        try{ showToast('선수 이름을 한 글자 이상 입력해주세요.'); }catch(e){}
+        const el = document.getElementById(inputId);
+        if(el) el.focus();
+      }
       return;
     }
     const list = buildPlayerList(q, useSeason);
@@ -3309,7 +3315,7 @@
       <div class="p-card">
         <span style="cursor:pointer;" title="선수 게시판(댓글) 열기" onclick="openReportDetail(${c.id})">${actionImg(c.id)}</span>
         <div style="font-weight:700; margin-bottom:6px;"><span class="b-name-link" title="선수 게시판(댓글) 열기" onclick="openReportDetail(${c.id})">${esc(c.name)}</span></div>
-        <div class="p-season"><span class="b-name-link" style="display:inline-flex; align-items:center; gap:8px;" title="${esc(c.season)} 갱신시간 페이지 열기" onclick="showSearchCards('', '${esc(c.season)}')">${seasonIcon(c.seasonId)}<span class="code">${esc(c.season || '기본')}</span></span><button class="fav-btn ${favs[c.id] ? 'on' : ''}" data-spid="${c.id}" title="즐겨찾기" onclick="toggleFav(${c.id})">${favs[c.id] ? '★' : '☆'}</button></div>
+        <div class="p-season"><span style="display:inline-flex; align-items:center; gap:8px;">${seasonIcon(c.seasonId)}<span class="code">${esc(c.season || '기본')}</span></span><button class="fav-btn ${favs[c.id] ? 'on' : ''}" data-spid="${c.id}" title="즐겨찾기" onclick="toggleFav(${c.id})">${favs[c.id] ? '★' : '☆'}</button></div>
         ${c.pos || c.ovr ? `<div class="p-timer" style="margin:0 0 8px;">${esc(c.pos)}${c.pos && c.ovr ? ' · ' : ''}${c.ovr ? 'OVR ' + c.ovr : ''}</div>` : ''}
         ${c.refresh
           ? `<div class="p-refresh">${c.refresh}</div><div class="p-timer">${timerChip(c.hj, c.min)}</div>`
@@ -3556,7 +3562,7 @@
       <div class="stat-box"><div class="sv">${fullSeasons}</div><div class="sl">100% 완료 시즌</div></div>
     `;
     listEl.innerHTML = rows.map(r => `
-      <div class="ach-row" style="cursor:pointer;" title="${esc(r.season)} 갱신시간 페이지 열기" onclick="showSearchCards('', '${esc(r.season)}')">
+      <div class="ach-row">
         <div class="a-season">${seasonIcon(r.seasonId)}<span class="code">${esc(r.season)}</span></div>
         <div class="ach-bar"><span style="width:${r.pct.toFixed(1)}%"></span></div>
         <div class="a-num">${r.done.toLocaleString()} / ${r.total.toLocaleString()}</div>
