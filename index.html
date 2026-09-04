@@ -343,6 +343,14 @@
   }
   .cat-tab:hover{ color:var(--text); }
   .cat-tab.active{ background:var(--lime); color:#0B0F14; border-color:var(--lime); font-weight:600; }
+  /* 자유게시판 탭 우측: 다른 게시판으로 가는 링크 */
+  .board-nav{ margin-left:auto; display:flex; gap:8px; }
+  .board-link{
+    background:transparent; border:1px solid var(--line); color:var(--text-dim);
+    padding:8px 16px; border-radius:100px; cursor:pointer; font-family:var(--font-body); font-size:13px;
+  }
+  .board-link:hover{ color:var(--lime); border-color:var(--lime); }
+  @media (max-width:520px){ .board-nav{ margin-left:0; width:100%; } .board-link{ flex:1; } }
   .cat-badge{ font-size:11px; padding:2px 8px; border-radius:100px; border:1px solid var(--line); color:var(--text-dim); white-space:nowrap; display:inline-block; }
   .cat-badge.notice{ color:#F5B84B; border-color:rgba(245,184,75,.4); }
   tr.notice-row{ background:rgba(245,184,75,.05); }
@@ -1186,6 +1194,7 @@
       </div>
       <div class="img-attach-hint" style="margin-top:6px;">알고 있는 올바른 갱신시간을 함께 남기면 데이터에 반영돼요.</div>
       <div class="auth-error" id="flagError"></div>
+      <p style="margin-top:10px; font-size:12px; color:#ff5a5a; line-height:1.5;">⚠ 지속적으로 잘못된 정보를 제보·신고하면 서비스 이용이 제한될 수 있습니다.</p>
       <button class="auth-submit dim" id="flagSubmitBtn" onclick="submitFlag()">신고하기</button>
     </div>
   </div>
@@ -1472,6 +1481,10 @@
         <button class="cat-tab" data-cat="자유" onclick="setFreeCat('자유')">자유</button>
         <button class="cat-tab" data-cat="스쿼드" onclick="setFreeCat('스쿼드')">스쿼드</button>
         <button class="cat-tab" data-cat="기능문의" onclick="setFreeCat('기능문의')">기능문의</button>
+        <span class="board-nav">
+          <button class="board-link" onclick="showBoard()">유저참여게시판 →</button>
+          <button class="board-link" onclick="showReportBoard()">신고게시판 →</button>
+        </span>
       </div>
       <div class="free-toolbar" style="justify-content:flex-end;">
         <button class="write-btn" onclick="openFreeWrite()">글쓰기</button>
@@ -1563,6 +1576,7 @@
         <button class="search-btn" onclick="runBoardSearch()">검색</button>
       </div>
     </div>
+    <p style="font-size:12px; color:#ff5a5a; line-height:1.5; margin:-6px 0 16px;">⚠ 지속적으로 잘못된 정보를 제보하면 서비스 이용이 제한될 수 있습니다.</p>
     <div id="boardResults"></div>
   </main>
 
@@ -1577,6 +1591,7 @@
         <button class="search-btn" onclick="runReportSearch()">검색</button>
       </div>
     </div>
+    <p style="font-size:12px; color:#ff5a5a; line-height:1.5; margin:-6px 0 16px;">⚠ 지속적으로 잘못된 정보를 신고하면 서비스 이용이 제한될 수 있습니다.</p>
     <div id="reportResults"></div>
   </main>
 
@@ -3866,8 +3881,9 @@
     await renderFavorites();
   }
 
-  // ---------- 커뮤니티 허브 ----------
-  function showBoardHub(){ switchView('viewBoardHub'); }
+  // ---------- 커뮤니티 ----------
+  // 커뮤니티 진입 시 허브 대신 바로 자유게시판으로 (유저참여·신고는 탭 링크로 이동)
+  function showBoardHub(){ showFreeBoard(); }
   function showGuide(){ switchView('viewGuide'); }
   function showPrivacy(){ switchView('viewPrivacy'); renderPrivacy(); }
   function showFaq(){ switchView('viewFaq'); }
@@ -3925,26 +3941,30 @@
 
   // 제보 집계: 같은 선수의 여러 제보 중 가장 많이 일치하는 시간(홀짝+분)을 대표값으로.
   // count = 총 제보 수, agree = 대표 시간과 일치하는 제보 수 (신뢰도 판단용)
+  // 한 선수(spid)의 raw 제보들 → 대표시간·건수 요약을 reportsCache[spid]에 재계산
+  function recomputeReportCacheEntry(spid){
+    const arr = reportsAll[spid] || [];
+    if(!arr.length){ delete reportsCache[spid]; return; }
+    const tally = {};
+    arr.forEach(r => { const k = r.hj + ':' + r.min; tally[k] = (tally[k] || 0) + 1; });
+    let bestK = null, bestN = 0;
+    Object.entries(tally).forEach(([k, n]) => { if(n > bestN){ bestN = n; bestK = k; } });
+    const [hj, minStr] = bestK.split(':');
+    const latest = arr.reduce((a, b) => (String(a.created_at) > String(b.created_at) ? a : b));
+    // 출처(유저참여게시판='참여' / 신고게시판='신고')별 집계 — 값 없으면 '참여'로 간주
+    const src = { '참여': 0, '신고': 0 };
+    arr.forEach(r => { const s = (r.source === '신고') ? '신고' : '참여'; src[s]++; });
+    reportsCache[spid] = {
+      hj, min: parseInt(minStr, 10),
+      nick: latest.nick || '', at: latest.created_at,
+      count: arr.length, agree: bestN, src,
+    };
+  }
   function buildReportCaches(rows){
     reportsAll = {};
     rows.forEach(r => { (reportsAll[r.spid] = reportsAll[r.spid] || []).push(r); });
     reportsCache = {};
-    Object.entries(reportsAll).forEach(([spid, arr]) => {
-      const tally = {};
-      arr.forEach(r => { const k = r.hj + ':' + r.min; tally[k] = (tally[k] || 0) + 1; });
-      let bestK = null, bestN = 0;
-      Object.entries(tally).forEach(([k, n]) => { if(n > bestN){ bestN = n; bestK = k; } });
-      const [hj, minStr] = bestK.split(':');
-      const latest = arr.reduce((a, b) => (String(a.created_at) > String(b.created_at) ? a : b));
-      // 출처(유저참여게시판='참여' / 신고게시판='신고')별 집계 — 값 없으면 '참여'로 간주
-      const src = { '참여': 0, '신고': 0 };
-      arr.forEach(r => { const s = (r.source === '신고') ? '신고' : '참여'; src[s]++; });
-      reportsCache[spid] = {
-        hj, min: parseInt(minStr, 10),
-        nick: latest.nick || '', at: latest.created_at,
-        count: arr.length, agree: bestN, src,
-      };
-    });
+    Object.keys(reportsAll).forEach(spid => recomputeReportCacheEntry(spid));
   }
 
   // 제보 출처 요약 라벨 — 예: "제보 5·신고 2", 한쪽만 있으면 "제보 7"
@@ -3980,8 +4000,20 @@
     if(isRegistered(spid)) return isAdmin() ? all.filter(r => r.source === '신고') : [];
     return all;
   }
+  // 요약(reportsCache)만으로 노출용 제보 건수 계산 (raw 미로드 시)
+  //  - 미등록 선수: 전체 제보 수 / 등록 선수: 관리자는 '신고(정정)'만, 일반 유저는 0
+  function visibleCountOf(spid){
+    const s = reportsCache[spid];
+    if(!s) return 0;
+    if(isRegistered(spid)) return isAdmin() ? (s.src ? (s.src['신고'] || 0) : 0) : 0;
+    return s.count || 0;
+  }
   // 선수별 노출용 유저 제보 건수 (카드/요약 표시용)
-  function reportCountOf(spid){ return visibleReportRows(spid).length; }
+  //  raw가 로드돼 있으면 정확한 필터로, 아니면 요약값으로 계산 (egress 절약)
+  function reportCountOf(spid){
+    if(reportsAll[spid]) return visibleReportRows(spid).length;
+    return visibleCountOf(spid);
+  }
   // 카드용 '유저 제보 N건' 클릭 칩 (클릭 시 선수 댓글/제보 상세로 이동)
   function reportChipHtml(spid){
     const n = reportCountOf(spid);
@@ -4000,44 +4032,138 @@
   }
 
   let postCommentCounts = {};   // post_id -> 댓글 수 (목록에 표시)
-  async function loadServerBoards(force){
+
+  // ── egress 절약: localStorage TTL 캐시 + 필요한 데이터만 범위별로 로드 ──
+  const BOARD_TTL = 180000;   // 3분: 홈 요약·글목록 재요청 억제
+  function lsGet(k, maxAgeMs){
+    try{
+      const s = localStorage.getItem(k); if(!s) return null;
+      const o = JSON.parse(s);
+      if(!o || typeof o.t !== 'number') return null;
+      if(Date.now() - o.t > maxAgeMs) return null;
+      return o.v;
+    }catch(e){ return null; }
+  }
+  function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify({ t: Date.now(), v })); }catch(e){} }
+  function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
+  // 제보/글 변경 후 홈·목록 캐시 무효화 (다음 진입 시 최신 반영)
+  function invalidateBoardCache(){
+    _summaryLoaded = false; _freeLoaded = false;
+    lsDel('fc_report_summary'); lsDel('fc_free_posts'); lsDel('fc_pcc');
+  }
+
+  let _summaryLoaded = false;   // report_summary(또는 raw) 로드 여부
+  let _freeLoaded = false;      // free_posts 목록 로드 여부
+  let _flagsLoaded = false;     // report_flags 전체 로드 여부
+
+  // 요약 뷰(report_summary) → reportsCache (raw 미로드)
+  function buildReportCachesFromSummary(rows){
+    reportsCache = {};
+    (rows || []).forEach(r => {
+      reportsCache[r.spid] = {
+        hj: r.best_hj, min: r.best_min,
+        nick: r.latest_nick || '', at: r.latest_at,
+        count: r.cnt_total || 0, agree: r.agree || 0,
+        src: { '참여': r.cnt_join || 0, '신고': r.cnt_report || 0 },
+      };
+    });
+  }
+
+  // 홈·카드·달성률용: 선수별 제보 "요약"만 로드 (뷰 없으면 raw 폴백)
+  async function loadHomeSummary(force){
+    if(_summaryLoaded && !force) return true;
+    if(!force){
+      const cached = lsGet('fc_report_summary', BOARD_TTL);
+      if(cached){ buildReportCachesFromSummary(cached); _summaryLoaded = true; return true; }
+    }
     const client = await loadSupabase();
     if(!client) return false;
-    if(_boardsLoaded && !force) return true;
     try{
-      const POST_COLS = 'id,author,nick,category,title,views,likes,liked_by,created_at,edited_at';
-      let [posts, reps, flags, pcs] = await Promise.all([
-        // 목록에는 본문(body)·사진(image)을 제외해 전송량을 크게 절약 — 글 열 때만 로드
-        client.from('free_posts')
-          .select(POST_COLS + ',pinned')
-          .order('created_at', { ascending: false }).limit(500),
-        client.from('reports').select('id,spid,hj,min,nick,created_at,source,author'),
-        client.from('report_flags').select('spid,nick,created_at'),
-        client.from('post_comments').select('post_id'),   // 댓글 수 집계용
-      ]);
-      // pinned 컬럼이 아직 없으면(SQL 미실행) 그것만 빼고 다시 로드
-      if(posts.error){
-        posts = await client.from('free_posts').select(POST_COLS).order('created_at', { ascending: false }).limit(500);
-      }
-      // reports: id·source 컬럼 유무에 따라 단계적으로 폴백 (어떤 스키마든 제보는 항상 로드)
+      const { data, error } = await client.from('report_summary').select('*');
+      if(error) return await loadReportsRawAll(force);   // 뷰 미설치 → 기존 raw 방식
+      buildReportCachesFromSummary(data || []);
+      lsSet('fc_report_summary', data || []);
+      _summaryLoaded = true;
+      return true;
+    }catch(e){ return await loadReportsRawAll(force); }
+  }
+
+  // raw reports 전체 로드 (요약뷰 폴백 · 관리자 CSV용). reportsAll+reportsCache 모두 채움
+  async function loadReportsRawAll(force){
+    const client = await loadSupabase();
+    if(!client) return false;
+    try{
+      let reps = await client.from('reports').select('id,spid,hj,min,nick,created_at,source,author');
       if(reps.error){ reps = await client.from('reports').select('id,spid,hj,min,nick,created_at,author'); }
       if(reps.error){ reps = await client.from('reports').select('spid,hj,min,nick,created_at,source,author'); }
       if(reps.error){ reps = await client.from('reports').select('spid,hj,min,nick,created_at,author'); }
-      if(posts.data) freePostsCache = posts.data.map(mapPost);
-      if(reps.data) buildReportCaches(reps.data);
+      if(reps.data){ buildReportCaches(reps.data); _summaryLoaded = true; }
+      return !reps.error;
+    }catch(e){ return false; }
+  }
+
+  // 제보 상세용: 해당 선수 raw만 로드 (.eq) → reportsAll[spid] + 요약 재계산
+  async function loadReportsForSpid(spid){
+    const client = await loadSupabase();
+    if(!client) return false;
+    try{
+      let reps = await client.from('reports').select('id,spid,hj,min,nick,created_at,source,author').eq('spid', spid);
+      if(reps.error){ reps = await client.from('reports').select('id,spid,hj,min,nick,created_at,author').eq('spid', spid); }
+      if(reps.error){ reps = await client.from('reports').select('spid,hj,min,nick,created_at,source,author').eq('spid', spid); }
+      if(reps.error){ reps = await client.from('reports').select('spid,hj,min,nick,created_at,author').eq('spid', spid); }
+      if(reps.data){ reportsAll[spid] = reps.data; recomputeReportCacheEntry(spid); }
+      return !reps.error;
+    }catch(e){ return false; }
+  }
+
+  // 자유게시판용: 글 목록(본문·사진 제외) + 글별 댓글 수 (뷰 우선, raw 폴백)
+  async function loadFreePosts(force){
+    if(_freeLoaded && !force) return true;
+    if(!force){
+      const c = lsGet('fc_free_posts', BOARD_TTL);
+      if(c){ freePostsCache = c.map(mapPost); const cc = lsGet('fc_pcc', BOARD_TTL); if(cc) postCommentCounts = cc; _freeLoaded = true; return true; }
+    }
+    const client = await loadSupabase();
+    if(!client) return false;
+    try{
+      const POST_COLS = 'id,author,nick,category,title,views,likes,liked_by,created_at,edited_at';
+      let posts = await client.from('free_posts').select(POST_COLS + ',pinned').order('created_at', { ascending: false }).limit(500);
+      if(posts.error){ posts = await client.from('free_posts').select(POST_COLS).order('created_at', { ascending: false }).limit(500); }
+      if(posts.data){ freePostsCache = posts.data.map(mapPost); lsSet('fc_free_posts', posts.data); }
+      // 댓글 수: 집계 뷰 우선, 없으면 raw 폴백
+      let pcc = await client.from('post_comment_counts').select('post_id,cnt');
+      if(pcc.error){
+        const pcs = await client.from('post_comments').select('post_id');
+        postCommentCounts = {};
+        if(pcs && pcs.data) pcs.data.forEach(r => { postCommentCounts[r.post_id] = (postCommentCounts[r.post_id] || 0) + 1; });
+      }else{
+        postCommentCounts = {};
+        (pcc.data || []).forEach(r => { postCommentCounts[r.post_id] = r.cnt; });
+      }
+      lsSet('fc_pcc', postCommentCounts);
+      _freeLoaded = true;
+      return !posts.error;
+    }catch(e){ return false; }
+  }
+
+  // 신고게시판용: report_flags 전체 (선수당 1행이라 작음)
+  async function loadReportFlagsAll(force){
+    if(_flagsLoaded && !force) return true;
+    const client = await loadSupabase();
+    if(!client) return false;
+    try{
+      const flags = await client.from('report_flags').select('spid,nick,created_at');
       if(flags.data){
         flagsCache = {};
         flags.data.forEach(r => { flagsCache[r.spid] = { nick: r.nick || '', at: r.created_at }; });
+        _flagsLoaded = true;
       }
-      // 댓글 수 집계 (post_comments 조회 실패 시 조용히 건너뜀)
-      if(pcs && pcs.data){
-        postCommentCounts = {};
-        pcs.data.forEach(r => { postCommentCounts[r.post_id] = (postCommentCounts[r.post_id] || 0) + 1; });
-      }
-      _boardsLoaded = true;
-      return true;
+      return !flags.error;
     }catch(e){ return false; }
   }
+
+  // 하위호환: 홈 요약 로더로 위임 (카드·달성률 등 기존 호출부가 그대로 동작)
+  async function loadServerBoards(force){ return loadHomeSummary(force); }
 
   // ---------- 자유게시판 (목록/글쓰기/상세) ----------
   function getFreePosts(){ return freePostsCache || []; }
@@ -4067,8 +4193,8 @@
     const sf = document.getElementById('freeSearchField'); if(sf) sf.value = 'title';
     switchView('viewFreeBoard');
     showFreeList();
-    // 서버에서 최신 글 새로고침 후 다시 렌더
-    loadServerBoards(true).then(ok => { if(ok) renderFreePosts(); });
+    // 글 목록만 로드 (3분 캐시 — 잦은 재진입 시 재요청 억제)
+    loadFreePosts().then(ok => { if(ok) renderFreePosts(); });
   }
   function showFreeList(){
     document.getElementById('freeListView').style.display = '';
@@ -4448,7 +4574,7 @@
       }
       if(!editingPostId) track('post_write', { category: category });   // 새 글 작성만 집계
       editingPostId = null; clearFreeImages(); clearFreeFile(); pollEnabled = false;
-      await loadServerBoards(true);
+      await loadFreePosts(true);
       showFreeList();
     }catch(e){ showToast('오류가 발생했어요: ' + ((e && e.message) || e)); }
   }
@@ -4485,7 +4611,7 @@
         if(path) client.storage.from('post-images').remove([path]).then(()=>{}, ()=>{});
       }
       showToast('글이 삭제됐어요.');
-      await loadServerBoards(true);
+      await loadFreePosts(true);
       showFreeList();
     }catch(e){ showToast('삭제 중 오류가 발생했어요.'); }
   }
@@ -4508,7 +4634,7 @@
       if(!data || data.ok === false){ showToast((data && data.msg) || '고정 처리에 실패했어요.'); return; }
       if(p) p.pinned = newVal;
       showToast(newVal ? '이 글을 상단에 고정했어요.' : '고정을 해제했어요.');
-      await loadServerBoards(true);   // 목록 갱신 (고정 순서 반영)
+      await loadFreePosts(true);      // 목록 갱신 (고정 순서 반영)
       if(p) renderFreeRead(p);        // 상세 버튼 라벨 갱신 (본문 유지)
     }catch(e){ showToast('고정 처리 중 오류가 발생했어요.'); }
   }
@@ -5118,7 +5244,8 @@
     switchView('viewReportBoard');
     runReportSearch();
     document.getElementById('reportSearch').focus();
-    loadServerBoards(true).then(ok => { if(ok && currentView === 'viewReportBoard') runReportSearch(); });
+    // 제보 요약 + 신고 목록만 로드 (3분 캐시)
+    Promise.all([loadHomeSummary(), loadReportFlagsAll()]).then(() => { if(currentView === 'viewReportBoard') runReportSearch(); });
   }
   function runReportSearch(){
     const boxEl = document.getElementById('reportResults');
@@ -5207,7 +5334,8 @@
         }catch(_){}
       }
       closeFlagModal();
-      await loadServerBoards(true);   // 제보 집계 갱신
+      invalidateBoardCache();                                          // 홈·목록 캐시 무효화
+      await Promise.all([loadHomeSummary(true), loadReportFlagsAll(true)]);   // 제보 집계 갱신
       runReportSearch();
       showToast(reported ? '신고와 갱신시간 제보 감사합니다!!' : '신고 감사합니다!!');
     }catch(e){ errEl.textContent = '신고 중 오류가 발생했어요.'; }
@@ -5249,8 +5377,8 @@
     if(rdr) rdr.innerHTML = `<div style="color:var(--text-dim);font-size:14px;padding:8px 0;">유저 제보를 불러오는 중…</div>`;
     switchView('viewReportDetail');
     loadComments(spid).then(() => { if(reportDetailSpid === spid) renderComments(); });
-    // 유저 제보 목록(전체공개) + 신고 수 로드
-    loadServerBoards(true)
+    // 유저 제보 목록(전체공개) + 신고 수 로드 — 해당 선수 것만 로드 (egress 절약)
+    loadReportsForSpid(spid)
       .then(() => loadReportFlags(spid))
       .then(() => { if(reportDetailSpid === spid) renderReportSubs(spid); });
   }
@@ -5452,7 +5580,8 @@
       if(error){ showToast('수정 실패: ' + error.message); return; }
       _editingReportId = null;
       const spid = reportDetailSpid;
-      await loadServerBoards(true);
+      lsDel('fc_report_summary');           // 홈 요약 캐시 무효화 (변경 반영)
+      await loadReportsForSpid(spid);       // 해당 선수 제보만 다시 로드
       await loadReportFlags(spid);
       if(reportDetailSpid === spid) renderReportSubs(spid);
       showToast('제보를 수정했어요.');
@@ -5474,7 +5603,8 @@
       const { error } = await client.from('reports').delete().eq('id', rid);
       if(error){ showToast('삭제 실패: ' + error.message); return; }
       const spid = reportDetailSpid;
-      await loadServerBoards(true);
+      lsDel('fc_report_summary');           // 홈 요약 캐시 무효화 (변경 반영)
+      await loadReportsForSpid(spid);       // 해당 선수 제보만 다시 로드
       await loadReportFlags(spid);
       if(reportDetailSpid === spid) renderReportSubs(spid);
       showToast('제보를 삭제했어요.');
@@ -5507,7 +5637,8 @@
       else if(res.already) showToast('이미 신고한 제보예요.');
       else showToast(isAdmin() ? `신고 접수됐어요. (${res.count || 0}/10)` : '신고 접수됐어요.');
       const spid = reportDetailSpid;
-      await loadServerBoards(true);
+      lsDel('fc_report_summary');           // 홈 요약 캐시 무효화 (변경 반영)
+      await loadReportsForSpid(spid);       // 해당 선수 제보만 다시 로드
       await loadReportFlags(spid);
       if(reportDetailSpid === spid) renderReportSubs(spid);
     }catch(e){ showToast('신고 중 오류가 발생했어요.'); }
@@ -5521,7 +5652,8 @@
     runBoardSearch();
     document.getElementById('boardSearch').focus();
     updateReportAdminUI();
-    loadServerBoards(true).then(ok => {
+    // 제보 요약만 로드 (3분 캐시). 관리자 CSV 내보내기는 눌렀을 때 raw 로드
+    loadHomeSummary().then(ok => {
       if(ok && currentView === 'viewBoard') runBoardSearch();
       updateReportAdminUI();
     });
@@ -5534,10 +5666,10 @@
     if(!exBtn) return;
     if(!isAdmin()){ exBtn.style.display = 'none'; return; }
     exBtn.style.display = '';
-    // 등록 완료로 숨겨진 제보는 제외한 '노출용' 건수 기준
+    // 등록 완료로 숨겨진 제보는 제외한 '노출용' 건수 기준 (요약으로 계산 — raw 미로드여도 동작)
     let total = 0, hot = 0;
-    Object.keys(reportsAll).forEach(spid => {
-      const n = visibleReportRows(spid).length;
+    Object.keys(reportsCache).forEach(spid => {
+      const n = reportsAll[spid] ? visibleReportRows(spid).length : visibleCountOf(spid);
       total += n;
       if(n >= HOT_REPORT_THRESHOLD) hot++;
     });
@@ -5558,7 +5690,7 @@
   // 관리자용: 쌓인 제보를 집계 CSV로 내보내기 (제보건수·일치 건수·시간별 상세 포함, 제보 많은 순)
   async function exportReportsCSV(){
     if(!isAdmin()){ showToast('관리자만 사용할 수 있어요.'); return; }
-    await loadServerBoards(true);   // 최신 제보 반영
+    await loadReportsRawAll(true);   // CSV는 raw 전체 필요 (관리자 · 눌렀을 때만)
     const entries = Object.entries(reportsAll);
     if(entries.length === 0){ showToast('아직 제보가 없어요.'); return; }
     const escCsv = v => {
@@ -5674,7 +5806,8 @@
       if(error){ showToast('제보 실패: ' + error.message); return; }
       track('report_submit', { spid: spid });
       showToast('제보 감사합니다!!');
-      await loadServerBoards(true);   // 집계 다시 계산
+      invalidateBoardCache();
+      await loadHomeSummary(true);   // 집계 다시 계산
       if(currentView === 'viewBoard') runBoardSearch();
       updateReportAdminUI();
     }catch(e){ showToast('제보 중 오류가 발생했어요.'); }
