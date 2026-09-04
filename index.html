@@ -1502,7 +1502,7 @@
           <option value="nick">작성자</option>
         </select>
         <input type="text" id="freeSearchInput" class="free-search-input" placeholder="검색어를 입력하세요" autocomplete="off">
-        <button class="search-btn" onclick="freePage=1; renderFreePosts()">검색</button>
+        <button class="search-btn" onclick="doFreeSearch()">검색</button>
       </div>
     </div>
 
@@ -4116,34 +4116,106 @@
     }catch(e){ return false; }
   }
 
-  // 자유게시판용: 글 목록(본문·사진 제외) + 글별 댓글 수 (뷰 우선, raw 폴백)
+  // 자유게시판용: 최신 글부터 페이지 단위로 로드 (egress 절약). 고정·공지는 항상 포함.
+  const FREE_FETCH_SIZE = 10;   // 페이지당 10개씩 그때그때 로드 (예전엔 500 통째)
+  const FREE_COLS = 'id,author,nick,category,title,views,likes,liked_by,created_at,edited_at';
+  let _freeRaw = [];            // 로드된 원본 행 (id 중복 제거)
+  let _freeOldestAt = null;     // 로드된 글 중 가장 오래된 created_at (더보기 기준)
+  let _freeAllLoaded = false;   // 더 불러올 오래된 글이 없음
+
+  function applyFreeRaw(){ freePostsCache = _freeRaw.map(mapPost); }
+  function mergeFreeRows(rows){
+    const byId = {}; _freeRaw.forEach(r => { byId[r.id] = r; });
+    (rows || []).forEach(r => { byId[r.id] = r; });
+    _freeRaw = Object.values(byId);
+    applyFreeRaw();
+  }
+  function saveFreeCache(){ lsSet('fc_free_posts', { rows: _freeRaw, allLoaded: _freeAllLoaded, oldestAt: _freeOldestAt }); }
+  function minCreatedAt(rows){
+    let m = null; rows.forEach(r => { if(m === null || String(r.created_at) < String(m)) m = r.created_at; }); return m;
+  }
+  async function loadPostCommentCounts(client){
+    let pcc = await client.from('post_comment_counts').select('post_id,cnt');
+    if(pcc.error){
+      const pcs = await client.from('post_comments').select('post_id');
+      postCommentCounts = {};
+      if(pcs && pcs.data) pcs.data.forEach(r => { postCommentCounts[r.post_id] = (postCommentCounts[r.post_id] || 0) + 1; });
+    }else{
+      postCommentCounts = {};
+      (pcc.data || []).forEach(r => { postCommentCounts[r.post_id] = r.cnt; });
+    }
+    lsSet('fc_pcc', postCommentCounts);
+  }
+  // 고정·공지 글 (오래돼도 항상 상단 노출) — 최신순
+  async function fetchPinnedNotices(client){
+    let r = await client.from('free_posts').select(FREE_COLS + ',pinned').or('pinned.eq.true,category.eq.공지사항').order('created_at', { ascending: false });
+    if(r.error){ r = await client.from('free_posts').select(FREE_COLS).eq('category', '공지사항').order('created_at', { ascending: false }); }
+    return r.data || [];
+  }
   async function loadFreePosts(force){
     if(_freeLoaded && !force) return true;
     if(!force){
       const c = lsGet('fc_free_posts', BOARD_TTL);
-      if(c){ freePostsCache = c.map(mapPost); const cc = lsGet('fc_pcc', BOARD_TTL); if(cc) postCommentCounts = cc; _freeLoaded = true; return true; }
+      if(c && (Array.isArray(c) || c.rows)){
+        _freeRaw = Array.isArray(c) ? c : (c.rows || []);
+        applyFreeRaw();
+        _freeAllLoaded = Array.isArray(c) ? false : !!c.allLoaded;
+        _freeOldestAt = Array.isArray(c) ? minCreatedAt(_freeRaw) : (c.oldestAt || null);
+        const cc = lsGet('fc_pcc', BOARD_TTL); if(cc) postCommentCounts = cc;
+        _freeLoaded = true; return true;
+      }
     }
     const client = await loadSupabase();
     if(!client) return false;
     try{
-      const POST_COLS = 'id,author,nick,category,title,views,likes,liked_by,created_at,edited_at';
-      let posts = await client.from('free_posts').select(POST_COLS + ',pinned').order('created_at', { ascending: false }).limit(500);
-      if(posts.error){ posts = await client.from('free_posts').select(POST_COLS).order('created_at', { ascending: false }).limit(500); }
-      if(posts.data){ freePostsCache = posts.data.map(mapPost); lsSet('fc_free_posts', posts.data); }
-      // 댓글 수: 집계 뷰 우선, 없으면 raw 폴백
-      let pcc = await client.from('post_comment_counts').select('post_id,cnt');
-      if(pcc.error){
-        const pcs = await client.from('post_comments').select('post_id');
-        postCommentCounts = {};
-        if(pcs && pcs.data) pcs.data.forEach(r => { postCommentCounts[r.post_id] = (postCommentCounts[r.post_id] || 0) + 1; });
-      }else{
-        postCommentCounts = {};
-        (pcc.data || []).forEach(r => { postCommentCounts[r.post_id] = r.cnt; });
-      }
-      lsSet('fc_pcc', postCommentCounts);
+      // 1) 최신 일반 글 한 페이지
+      let page = await client.from('free_posts').select(FREE_COLS + ',pinned').order('created_at', { ascending: false }).limit(FREE_FETCH_SIZE);
+      if(page.error){ page = await client.from('free_posts').select(FREE_COLS).order('created_at', { ascending: false }).limit(FREE_FETCH_SIZE); }
+      const latest = page.data || [];
+      _freeAllLoaded = latest.length < FREE_FETCH_SIZE;
+      _freeOldestAt = latest.length ? latest[latest.length - 1].created_at : null;
+      // 2) 고정·공지 (항상 포함)
+      const pn = await fetchPinnedNotices(client);
+      _freeRaw = []; mergeFreeRows(latest); mergeFreeRows(pn);
+      saveFreeCache();
+      // 3) 댓글 수
+      await loadPostCommentCounts(client);
       _freeLoaded = true;
-      return !posts.error;
+      return !page.error;
     }catch(e){ return false; }
+  }
+  // 이전(오래된) 글 한 페이지 더 불러오기 — 새로 받아온 게 있으면 true (렌더는 호출부에서)
+  async function loadMoreFreePosts(){
+    if(_freeAllLoaded || !_freeOldestAt) return false;
+    const client = await loadSupabase();
+    if(!client) return false;
+    try{
+      let page = await client.from('free_posts').select(FREE_COLS + ',pinned').lt('created_at', _freeOldestAt).order('created_at', { ascending: false }).limit(FREE_FETCH_SIZE);
+      if(page.error){ page = await client.from('free_posts').select(FREE_COLS).lt('created_at', _freeOldestAt).order('created_at', { ascending: false }).limit(FREE_FETCH_SIZE); }
+      const rows = page.data || [];
+      _freeAllLoaded = rows.length < FREE_FETCH_SIZE;
+      if(rows.length) _freeOldestAt = rows[rows.length - 1].created_at;
+      mergeFreeRows(rows);
+      saveFreeCache();
+      return rows.length > 0;
+    }catch(e){ return false; }
+  }
+  // 검색: 아직 안 불러온 오래된 글까지 서버에서 찾아옴 (제목/작성자)
+  async function doFreeSearch(){
+    freePage = 1;
+    const q = (document.getElementById('freeSearchInput').value || '').trim();
+    if(q && !_freeAllLoaded){
+      const client = await loadSupabase();
+      if(client){
+        const col = document.getElementById('freeSearchField').value === 'nick' ? 'nick' : 'title';
+        try{
+          let r = await client.from('free_posts').select(FREE_COLS + ',pinned').ilike(col, '%' + q + '%').order('created_at', { ascending: false }).limit(200);
+          if(r.error){ r = await client.from('free_posts').select(FREE_COLS).ilike(col, '%' + q + '%').order('created_at', { ascending: false }).limit(200); }
+          if(r.data){ mergeFreeRows(r.data); saveFreeCache(); }
+        }catch(e){}
+      }
+    }
+    renderFreePosts();
   }
 
   // 신고게시판용: report_flags 전체 (선수당 1행이라 작음)
@@ -4180,7 +4252,18 @@
     });
     renderFreePosts();
   }
-  function goFreePage(n){
+  async function goFreePage(n){
+    if(n < 1) n = 1;
+    const q = (document.getElementById('freeSearchInput').value || '').trim();
+    // 검색 중이 아니면, 요청한 페이지를 채울 만큼 서버에서 그때그때 더 불러옴
+    if(!q){
+      let guard = 0;
+      while(!_freeAllLoaded && buildOrderedFreePosts().length < n * FREE_PAGE_SIZE && guard < 60){
+        const got = await loadMoreFreePosts();
+        guard++;
+        if(!got) break;
+      }
+    }
     freePage = n;
     renderFreePosts();
     try{ const v = document.getElementById('freeListView'); if(v) v.scrollIntoView({ behavior:'smooth', block:'start' }); }catch(e){}
@@ -4639,17 +4722,13 @@
     }catch(e){ showToast('고정 처리 중 오류가 발생했어요.'); }
   }
 
-  function renderFreePosts(){
-    const tbody = document.getElementById('freeTableBody');
-    const all = getFreePosts();
-    // 검색 (제목 or 작성자)
+  // 현재 카테고리·검색 기준으로 정렬된 글 목록 (고정→공지→일반, 각 최신순)
+  function buildOrderedFreePosts(){
     const field = document.getElementById('freeSearchField').value;
     const q = document.getElementById('freeSearchInput').value.trim();
-    let posts = all.slice();
+    let posts = getFreePosts().slice();
     if(freeCat !== '전체') posts = posts.filter(p => (p.category || '자유') === freeCat);
     if(q) posts = posts.filter(p => (field === 'nick' ? p.nick : p.title).includes(q));
-
-    // 관리자 고정 글(최대 3개)을 맨 위, 그 다음 공지사항, 그 다음 일반 글 순으로 배치
     const showNotice = (freeCat === '전체' || freeCat === '공지사항');
     let pinned = [], notices = [], normals = [];
     for(const p of posts){
@@ -4657,8 +4736,17 @@
       else if((p.category || '자유') === '공지사항') notices.push(p);
       else normals.push(p);
     }
+    const byAtDesc = (a, b) => String(b.at).localeCompare(String(a.at));
+    pinned.sort(byAtDesc); notices.sort(byAtDesc); normals.sort(byAtDesc);
     pinned = pinned.slice(0, 3);   // 고정은 최대 3개만 노출
-    const ordered = showNotice ? pinned.concat(notices, normals) : normals;
+    return showNotice ? pinned.concat(notices, normals) : normals;
+  }
+
+  function renderFreePosts(){
+    const tbody = document.getElementById('freeTableBody');
+    const q = document.getElementById('freeSearchInput').value.trim();
+    const showNotice = (freeCat === '전체' || freeCat === '공지사항');
+    const ordered = buildOrderedFreePosts();
 
     const pager = document.getElementById('freePager');
     if(ordered.length === 0){
@@ -4669,22 +4757,25 @@
       if(pager) pager.innerHTML = '';
       return;
     }
-    // 페이지네이션 (10개씩)
+    // 페이지네이션 (10개씩) — 다음 페이지는 goFreePage에서 그때그때 서버 로드
     const totalPages = Math.max(1, Math.ceil(ordered.length / FREE_PAGE_SIZE));
     if(freePage > totalPages) freePage = totalPages;
     if(freePage < 1) freePage = 1;
     const pageItems = ordered.slice((freePage - 1) * FREE_PAGE_SIZE, freePage * FREE_PAGE_SIZE);
+    const moreOnServer = !q && !_freeAllLoaded;             // 아직 안 불러온 이전 글이 서버에 있음
+    const hasNext = (freePage < totalPages) || moreOnServer;
     if(pager){
-      if(totalPages <= 1){ pager.innerHTML = ''; }
-      else{
-        let b = `<button class="page-btn" ${freePage <= 1 ? 'disabled' : ''} onclick="goFreePage(${freePage - 1})">‹</button>`;
+      let b = '';
+      if(totalPages > 1 || hasNext){
+        b += `<button class="page-btn" ${freePage <= 1 ? 'disabled' : ''} onclick="goFreePage(${freePage - 1})">‹</button>`;
         const from = Math.max(1, freePage - 2), to = Math.min(totalPages, freePage + 2);
         if(from > 1){ b += `<button class="page-btn" onclick="goFreePage(1)">1</button>`; if(from > 2) b += `<span class="page-ellipsis">…</span>`; }
         for(let i = from; i <= to; i++) b += `<button class="page-btn ${i === freePage ? 'active' : ''}" onclick="goFreePage(${i})">${i}</button>`;
         if(to < totalPages){ if(to < totalPages - 1) b += `<span class="page-ellipsis">…</span>`; b += `<button class="page-btn" onclick="goFreePage(${totalPages})">${totalPages}</button>`; }
-        b += `<button class="page-btn" ${freePage >= totalPages ? 'disabled' : ''} onclick="goFreePage(${freePage + 1})">›</button>`;
-        pager.innerHTML = b;
+        else if(moreOnServer){ b += `<span class="page-ellipsis">…</span>`; }   // 더 있음 표시
+        b += `<button class="page-btn" ${hasNext ? '' : 'disabled'} onclick="goFreePage(${freePage + 1})">›</button>`;
       }
+      pager.innerHTML = b;
     }
     tbody.innerHTML = pageItems.map(p => {
       const cat = p.category || '자유';
@@ -5826,7 +5917,7 @@
   on('boardSearch', 'keydown', (e) => { if(e.key === 'Enter') runBoardSearch(); });
   on('reportSearch', 'input', runReportSearch);
   on('reportSearch', 'keydown', (e) => { if(e.key === 'Enter') runReportSearch(); });
-  on('freeSearchInput', 'keydown', (e) => { if(e.key === 'Enter') renderFreePosts(); });
+  on('freeSearchInput', 'keydown', (e) => { if(e.key === 'Enter') doFreeSearch(); });
   on('freeBody', 'paste', onBodyPaste);
   on('commentInput', 'keydown', (e) => { if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); submitComment(); } });
   // 로그인/회원가입: 아이디·비밀번호·닉네임 입력 중 엔터로 제출
