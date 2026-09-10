@@ -1549,9 +1549,16 @@
             </div>
             <button type="button" class="poll-add-btn" id="pollAddBtn" onclick="addPollOption()">+ 선택지 추가</button>
             <div style="margin-top:14px;">
-              <label for="pollDeadline" style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:6px;">투표 종료 시각 (선택)</label>
-              <input type="datetime-local" id="pollDeadline" class="free-select" style="width:100%; padding:11px 12px;">
-              <div style="font-size:11px; color:var(--text-dim); margin-top:5px;">비워두면 기한 없이 계속 투표할 수 있어요. 지정하면 그 시각 이후엔 결과만 보여요.</div>
+              <label for="pollDeadlineSel" style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:6px;">투표 종료</label>
+              <select id="pollDeadlineSel" class="free-select" style="width:100%; padding:11px 12px;" onchange="onPollDeadlineSel(this)">
+                <option value="">계속 열림 (기한 없음)</option>
+                <option value="1">1일 후</option>
+                <option value="7">7일 후</option>
+                <option value="30">30일 후</option>
+                <option value="custom">직접 입력</option>
+              </select>
+              <input type="datetime-local" id="pollDeadline" class="free-select" style="width:100%; padding:11px 12px; margin-top:8px; display:none;">
+              <div style="font-size:11px; color:var(--text-dim); margin-top:5px;">종료 시각 이후엔 결과만 보여요. '계속 열림'이면 기한 없이 투표할 수 있어요.</div>
             </div>
           </div>
         </div>
@@ -4567,7 +4574,8 @@
       edit.innerHTML = `
         <div class="poll-option-row"><input type="text" placeholder="선택지 1" maxlength="40"><button class="poll-option-remove" onclick="removePollOption(this)" title="삭제">✕</button></div>
         <div class="poll-option-row"><input type="text" placeholder="선택지 2" maxlength="40"><button class="poll-option-remove" onclick="removePollOption(this)" title="삭제">✕</button></div>`;
-      const dl = document.getElementById('pollDeadline'); if(dl) dl.value = '';
+      const dlSel = document.getElementById('pollDeadlineSel'); if(dlSel) dlSel.value = '';
+      const dl = document.getElementById('pollDeadline'); if(dl){ dl.value = ''; dl.style.display = 'none'; }
       updatePollAddBtn();
     }
   }
@@ -4602,16 +4610,28 @@
     const options = Array.from(edit.querySelectorAll('.poll-option-row input'))
       .map(inp => inp.value.trim()).filter(v => v);
     if(options.length < 2){ showToast('투표 선택지를 2개 이상 입력해주세요.'); return undefined; }
-    // 투표 종료 시각(선택). 비우면 기한 없음.
-    const dlEl = document.getElementById('pollDeadline');
+    // 투표 종료(선택): 계속 열림 / 1·7·30일 후 / 직접 입력
+    const sel = document.getElementById('pollDeadlineSel');
+    const mode = sel ? sel.value : '';
     let deadline = null;
-    if(dlEl && dlEl.value){
+    if(mode === '1' || mode === '7' || mode === '30'){
+      deadline = new Date(Date.now() + parseInt(mode, 10) * 86400000).toISOString();
+    } else if(mode === 'custom'){
+      const dlEl = document.getElementById('pollDeadline');
+      if(!dlEl || !dlEl.value){ showToast('종료 시각을 입력하거나 다른 옵션을 선택해주세요.'); return undefined; }
       const t = new Date(dlEl.value);   // datetime-local → 로컬 시각
       if(isNaN(t.getTime())){ showToast('투표 종료 시각이 올바르지 않아요.'); return undefined; }
       if(t.getTime() <= Date.now()){ showToast('투표 종료 시각은 현재보다 이후여야 해요.'); return undefined; }
       deadline = t.toISOString();
     }
     return deadline ? { options, deadline } : { options };
+  }
+  // 투표 종료 드롭다운: '직접 입력'일 때만 날짜·시간 입력창 표시
+  function onPollDeadlineSel(sel){
+    const dl = document.getElementById('pollDeadline');
+    if(!dl) return;
+    if(sel.value === 'custom'){ dl.style.display = ''; try{ dl.focus(); }catch(e){} }
+    else { dl.style.display = 'none'; }
   }
 
   // 스토리지에 blob 업로드 → 공개 URL 반환
