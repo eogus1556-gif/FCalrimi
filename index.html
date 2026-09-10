@@ -1289,16 +1289,18 @@
   </div>
 
   <!-- 업데이트 안내 1회성 팝업 (닫으면 그 기기에서 다시 안 뜸 · 공지 기간 지나면 자동 종료) -->
-  <div class="modal-overlay" id="noticeOverlay" onclick="if(event.target===this) closeNotice()">
+    <div class="modal-overlay" id="noticeOverlay" onclick="if(event.target===this) closeNotice()">
     <div class="modal" style="text-align:center;">
       <button class="modal-close" onclick="closeNotice()">&times;</button>
-      <h2 style="margin-bottom:10px;">업데이트 완료</h2>
+      <h2 style="margin-bottom:10px;">신규 시즌 업데이트 완료</h2>
       <div style="display:flex; justify-content:center; gap:12px; margin:8px 0 14px;">
-        <img src="data:image/png;base64,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UmVhZHlxyWU8AAADJmlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgOS4xLWMwMDMgNzkuOTY5MGE4N2ZjLCAyMDI1LzAzLzA2LTIwOjUwOjE2ICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDpDMEVFN0NBNjdCRkExMUYxQjk0RTg3QTY2NjMwNkE1RiIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDpDMEVFN0NBNTdCRkExMUYxQjk0RTg3QTY2NjMwNkE1RiIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgMjcuNiAoV2luZG93cykiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDozNTVFQUI5QTRGRkUxMUYxOERGRUU3Q0QzRUQ2Rjc1QiIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDozNTVFQUI5QjRGRkUxMUYxOERGRUU3Q0QzRUQ2Rjc1QiIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Psh1xdwAAAYqSURBVHjabFYJbFRFGP7/mdntRct2oRxiSzkltAJNC/WgglwSIhUohyhRFBU5YqIoiBQ08SQgSqigosGKB1JujRBAlERbgTSQoqIVSrFoodvdt7vdbbtv973xn9m2npM/b+e9+ee/vvm/Wfz0zseav/3gmJRhkG4JdwEkAyB0DIlg0xPU09Ii9WJUi/qiFWIAEYA2wHataQD0krbImj5tXFov6/NXKgElYjXAjQD9ALrFTcu/3HS5+9cbgy73Mu4mKuUgAGGC7HvgxaXs5eW0apOhjp02YpcZHbtyHEG0SBiajKlXzkKMJTLmZkj60lZbklpav7FjXjIdN0SJjBWOdACflgSypp1wgFSdRx+VL5xTziSXMtGyEwDDMTABigHmdRaNRq9YlDHah8LuDHMcQBNAFsiLqDwldEoiyHRUJfIDDASVPoHRHSAEMgMgD+AKBagTRu2AnjSzpGSShqX8NQP0BDC1FRdAmtov01AmIzgVYpKkJ8q+KG9AyVAOBHmPwkJSHBcQBEquHXdgQ18sMxZrM8nbRYC+OoOYxpCpCquo01U1yJaak0sHSDobQwFHIlyjwyApIHkGMEdZoy3Ksj5IICKtkUhzwNLecmfOvK2kJOjz7Vq3Nhzw987OfujFlyjZXzZtMGrO5SxclOAi45S+NDe/fmZGyZCZJX0M4+wbG1Prr/z65IqMfXtT6qk8CgBVh8+WlTUcrfYgFg0eHLOs+tpar8dzYNeuYsFrTp/2eTxX9JcHM9xVR49GY7G4LBqdT8o/aAVSm8sZvT41ceIJh2hEeE/w7ZyzYKPPc76+EWBqSQmVf3Fh4WcbN0yfOyd31Kicgvw3ly5ZUljo6uF2jZ9AdXx/zXOThCApmDDx2uW6ZWPGkILbnV6b1p32hhA8UpUiIGWQYDRCzZ7vL1QBfLx+/eOjx1wyjAggQ+ZzpdPz5PGv6gxjAuNfV+xBxChgECCse7LfoMHJbvcXFXvmDR7iNQxSDgM2aQgbJcGAzB/2ea7XFlHtGTteXd2fsYmz53y1uyIkIWbD2NlzvvP6pq5clcLQkpAxYOCUKZMLxow+VFFBq1tOnbn/2dVht9sNSpkcVmgAfwNoIORDrUaz9zJHvIGLXOGY9tSKHgOGfrJ1G7OsJqPl5ltur9hc9sDKNZkj88JtkaLZ85/4ZO+0VaW1dXVrZs0KBsPzn1796vYd1FbeQCgWs6jdmqTqABLR0t4SDDWauhFcWVmTH3z42Eflp05+nV9U1NzsKX+h9FpDw+0LFvQvGG34/Ye2bjl75MtAIECdfejg/sqD++96dHHxipWZuTd7vd72qEkH6EdAn1RtzMxoa3vYR4evh7RnrF3X3h7Z8XxpN8YsZE4hgrq4TuFIIIqQcP1qw6nK73768Yf7Hlj4TOnaFMTD29/hjCWlpQn60ZSQTRmANEAKK2aakQjxQ2DEyKLi4qrDRwrvW5DOWcXOndJsv3fpMs8fvzOGP1VVFowbj5yN5IIOQyQtbdKS5egPeDhLcDraWlqSkxIn3V2cWlAQjFrNb7+VpOjJjlI/XqJZaqoZtfInTSYhlN8u27L71Zcf2bCJ5id2fnjhfI3T4eBcUBCpEo6Vl+eNvWNK6br4at35GkR2z8OL4k0e2lZmEZHMy7wpo/FSjm2/ZtvZf+PhBt3umS5XistVV1/vRGZLm+jiRi5uZfzTaIRIZtiovJDfuFpfH9VQdY2TmjKpaSWz7f6IiYz/bNMBUxSTSCSniBF+8fu535/JRG9kl+1YNuP9mSAuHs8dtbZ19txZoocRjDuIb22LabupcbqP83X8jhjOhcEFQTxA8QvG13K4iEpMRUWY/bQzqdknkQnqo1ZpdwPsrZlrKhcJesvwqJmlGFHNFbG2ILaCdAI+pCn/hKY9ajkOmIjEhbLr7pL6Vgzq5IYjCs2ODm3ICX9dUhCPmm7J3kK863DEKfR6QvIwgG90WZI6uBewM974nUtbiFFz6U6B/xnobVJRxzQHFphmN9OML1S1EVpQCXC5I5AO6Qrc0tZbAfYB3AYw4z+mZzJ20Lb50PQ+ZeGAk/FIp1yU0qEj8uvEeRzuf06ELgKNq6D+X/B/yghEL8KfAgwAsb/DKPSj4RIAAAAASUVORK5CYII=" alt="26FSL" style="width:30px; height:24px;">
-        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAYCAIAAABiC9roAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAydpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDEwLjAtYzAwMCA3OS5kMjBlNDY2MzAsIDIwMjUvMTIvMDktMDI6MTE6MjMgICAgICAgICI+IDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+IDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bXA6Q3JlYXRvclRvb2w9IkFkb2JlIFBob3Rvc2hvcCAyNy42IChXaW5kb3dzKSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozNTVFQUI5QTRGRkUxMUYxOERGRUU3Q0QzRUQ2Rjc1QiIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozNTVFQUI5QjRGRkUxMUYxOERGRUU3Q0QzRUQ2Rjc1QiI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOjM1NUVBQjk4NEZGRTExRjE4REZFRTdDRDNFRDZGNzVCIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjM1NUVBQjk5NEZGRTExRjE4REZFRTdDRDNFRDZGNzVCIi8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+ByID9wAABkZJREFUeNq0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" alt="SPT" style="width:30px; height:24px;">
+        <img src="data:image/png;base64,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" alt="UC" style="width:30px; height:24px;">
       </div>
-      <p class="modal-sub" style="line-height:1.7;"><b style="color:var(--lime);">26FSL · SPT 시즌 150명</b>의<br>갱신 시간 업데이트가 완료됐어요!</p>
+      <p class="modal-sub" style="line-height:1.7;"><b style="color:var(--lime);">UC 시즌 113명</b>의<br>갱신 시간 업데이트가 완료됐어요!</p>
       <button class="auth-submit" onclick="closeNotice()">닫기</button>
+      <p style="margin-top:14px; font-size:12px; color:var(--text-dim); line-height:1.6;">
+        최근 시스템 오류 사항은 <a href="#" onclick="noticeGoBoard(); return false;" style="color:var(--lime); text-decoration:underline; cursor:pointer;">공지사항</a>을 확인해주세요.
+      </p>
     </div>
   </div>
 
@@ -1546,6 +1548,11 @@
               <div class="poll-option-row"><input type="text" placeholder="선택지 2" maxlength="40"><button class="poll-option-remove" onclick="removePollOption(this)" title="삭제">✕</button></div>
             </div>
             <button type="button" class="poll-add-btn" id="pollAddBtn" onclick="addPollOption()">+ 선택지 추가</button>
+            <div style="margin-top:14px;">
+              <label for="pollDeadline" style="display:block; font-size:12px; color:var(--text-dim); margin-bottom:6px;">투표 종료 시각 (선택)</label>
+              <input type="datetime-local" id="pollDeadline" class="free-select" style="width:100%; padding:11px 12px;">
+              <div style="font-size:11px; color:var(--text-dim); margin-top:5px;">비워두면 기한 없이 계속 투표할 수 있어요. 지정하면 그 시각 이후엔 결과만 보여요.</div>
+            </div>
           </div>
         </div>
         <div class="free-write-actions">
@@ -2763,8 +2770,8 @@
 
   // ── 업데이트 안내 1회성 팝업 ──
   // 규칙: (1) 닫기를 누르면 그 기기(브라우저)에서 다시 안 뜸  (2) 공지 만료일이 지나면 아무에게도 안 뜸
-  const NOTICE_ID = 'fc_notice_26fsl_spt_v1';                 // 새 공지를 낼 땐 이 값만 바꾸면 됩니다
-  const NOTICE_EXPIRE = new Date('2026-08-07T23:59:59+09:00').getTime();  // 이 시각(약 1주) 이후엔 표시 안 함
+  const NOTICE_ID = 'fc_notice_uc_v1';                 // 새 공지를 낼 땐 이 값만 바꾸면 됩니다
+  const NOTICE_EXPIRE = new Date('2026-09-24T23:59:59+09:00').getTime();  // 이 시각(약 1주) 이후엔 표시 안 함
   function maybeShowNotice(){
     try{
       if(Date.now() > NOTICE_EXPIRE) return;                 // 공지 기간 종료
@@ -2778,6 +2785,12 @@
     try{ localStorage.setItem(NOTICE_ID, '1'); }catch(e){}    // 다시 안 뜨게 기록
     var ov = document.getElementById('noticeOverlay');
     if(ov) ov.classList.remove('show');
+  }
+  // 팝업 하단 '공지사항' 클릭 → 팝업 닫고 커뮤니티 공지사항으로 이동
+  function noticeGoBoard(){
+    try{ localStorage.setItem(NOTICE_ID, '1'); }catch(e){}
+    var ov = document.getElementById('noticeOverlay'); if(ov) ov.classList.remove('show');
+    try{ showFreeBoard(); setTimeout(function(){ try{ setFreeCat('공지사항'); }catch(e){} }, 350); }catch(e){}
   }
   function copyContact(){
     const v = 'fcalrimi@gmail.com';
@@ -4539,6 +4552,7 @@
       edit.innerHTML = `
         <div class="poll-option-row"><input type="text" placeholder="선택지 1" maxlength="40"><button class="poll-option-remove" onclick="removePollOption(this)" title="삭제">✕</button></div>
         <div class="poll-option-row"><input type="text" placeholder="선택지 2" maxlength="40"><button class="poll-option-remove" onclick="removePollOption(this)" title="삭제">✕</button></div>`;
+      const dl = document.getElementById('pollDeadline'); if(dl) dl.value = '';
       updatePollAddBtn();
     }
   }
@@ -4573,7 +4587,16 @@
     const options = Array.from(edit.querySelectorAll('.poll-option-row input'))
       .map(inp => inp.value.trim()).filter(v => v);
     if(options.length < 2){ showToast('투표 선택지를 2개 이상 입력해주세요.'); return undefined; }
-    return { options };
+    // 투표 종료 시각(선택). 비우면 기한 없음.
+    const dlEl = document.getElementById('pollDeadline');
+    let deadline = null;
+    if(dlEl && dlEl.value){
+      const t = new Date(dlEl.value);   // datetime-local → 로컬 시각
+      if(isNaN(t.getTime())){ showToast('투표 종료 시각이 올바르지 않아요.'); return undefined; }
+      if(t.getTime() <= Date.now()){ showToast('투표 종료 시각은 현재보다 이후여야 해요.'); return undefined; }
+      deadline = t.toISOString();
+    }
+    return deadline ? { options, deadline } : { options };
   }
 
   // 스토리지에 blob 업로드 → 공개 URL 반환
@@ -4799,14 +4822,41 @@
   }
 
   // 투표 결과 HTML 빌더
+  // 투표 마감시각 표기 (예: 9월 24일 21:00)
+  function fmtPollDeadline(ts){
+    try{ const d = new Date(ts);
+      return `${d.getMonth()+1}월 ${d.getDate()}일 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }catch(e){ return ''; }
+  }
   function buildPollHTML(p, pollVoteCounts, myVoteIdx){
     if(!p.poll || !p.poll.options) return '';
     const opts = p.poll.options;
     const total = pollVoteCounts ? pollVoteCounts.reduce((a, b) => a + (b||0), 0) : 0;
     const uid = currentUser();
     const voted = myVoteIdx != null && myVoteIdx >= 0;
+    const dl = p.poll.deadline ? new Date(p.poll.deadline).getTime() : null;
+    const closed = dl != null && Date.now() > dl;
     let html = `<div class="poll-result" id="pollBox_${p.id}">
-      <div class="poll-result-title">📊 투표</div>`;
+      <div class="poll-result-title">📊 투표${closed ? ' <span style="color:var(--text-dim);font-weight:400;">· 종료됨</span>' : ''}</div>`;
+    if(closed){
+      // 마감된 투표: 결과만 표시, 투표/변경 불가
+      opts.forEach((opt, i) => {
+        const cnt = pollVoteCounts ? (pollVoteCounts[i] || 0) : 0;
+        const pct = total > 0 ? Math.round(cnt / total * 100) : 0;
+        const isMine = i === myVoteIdx;
+        html += `<div class="poll-option-result">
+          <div class="poll-opt-label">
+            <span>${esc(opt)}${isMine ? ' ✓' : ''}</span>
+            <span class="poll-pct">${pct}% <span style="color:var(--text-dim);font-weight:400;">· ${cnt}명</span></span>
+          </div>
+          <div class="poll-bar-bg"><div class="poll-bar-fill${isMine ? ' my-vote' : ''}" style="width:${pct}%"></div></div>
+        </div>`;
+      });
+      html += `<div class="poll-total">🔒 마감된 투표예요 · 총 ${total}명 참여${dl ? ` · ${fmtPollDeadline(dl)} 종료` : ''}</div>`;
+      html += '</div>';
+      return html;
+    }
+    const dlNote = dl ? ` · 마감 ${fmtPollDeadline(dl)}` : '';
     if(voted || !uid){
       // 결과(그래프) 표시. 투표한 사용자는 다른 항목을 클릭하면 바로 변경, 같은 항목 클릭 시 취소.
       opts.forEach((opt, i) => {
@@ -4823,16 +4873,16 @@
         </div>`;
       });
       if(uid && voted){
-        html += `<div class="poll-total">총 ${total}명 참여 · 다른 항목을 누르면 변경돼요 · <button style="background:none;border:none;color:var(--text-dim);font-size:12px;cursor:pointer;" onclick="castVote(${p.id},${myVoteIdx})">투표 취소</button></div>`;
+        html += `<div class="poll-total">총 ${total}명 참여${dlNote} · 다른 항목을 누르면 변경돼요 · <button style="background:none;border:none;color:var(--text-dim);font-size:12px;cursor:pointer;" onclick="castVote(${p.id},${myVoteIdx})">투표 취소</button></div>`;
       } else {
-        html += `<div class="poll-total">총 ${total}명 참여 · 로그인 후 투표할 수 있어요.</div>`;
+        html += `<div class="poll-total">총 ${total}명 참여${dlNote} · 로그인 후 투표할 수 있어요.</div>`;
       }
     } else {
       // 투표 버튼 표시
       opts.forEach((opt, i) => {
         html += `<button class="poll-vote-btn" onclick="castVote(${p.id},${i})">${esc(opt)}</button>`;
       });
-      html += `<div class="poll-total">총 ${total}명 참여 · 항목을 누르면 투표돼요</div>`;
+      html += `<div class="poll-total">총 ${total}명 참여${dlNote} · 항목을 누르면 투표돼요</div>`;
     }
     html += '</div>';
     return html;
@@ -4870,6 +4920,14 @@
 
   async function castVote(postId, optIdx){
     if(!currentUser()){ openAuth(); return; }
+    // 마감된 투표는 참여/변경 불가
+    const p0 = getFreePosts().find(x => x.id === postId);
+    if(p0 && p0.poll && p0.poll.deadline && Date.now() > new Date(p0.poll.deadline).getTime()){
+      showToast('마감된 투표예요.');
+      const box = document.getElementById(`pollBox_${postId}`);
+      if(box){ const t = document.createElement('div'); t.innerHTML = buildPollHTML(p0, _currentPollCounts, _currentMyVote); if(t.firstElementChild) box.replaceWith(t.firstElementChild); }
+      return;
+    }
     const client = await loadSupabase();
     if(!client) return;
     try{
