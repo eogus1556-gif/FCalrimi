@@ -2249,8 +2249,15 @@
 
     try{
       if(authMode === 'signup'){
-        const nick = document.getElementById('authNick').value.trim();
+        const nickRaw = document.getElementById('authNick').value;
+        if(/\s/.test(nickRaw)){ errEl.textContent = '닉네임에 공백(띄어쓰기)을 넣을 수 없어요.'; return; }
+        const nick = nickRaw.trim();
         if(nick.length < 2){ errEl.textContent = '닉네임은 2자 이상이어야 해요.'; return; }
+        // 닉네임 중복 검사(대소문자 무시). RLS로 못 읽으면 통과 → DB UNIQUE 인덱스가 최종 방지.
+        try{
+          const { data: dup } = await client.from('profiles').select('id').ilike('nick', nick).limit(1);
+          if(dup && dup.length){ errEl.textContent = '이미 사용 중인 닉네임이에요.'; return; }
+        }catch(_){}
         const { data, error } = await client.auth.signUp({ email, password: pw });
         if(error){
           errEl.textContent = /already|registered/i.test(error.message)
@@ -2261,7 +2268,15 @@
           errEl.textContent = '가입은 됐지만 자동 로그인이 안 됐어요. Supabase 대시보드에서 이메일 확인(Confirm email)을 꺼주세요.';
           return;
         }
-        try{ await client.from('profiles').insert({ id: data.user.id, nick }); }catch(e){}
+        // 프로필 저장 — UNIQUE 인덱스가 있으면 경합 시 중복 닉을 여기서 최종 차단
+        try{
+          const { error: pErr } = await client.from('profiles').insert({ id: data.user.id, nick });
+          if(pErr && /duplicate|unique|already exists/i.test(pErr.message || '')){
+            errEl.textContent = '이미 사용 중인 닉네임이에요. 다른 닉네임으로 다시 가입해주세요.';
+            try{ await client.auth.signOut(); }catch(_){}
+            return;
+          }
+        }catch(e){}
         sbProfile = { id: data.user.id, loginId: userId, nick, is_admin: false };
       }else{
         const { data, error } = await client.auth.signInWithPassword({ email, password: pw });
