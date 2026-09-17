@@ -1619,6 +1619,11 @@
   <main id="viewReportBoard" class="subpage" style="display:none;">
     <h1>신고게시판</h1>
     <p class="page-sub">틀린 갱신 시간이 있다면 신고해주세요. 갱신 시간이 등록된 선수를 검색해 신고할 수 있습니다.</p>
+
+    <div style="background:rgba(196,255,61,.1); border:2px solid var(--lime); border-radius:16px; padding:20px; margin:0 0 22px; text-align:center;">
+      <div style="font-family:var(--font-display); font-weight:800; font-size:clamp(19px,5.2vw,28px); line-height:1.35; color:var(--lime);">갱신시간은 2시간 거래량이<br>바뀌는 시간입니다</div>
+    </div>
+
     <div class="search-box board-search">
       <div class="search-input-row">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -1671,6 +1676,10 @@
     <h1>이용 방법 &amp; 갱신시간 안내</h1>
     <p class="page-sub">FC알리미의 갱신 시간이 어떻게 계산되는지, 어떻게 활용하는지 안내해 드려요.</p>
 
+    <div style="background:rgba(196,255,61,.1); border:2px solid var(--lime); border-radius:16px; padding:20px; margin:0 0 24px; text-align:center;">
+      <div style="font-family:var(--font-display); font-weight:800; font-size:clamp(19px,5.2vw,28px); line-height:1.35; color:var(--lime);">갱신시간은 2시간 거래량이<br>바뀌는 시간입니다</div>
+    </div>
+
     <div style="background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:22px; margin-bottom:26px;">
       <div style="font-weight:700; margin-bottom:12px;">1) 이적시장에서 &lt;2시간 거래량&gt;을 확인하세요</div>
       <!-- 게임 화면을 흉내 낸 자체 제작 안내 그림 (실제 게임 캡처 아님) -->
@@ -1715,6 +1724,17 @@
         <div>설정 → 일반(또는 시스템) → 날짜 및 시간 → <b>&ldquo;자동 설정&rdquo;</b>을 켜면 돼요.</div>
       </div>
       <p style="color:var(--text-dim); font-size:13px; margin-top:12px; line-height:1.6;">PC방은 재부팅하면 시계가 다시 틀어질 수 있으니, 접속할 때 한 번 확인하면 더 정확합니다.</p>
+    </div>
+
+    <div style="background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:22px; margin-top:26px;">
+      <div style="font-weight:700; margin-bottom:12px;">5) 거래량이 0회일 때 (심화)</div>
+      <p style="color:var(--text); font-size:14.5px; line-height:1.7; margin:0 0 12px;">갱신 여부는 <b style="color:var(--lime);">2시간 거래량</b>을 1순위로 봐요. 거래가 발생했다면 갱신 후보, <b>0회라면</b> 아래를 참고하세요.</p>
+      <ul style="margin:0; padding-left:18px; line-height:1.9; font-size:14.5px; color:var(--text);">
+        <li><b>강화단계별 배율</b>: 각 강화단계(예: 8강·9강)에는 가격 배율이 있어서, 현재 평균가가 다음 단계보다 높으면(예: 1.35배) <b>거래가 없어도</b> 상하한가가 바뀔 수 있어요. 이 배율은 <b>시즌·강화단계마다 다르고</b>, 넥슨 정책상 수시로 바뀌어요.</li>
+        <li><b>낮은 단계에 밀려 올라가는 경우</b>: 거래량이 0회여도, 거래가 많이 일어난 <b>낮은 강화단계의 가격이 오르면</b> 그 배율에 밀려 <b>윗 단계 가격도 따라 올라가요.</b> 예: 9강 거래량이 0이어도 8강에서 거래가 생겨 8강 가격이 오르면, 배율에 밀려 9강도 올라가요.</li>
+        <li><b>드문 예외</b>: 아주 드물게 거래가 있어도 안 바뀔 수 있어요(상한·하한 거래가 정확히 상쇄되거나 배율이 딱 맞아떨어질 때). 극히 드문 경우라 참고만 하세요.</li>
+      </ul>
+      <p style="color:var(--text-dim); font-size:13px; margin-top:14px; line-height:1.6;"><b style="color:var(--text);">갱신싸움 순서</b> — ① 2시간 거래량 확인 → ② 0회면 낮은 강화단계 상하한가 변동 확인</p>
     </div>
 
     <div style="background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:22px; margin-top:26px;">
@@ -2663,6 +2683,8 @@
     return _qrLibPromise;
   }
   function isIOS(){ return /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); }
+  // 모바일 여부 — 모바일에선 엔터=줄바꿈, 등록 버튼으로만 제출
+  function isMobileDevice(){ return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || '') || (navigator.maxTouchPoints > 1 && /Mobi|Touch/i.test(navigator.userAgent || '')); }
   function isStandalone(){ return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
   async function doInstall(){
     if(!deferredInstall) return;
@@ -5211,7 +5233,7 @@
     document.querySelectorAll('#freeReadBox .fr-body-rich, #freeReadBox .fr-body').forEach(linkifyIn);
     if(!isNotice){
       const inp = document.getElementById('pcInput');
-      if(inp) inp.addEventListener('keydown', (e) => { if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); submitPostComment(p.id); } });
+      if(inp) inp.addEventListener('keydown', (e) => { if(e.key === 'Enter' && !e.shiftKey && !isMobileDevice()){ e.preventDefault(); submitPostComment(p.id); } });
       loadPostComments(p.id).then(() => renderPostComments(p.id));
     }
     // 투표 데이터 비동기 로드
@@ -5258,20 +5280,23 @@
     if(!ta) return;
     const text = ta.value.trim();
     if(!text){ showToast('내용을 입력해주세요.'); return; }
-    const client = await loadSupabase();
-    if(!client){ showToast('서버에 연결할 수 없어요.'); return; }
+    const c = (postCommentsCache[postId] || []).find(x => x.id === cid);
+    if(!c) return;
+    const prevBody = c.body, prevEdited = c.editedAt;
     const nowIso = new Date().toISOString();
+    // 낙관적 반영: 즉시 화면 갱신 (저장 실패 시 되돌림)
+    c.body = text; c.editedAt = nowIso;
+    renderPostComments(postId);
+    const client = await loadSupabase();
+    if(!client){ c.body = prevBody; c.editedAt = prevEdited; renderPostComments(postId); showToast('서버에 연결할 수 없어요.'); return; }
     try{
       let { error } = await client.from('post_comments').update({ body: text, edited_at: nowIso }).eq('id', cid);
       if(error && /edited_at/i.test(error.message || '')){   // 컬럼 미생성 시 본문만
         ({ error } = await client.from('post_comments').update({ body: text }).eq('id', cid));
       }
-      if(error){ showToast('수정 실패: ' + error.message); return; }
-      const c = (postCommentsCache[postId] || []).find(x => x.id === cid);
-      if(c){ c.body = text; c.editedAt = nowIso; }
-      renderPostComments(postId);
+      if(error){ c.body = prevBody; c.editedAt = prevEdited; renderPostComments(postId); showToast('수정 실패: ' + error.message); return; }
       showToast('댓글을 수정했어요.');
-    }catch(e){ showToast('수정 중 오류가 발생했어요.'); }
+    }catch(e){ c.body = prevBody; c.editedAt = prevEdited; renderPostComments(postId); showToast('수정 중 오류가 발생했어요.'); }
   }
   // ── 신고/선수 댓글 수정 ──
   function startEditComment(cid){
@@ -5300,20 +5325,23 @@
     if(!ta) return;
     const text = ta.value.trim();
     if(!text){ showToast('내용을 입력해주세요.'); return; }
-    const client = await loadSupabase();
-    if(!client){ showToast('서버에 연결할 수 없어요.'); return; }
+    const c = (commentsCache[spid] || []).find(x => x.id === cid);
+    if(!c) return;
+    const prevBody = c.body, prevEdited = c.editedAt;
     const nowIso = new Date().toISOString();
+    // 낙관적 반영: 즉시 화면 갱신 (저장 실패 시 되돌림)
+    c.body = text; c.editedAt = nowIso;
+    renderComments();
+    const client = await loadSupabase();
+    if(!client){ c.body = prevBody; c.editedAt = prevEdited; renderComments(); showToast('서버에 연결할 수 없어요.'); return; }
     try{
       let { error } = await client.from('comments').update({ body: text, edited_at: nowIso }).eq('id', cid);
       if(error && /edited_at/i.test(error.message || '')){
         ({ error } = await client.from('comments').update({ body: text }).eq('id', cid));
       }
-      if(error){ showToast('수정 실패: ' + error.message); return; }
-      const c = (commentsCache[spid] || []).find(x => x.id === cid);
-      if(c){ c.body = text; c.editedAt = nowIso; }
-      renderComments();
+      if(error){ c.body = prevBody; c.editedAt = prevEdited; renderComments(); showToast('수정 실패: ' + error.message); return; }
       showToast('댓글을 수정했어요.');
-    }catch(e){ showToast('수정 중 오류가 발생했어요.'); }
+    }catch(e){ c.body = prevBody; c.editedAt = prevEdited; renderComments(); showToast('수정 중 오류가 발생했어요.'); }
   }
 
   async function loadCommentLikes(refType, ids){
@@ -5409,7 +5437,7 @@
         </div>` : ''}
         ${isActive ? `<div class="inline-reply-box" id="inlineReply_${c.id}">
           <textarea id="inlineReplyInput_${c.id}" placeholder="@${safeQ(c.nick)}에게 답글…" maxlength="300" rows="1" oninput="cAutoGrow(this)"
-            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();submitInlineReply(${postId},${c.id},'${safeQ(c.nick)}')}"></textarea>
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey&&!isMobileDevice()){event.preventDefault();submitInlineReply(${postId},${c.id},'${safeQ(c.nick)}')}"></textarea>
           <button class="search-btn" style="padding:6px 14px;font-size:13px;" onclick="submitInlineReply(${postId},${c.id},'${safeQ(c.nick)}')">등록</button>
           <button class="inline-reply-close" onclick="closeInlineReply()">✕</button>
         </div>` : ''}
@@ -6181,7 +6209,7 @@
   on('reportSearch', 'keydown', (e) => { if(e.key === 'Enter') runReportSearch(); });
   on('freeSearchInput', 'keydown', (e) => { if(e.key === 'Enter') doFreeSearch(); });
   on('freeBody', 'paste', onBodyPaste);
-  on('commentInput', 'keydown', (e) => { if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); submitComment(); } });
+  on('commentInput', 'keydown', (e) => { if(e.key === 'Enter' && !e.shiftKey && !isMobileDevice()){ e.preventDefault(); submitComment(); } });
   // 로그인/회원가입: 아이디·비밀번호·닉네임 입력 중 엔터로 제출
   on('authId', 'keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); submitAuth(); } });
   on('authPw', 'keydown', (e) => { if(e.key === 'Enter'){ e.preventDefault(); submitAuth(); } });
