@@ -1797,6 +1797,21 @@
     </div>
 
     <div style="background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:22px; margin-top:26px;">
+      <div style="font-weight:700; margin-bottom:12px;">4) 유저 제보 보기 · 제보/신고하기</div>
+      <p style="color:var(--text); font-size:14.5px; line-height:1.7; margin:0 0 14px;">아직 <b>공식 갱신시간이 없는 선수</b>는 유저들이 알아낸 시간을 서로 제보할 수 있어요. 제보가 쌓이면 대표 시간이 자동으로 뽑혀 선수 카드·즐겨찾기에 표시됩니다.</p>
+      <dl style="margin:0; font-size:14.5px; color:var(--text); line-height:1.7;">
+        <dt style="font-weight:700; color:var(--report); margin-top:4px; display:flex; align-items:center; gap:8px;"><span class="report-stamp"><span>유저</span><span>제보</span></span> 유저 제보 시간</dt>
+        <dd style="margin:6px 0 0;">공식 확정이 아니라 <b style="color:var(--report);">유저들이 제보한 갱신시간</b>이라는 표시예요. 주황색으로 보이면 참고용 제보 시간이고, 흰색(기본)으로 보이면 공식 확정 시간입니다. 대표 시간은 <b>같은 시간을 제보한 사람이 많을수록, 추천이 많을수록</b> 우선 노출돼요.</dd>
+        <dt style="font-weight:700; color:var(--red); margin-top:16px;">⚠️ 의심 마크</dt>
+        <dd style="margin:6px 0 0;">그 제보가 <b>틀리다는 신고가 여러 번</b> 쌓이면 붙는 표시예요. 신뢰도가 낮으니 참고만 하세요.</dd>
+        <dt style="font-weight:700; color:var(--lime); margin-top:16px;">제보하는 법</dt>
+        <dd style="margin:6px 0 0;">선수 이름·시즌칩을 누르면 <b>유저 제보 화면</b>이 열려요. 거기서 직접 알아낸 갱신시간(홀수시/짝수시 + 분)을 제보하면 됩니다. (커뮤니티 &gt; 유저참여게시판에서도 가능)</dd>
+        <dt style="font-weight:700; color:var(--text); margin-top:16px;">신고하는 법 · 추천/비추천</dt>
+        <dd style="margin:6px 0 0;">제보 화면에서 각 제보 옆의 <b>👍 추천 / 👎 비추천</b>으로 맞는 시간에 힘을 실어줄 수 있어요. 시간이 명백히 틀린 제보는 <b style="color:var(--red);">🚨 신고</b> 버튼으로 알려주세요. 신고를 누른 뒤 다시 누르면 취소할 수 있어요.</dd>
+      </dl>
+    </div>
+
+    <div style="background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:22px; margin-top:26px;">
       <div style="font-weight:700; margin-bottom:12px;">💡 갱신 시간을 이렇게 활용하세요</div>
       <ul style="margin:0; padding-left:18px; line-height:1.9; font-size:14.5px; color:var(--text);">
         <li><b>시세 확인 타이밍</b> — 갱신 직후에는 최근 거래가 반영된 새 기준가가 나오므로, 시세를 확인하기 가장 좋은 순간입니다.</li>
@@ -4029,7 +4044,7 @@
       return {
         id: p.id, name: p.name, season: p.season,
         seasonId: Math.floor(p.id / 1000000),
-        confirmed, custom: !!ct, report: !!rep,
+        confirmed, custom: !!ct, report: !!rep, repFlags: rep ? (rep.flags || 0) : 0,
         hj, min,
         refresh: refreshLabel(hj, hj ? min : null),
         nextIn: nextInMin(hj, min),
@@ -4053,7 +4068,7 @@
       }else if(r.report){
         // 미확인이지만 유저 제보 대표시간 있음: 주황색 시간 + '유저 제보' 딱지 (+ 내 커스텀 설정 가능)
         rightHtml = `${timerChip(r.hj, r.min, 'f-timer')}`
-          + `<span class="f-refresh" style="color:var(--report);">${r.refresh} <span class="report-stamp"><span>유저</span><span>제보</span></span></span>`
+          + `<span class="f-refresh" style="color:var(--report);">${r.refresh} <span class="report-stamp"><span>유저</span><span>제보</span></span>${suspectHtml(r.repFlags)}</span>`
           + `<button class="fav-remove" style="border-color:var(--lime); color:var(--lime);" onclick="event.stopPropagation(); openCustomTime(${r.id})">⏰ 갱신시간 설정</button>`;
       }else{
         // 미확인 + 커스텀 미설정: 설정 버튼 제공
@@ -4259,14 +4274,18 @@
     if(isRegistered(spid)) return null;              // 공식 확인시간 우선 — 제보시간 안 씀
     const s = reportsCache[spid];
     if(!s || !s.hj || s.min == null || s.min < 0) return null;
-    return { hj: s.hj, min: s.min };
+    return { hj: s.hj, min: s.min, flags: s.flags || 0 };
+  }
+  // 신고 5회↑ 대표 제보 → '의심' 마크 HTML
+  function suspectHtml(flags){
+    return (flags >= SUSPECT_FLAGS) ? ` <span style="color:var(--red);font-size:11px;font-weight:700;" title="신고가 누적돼 신뢰도가 낮은 제보예요">⚠️ 의심</span>` : '';
   }
   function reportTimeHtml(spid){
     const t = reportTimeOf(spid);
     if(!t) return '';
     const label = refreshLabel(t.hj, t.min);
     if(!label) return '';
-    return `<div class="p-refresh" style="color:var(--report);">${label} <span class="report-stamp"><span>유저</span><span>제보</span></span></div>
+    return `<div class="p-refresh" style="color:var(--report);">${label} <span class="report-stamp"><span>유저</span><span>제보</span></span>${suspectHtml(t.flags)}</div>
             <div class="p-timer">${timerChip(t.hj, t.min)}</div>`;
   }
 
@@ -4313,6 +4332,7 @@
         hj: r.best_hj, min: r.best_min,
         nick: r.latest_nick || '', at: r.latest_at,
         count: r.cnt_total || 0, agree: r.agree || 0,
+        flags: r.best_flags || 0,   // 대표 시간대 신고 합 (의심 마크용)
         src: { '참여': r.cnt_join || 0, '신고': r.cnt_report || 0 },
       };
     });
@@ -6007,13 +6027,20 @@
       box.innerHTML = `<div style="color:var(--text-dim);font-size:14px;padding:8px 0;">${registered ? '이미 갱신 시간이 등록된 선수예요. 등록된 시간이 틀리다면 위 &lsquo;틀린 시간 신고하기&rsquo;로 알려주세요.' : '아직 유저 제보가 없어요. 갱신 시간을 알고 있다면 제보해주세요!'}</div>`;
       return;
     }
-    const gc = {};
-    arr.forEach(r => { const k = r.hj + ':' + r.min; gc[k] = (gc[k] || 0) + 1; });
+    // 대표 순위: ① 같은시간 제보 수 > ② 그룹 점수(추천−비추천 합) > ③ 빠른 제보.
+    //           비추천 10↑ 또는 신고 10↑ 제보는 대표 제외(맨 뒤로).
+    const net = (r) => (r.id != null ? ((cLikesCache['report:' + r.id] || 0) - (cLikesCache['report_dis:' + r.id] || 0)) : 0);
+    const eligibleRep = (r) => (r.id == null) || ((cLikesCache['report_dis:' + r.id] || 0) < 10 && (reportFlagCount[r.id] || 0) < 10);
+    const gc = {}, gs = {};
+    arr.forEach(r => { if(!eligibleRep(r)) return; const k = r.hj + ':' + r.min; gc[k] = (gc[k] || 0) + 1; gs[k] = (gs[k] || 0) + net(r); });
     arr.sort((a, b) => {
+      const ea = eligibleRep(a), eb = eligibleRep(b);
+      if(ea !== eb) return ea ? -1 : 1;                                  // 제외 대상은 뒤로
       const ka = a.hj + ':' + a.min, kb = b.hj + ':' + b.min;
-      if(gc[kb] !== gc[ka]) return gc[kb] - gc[ka];               // 많이 겹치는 시간 먼저
-      if(ka !== kb) return ka < kb ? -1 : 1;
-      return String(b.created_at).localeCompare(String(a.created_at)); // 최신 먼저
+      if((gc[kb]||0) !== (gc[ka]||0)) return (gc[kb]||0) - (gc[ka]||0);  // ① 같은시간 제보 수
+      if((gs[kb]||0) !== (gs[ka]||0)) return (gs[kb]||0) - (gs[ka]||0);  // ② 그룹 점수(추천−비추천 합)
+      if(ka !== kb) return ka < kb ? -1 : 1;                             // 같은 순위면 시간끼리 묶기
+      return String(a.created_at).localeCompare(String(b.created_at));   // ③ 빠른 제보
     });
     const uid = currentUser();
     const rowsHtml = arr.map(r => {
@@ -6047,11 +6074,12 @@
         <span style="font-size:12px;color:var(--text-dim);">${new Date(r.created_at).toLocaleString('ko-KR')}</span>
         <span style="font-size:11px;color:var(--text-dim);border:1px solid var(--line);border-radius:6px;padding:1px 6px;">${srcBadge}</span>
         <span style="margin-left:auto;display:inline-flex;gap:8px;align-items:center;">
-          ${(admin && cnt > 0) ? `<span style="font-size:12px;color:var(--red);">신고 ${cnt}/10</span>` : ''}
+          ${cnt >= SUSPECT_FLAGS ? `<span style="font-size:11px;font-weight:700;color:var(--red);border:1px solid var(--red);border-radius:6px;padding:1px 6px;" title="신고가 누적돼 신뢰도가 낮은 제보예요">⚠️ 의심</span>` : ''}
+          ${(admin && cnt > 0) ? `<span style="font-size:12px;color:var(--text-dim);">(신고 ${cnt}/10)</span>` : ''}
           ${(r.id != null) ? `<button class="like-comment ${isLked ? 'liked' : ''}" title="이 제보 추천" onclick="toggleReportLike(${r.id})">👍 ${lk || ''}</button>` : ''}
           ${(r.id != null) ? `<button class="like-comment ${isDisliked ? 'disliked' : ''}" title="이 제보 비추천" onclick="toggleReportDislike(${r.id})">👎 ${dlk || ''}</button>` : ''}
           ${(isOwn && r.id != null) ? `<button class="fav-remove" onclick="editReport(${r.id})" title="내 제보 수정">✏️ 수정</button><button class="fav-remove" style="color:var(--red);border-color:var(--red);" onclick="deleteMyReport(${r.id})" title="내 제보 삭제">🗑 삭제</button>` : ''}
-          ${(uid && r.id != null && !isOwn) ? `<button class="fav-remove" style="color:var(--red);border-color:var(--red);${mine ? 'opacity:.5;' : ''}" ${mine ? 'disabled' : ''} onclick="flagReport(${r.id})" title="이 제보 신고">${mine ? '신고함' : '🚨 신고'}</button>` : ''}
+          ${(uid && r.id != null && !isOwn) ? `<button class="fav-remove" style="color:var(--red);border-color:var(--red);${mine ? 'background:rgba(255,80,80,.14);' : ''}" onclick="flagReport(${r.id})" title="${mine ? '신고 취소하기' : '이 제보 신고'}">${mine ? '🚩 신고함 · 취소' : '🚨 신고'}</button>` : ''}
         </span>
       </div>`;
     }).join('');
@@ -6119,24 +6147,38 @@
     if(reportDetailSpid === spid) renderReportSubs(spid);
   }
   // 개별 제보 신고 — 10회 누적 시 서버(RPC)에서 자동 삭제
+  // 제보 신고 토글 — 이미 신고했으면 취소, 아니면 확인 후 신고
   async function flagReport(rid){
     if(!currentUser()){ openAuth(); return; }
     const client = await loadSupabase();
     if(!client || !sbProfile){ showToast('서버에 연결할 수 없어요.'); return; }
-    try{
-      const { data, error } = await client.rpc('flag_report', { p_report_id: rid });
-      if(error){ showToast('신고 실패: ' + error.message); return; }
-      const res = data || {};
-      if(res.ok === false){ showToast(res.msg || '신고할 수 없어요.'); return; }
-      if(res.deleted) showToast(isAdmin() ? '신고 10회 누적으로 해당 제보가 삭제됐어요.' : '신고 감사합니다. 처리됐어요.');
-      else if(res.already) showToast('이미 신고한 제보예요.');
-      else showToast(isAdmin() ? `신고 접수됐어요. (${res.count || 0}/10)` : '신고 접수됐어요.');
-      const spid = reportDetailSpid;
-      lsDel('fc_report_summary');           // 홈 요약 캐시 무효화 (변경 반영)
-      await loadReportsForSpid(spid);       // 해당 선수 제보만 다시 로드
-      await loadReportFlags(spid);
-      if(reportDetailSpid === spid) renderReportSubs(spid);
-    }catch(e){ showToast('신고 중 오류가 발생했어요.'); }
+    const spid = reportDetailSpid;
+    const already = myReportFlags.has(rid);
+    if(already){
+      // 신고 취소
+      if(!confirm('이 제보 신고를 취소할까요?')) return;
+      try{
+        const { error } = await client.from('report_content_flags').delete().eq('report_id', rid).eq('voter', sbProfile.id);
+        if(error){ showToast('취소 실패: ' + error.message + '\n(삭제 권한 SQL이 필요할 수 있어요)'); return; }
+        showToast('신고를 취소했어요.');
+      }catch(e){ showToast('취소 중 오류가 발생했어요.'); return; }
+    }else{
+      // 신고 (확인 1회)
+      if(!confirm('이 제보의 시간이 틀렸다고 신고할까요?\n허위 신고가 반복되면 이용이 제한될 수 있어요.')) return;
+      try{
+        const { data, error } = await client.rpc('flag_report', { p_report_id: rid });
+        if(error){ showToast('신고 실패: ' + error.message); return; }
+        const res = data || {};
+        if(res.ok === false){ showToast(res.msg || '신고할 수 없어요.'); return; }
+        if(res.deleted) showToast(isAdmin() ? '신고 10회 누적으로 해당 제보가 삭제됐어요.' : '신고 감사합니다. 처리됐어요.');
+        else if(res.already) showToast('이미 신고한 제보예요.');
+        else showToast(isAdmin() ? `신고 접수됐어요. (${res.count || 0}/10)` : '신고 접수됐어요.');
+      }catch(e){ showToast('신고 중 오류가 발생했어요.'); return; }
+    }
+    lsDel('fc_report_summary');           // 홈 요약 캐시 무효화 (변경 반영)
+    await loadReportsForSpid(spid);       // 해당 선수 제보만 다시 로드
+    await loadReportFlags(spid);
+    if(reportDetailSpid === spid) renderReportSubs(spid);
   }
 
   // ---------- 유저참여게시판: 미등록 선수 검색 + 갱신시간 제보 ----------
@@ -6156,6 +6198,7 @@
 
   // 관리자용 내보내기 버튼: 총 제보 수 + 10건 이상 쌓인 선수 수 뱃지
   const HOT_REPORT_THRESHOLD = 10;
+  const SUSPECT_FLAGS = 5;   // 신고 5회 이상이면 모두에게 '의심' 마크 표시 (정확한 수는 관리자만)
   function updateReportAdminUI(){
     const exBtn = document.getElementById('exportReportsBtn');
     if(!exBtn) return;
