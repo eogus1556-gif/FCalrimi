@@ -3098,6 +3098,7 @@
     }
     // 2단계: 남은 시간(n)별로 묶어서 한 번에 알림 (취침모드 시간대면 생략)
     if(pending.length > 0 && !quiet){
+      await refreshPushSubscribedFlag();   // 발송 직전 실제 구독여부 확정 → 백그라운드 푸시와 OS 알림 중복 방지
       const groups = {};
       pending.forEach(a => {
         if(!groups[a.n]) groups[a.n] = [];
@@ -6393,6 +6394,7 @@
     document.addEventListener('visibilitychange', () => {
       if(document.visibilityState === 'visible' && Date.now() - _lastClockSync > 30000){
         syncClock().then(() => { try{ tickTimers(); }catch(e){} });
+        try{ ensurePushSubscription(); }catch(_){}   // 포그라운드 복귀 시 구독 self-heal
       }
     });
   }catch(e){}
@@ -6607,6 +6609,41 @@
     }
   }
 
+  // ── 앱 열 때 자기 구독 self-heal ──
+  // 로그인 + 알림 권한 허용 + 이 기기에서 전에 푸시를 켠 적 있음(fc_push_key) 이면,
+  // 현재 구독을 조용히 enabled:true 로 되살린다. (구독 만료/비활성화돼도 앱만 열면 복구)
+  // → PC·모바일이 각자 열릴 때 자기 구독을 살리므로 둘 다 동시에 켜진 상태 유지.
+  // 끄기(disablePush)를 누른 기기는 fc_push_key 가 지워지므로 되살아나지 않음.
+  async function ensurePushSubscription(){
+    try{
+      if(!sbProfile) return;
+      if(!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+      if(!('Notification' in window) || Notification.permission !== 'granted') return;
+      const optedIn = !!(store() && store().getItem('fc_push_key'));
+      if(!optedIn) return;   // 한 번도 안 켠 기기는 건드리지 않음
+      const reg = await navigator.serviceWorker.ready;
+      let sub = await reg.pushManager.getSubscription();
+      if(!sub){
+        try{ sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8Array(VAPID_PUBLIC) }); }
+        catch(_){ return; }
+      }
+      const j = sub.toJSON();
+      const platform = isIOS() ? 'ios' : (/android/i.test(navigator.userAgent) ? 'android' : 'desktop');
+      const client = (typeof sb !== 'undefined' && sb) ? sb : await loadSupabase();
+      if(!client) return;
+      const base = {
+        user_id: sbProfile.id, nick: sbProfile.nick,
+        endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth,
+        platform, enabled: true, lead_min: Math.max(...getAlarmLeads()), last_seen: new Date().toISOString()
+      };
+      let { error } = await client.from('push_subs').upsert({ ...base, leads: getAlarmLeads() }, { onConflict: 'endpoint' });
+      if(error) await client.from('push_subs').upsert(base, { onConflict: 'endpoint' });
+      try{ if(store()) store().setItem('fc_push_key', VAPID_PUBLIC); }catch(_){}
+      pushSubscribed = true;
+    }catch(_){}
+  }
+  window.ensurePushSubscription = ensurePushSubscription;
+
   // ── 푸시 알림 상태 팝업 ──
   function showPushStatus(icon, title, desc, showUnsub){
     let ov = document.getElementById('pushStatusOverlay');
@@ -6719,6 +6756,7 @@
         await loadProfile(data.session.user);
         applySession();
         checkAlarms();
+        ensurePushSubscription();   // 자기 구독 self-heal (PC·모바일 둘 다 유지)
         boardsReady.then(() => notifyAdminHotReports());   // 관리자면 제보 누적 알림
       }
     }catch(e){ console.warn('세션 복원 실패', e); }
