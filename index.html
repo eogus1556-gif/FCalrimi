@@ -1117,6 +1117,9 @@
     .nav-dd:hover .nav-dd-menu, .nav-dd:focus-within .nav-dd-menu{ display:block; }
     .nav-dd-menu a{ display:block; padding:8px 12px; white-space:nowrap; border-radius:6px; }
     .nav-dd-menu a:hover{ background:var(--bg); }
+    /* 유저 제보 시간 강조 + 도장풍 딱지 */
+    :root{ --report:#F5A524; }
+    .report-stamp{ display:inline-block; font-size:10px; font-weight:800; color:var(--report); border:1.5px solid var(--report); border-radius:6px; padding:1px 5px; margin-left:6px; letter-spacing:.5px; transform:rotate(-4deg); vertical-align:middle; white-space:nowrap; }
   </style>
 
   <header>
@@ -3508,8 +3511,9 @@
         ${c.refresh
           ? `<div class="p-refresh">${c.refresh}</div>
              <div class="p-timer">${c.hj ? timerChip(c.hj, c.min) : ''}</div>`
-          : `<div class="p-refresh none">갱신 시간 미확인</div>
-             ${reportCountOf(c.id) === 0 ? `<div class="p-timer">커뮤니티 &gt; 유저참여게시판에서 제보할 수 있어요</div>` : ''}`}
+          : (reportTimeHtml(c.id)
+             || `<div class="p-refresh none">갱신 시간 미확인</div>
+             ${reportCountOf(c.id) === 0 ? `<div class="p-timer">커뮤니티 &gt; 유저참여게시판에서 제보할 수 있어요</div>` : ''}`)}
         ${reportChipHtml(c.id)}
       </div>
     `).join('');
@@ -3556,7 +3560,7 @@
         ${c.pos || c.ovr ? `<div class="p-timer" style="margin:0 0 8px;">${esc(c.pos)}${c.pos && c.ovr ? ' · ' : ''}${c.ovr ? 'OVR ' + c.ovr : ''}</div>` : ''}
         ${c.refresh
           ? `<div class="p-refresh">${c.refresh}</div><div class="p-timer">${timerChip(c.hj, c.min)}</div>`
-          : `<div class="p-refresh none">갱신 시간 미확인</div>${reportCountOf(c.id) === 0 ? `<div class="p-timer">커뮤니티 &gt; 유저참여게시판에서 제보할 수 있어요</div>` : ''}`}
+          : (reportTimeHtml(c.id) || `<div class="p-refresh none">갱신 시간 미확인</div>${reportCountOf(c.id) === 0 ? `<div class="p-timer">커뮤니티 &gt; 유저참여게시판에서 제보할 수 있어요</div>` : ''}`)}
         ${reportChipHtml(c.id)}
       </div>`;
   }
@@ -4005,6 +4009,7 @@
       listEl.innerHTML = `<div class="no-result">선수 데이터(players.json)를 불러오지 못했어요.</div>`;
       return;
     }
+    try{ await loadHomeSummary(); }catch(_){}   // 유저 제보 대표시간 캐시 확보 (3분 캐시라 egress 미미)
     const favs = await favApi.list();
     _customTimes = (await customTimeApi.list()) || {};
     const spids = Object.keys(favs || {}).map(Number);
@@ -4018,12 +4023,13 @@
       if(!p) return null;
       const confirmed = !!p.hj;
       const ct = (!confirmed && _customTimes[spid]) ? _customTimes[spid] : null;   // 커스텀 시간
-      const hj = confirmed ? p.hj : (ct ? ct.hj : '');
-      const min = confirmed ? (p.min == null ? -1 : p.min) : (ct ? ct.min : -1);
+      const rep = (!confirmed && !ct) ? reportTimeOf(spid) : null;                  // 유저 제보 대표시간
+      const hj = confirmed ? p.hj : (ct ? ct.hj : (rep ? rep.hj : ''));
+      const min = confirmed ? (p.min == null ? -1 : p.min) : (ct ? ct.min : (rep ? rep.min : -1));
       return {
         id: p.id, name: p.name, season: p.season,
         seasonId: Math.floor(p.id / 1000000),
-        confirmed, custom: !!ct,
+        confirmed, custom: !!ct, report: !!rep,
         hj, min,
         refresh: refreshLabel(hj, hj ? min : null),
         nextIn: nextInMin(hj, min),
@@ -4044,6 +4050,11 @@
         rightHtml = `${timerChip(r.hj, r.min, 'f-timer')}`
           + `<span class="f-refresh" title="내가 직접 설정한 갱신시간">⏰ ${r.refresh} <span style="color:var(--text-dim)">(내 설정)</span></span>`
           + `<button class="fav-remove" onclick="event.stopPropagation(); openCustomTime(${r.id})">수정</button>`;
+      }else if(r.report){
+        // 미확인이지만 유저 제보 대표시간 있음: 주황색 시간 + '유저 제보' 딱지 (+ 내 커스텀 설정 가능)
+        rightHtml = `${timerChip(r.hj, r.min, 'f-timer')}`
+          + `<span class="f-refresh" style="color:var(--report);">${r.refresh} <span class="report-stamp">유저 제보</span></span>`
+          + `<button class="fav-remove" style="border-color:var(--lime); color:var(--lime);" onclick="event.stopPropagation(); openCustomTime(${r.id})">⏰ 갱신시간 설정</button>`;
       }else{
         // 미확인 + 커스텀 미설정: 설정 버튼 제공
         rightHtml = `<span class="f-refresh">갱신 시간 미확인</span>`
@@ -4053,8 +4064,8 @@
       <div class="fav-row" onclick="showPlayer('${esc(r.name)}')">
         <div class="f-left">
           <div class="result-badge">-${faceImg(r.id)}</div>
-          <span class="class-chip">${seasonIcon(r.seasonId)}${esc(r.season)}</span>
-          <span class="f-name">${esc(r.name)}</span>
+          <span class="class-chip" style="cursor:pointer;" title="유저 제보 보기" onclick="event.stopPropagation(); openReportDetail(${r.id})">${seasonIcon(r.seasonId)}${esc(r.season)}</span>
+          <span class="f-name" style="cursor:pointer;" title="유저 제보 보기" onclick="event.stopPropagation(); openReportDetail(${r.id})">${esc(r.name)}</span>
         </div>
         <div class="f-right">
           ${rightHtml}
@@ -4242,6 +4253,21 @@
     const n = reportCountOf(spid);
     if(!n) return '';
     return `<div class="p-timer" style="margin-top:6px;"><span class="report-chip" style="cursor:pointer;" title="유저 제보 보기" onclick="event.stopPropagation(); openReportDetail(${spid})">💬 유저 제보 보러가기</span></div>`;
+  }
+  // 미등록 선수의 '유저 제보 대표시간'을 주황색 시간 + '유저 제보' 딱지로 표시 (공식확인 선수는 제외)
+  function reportTimeOf(spid){
+    if(isRegistered(spid)) return null;              // 공식 확인시간 우선 — 제보시간 안 씀
+    const s = reportsCache[spid];
+    if(!s || !s.hj || s.min == null || s.min < 0) return null;
+    return { hj: s.hj, min: s.min };
+  }
+  function reportTimeHtml(spid){
+    const t = reportTimeOf(spid);
+    if(!t) return '';
+    const label = refreshLabel(t.hj, t.min);
+    if(!label) return '';
+    return `<div class="p-refresh" style="color:var(--report);">${label} <span class="report-stamp">유저 제보</span></div>
+            <div class="p-timer">${timerChip(t.hj, t.min)}</div>`;
   }
 
   // 글 하나의 본문·사진까지 전체 로드 (목록은 요약만 받아 전송량 절약)
