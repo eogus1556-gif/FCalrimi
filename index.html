@@ -2230,7 +2230,11 @@
       sc.async = true;
       sc.onload = () => {
         try{ sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-          global: { fetch: (u, o) => fetchWithTimeout(u, 8000, o) }   // 8초 타임아웃 → DB 정지/장애 시 무한 매달림 방지 (커넥션 고갈 예방)
+          global: { fetch: (u, o) => {
+            // 인증(토큰 갱신 등) 요청은 타임아웃 미적용 — 중간에 끊겨 세션이 날아가면 로그아웃되므로 제외
+            try{ if(String(u).indexOf('/auth/') !== -1) return fetch(u, o); }catch(_){}
+            return fetchWithTimeout(u, 8000, o);   // 일반 데이터 조회만 8초 타임아웃 (커넥션 고갈 예방)
+          } }
         }); }catch(e){ sb = null; }
         resolve(sb);
       };
@@ -2437,6 +2441,11 @@
       if(mmSec) mmSec.style.display = '';
       reflectAlarmLead();
       applySoundIcon();
+      // 즐겨찾기 화면에 있는 상태로 로그인/세션복원되면, 로그인 완료 후 목록을 다시 그려줌
+      if(typeof currentView !== 'undefined' && currentView === 'viewFavorites'){
+        favApi._cache = null;
+        try{ renderFavorites(); }catch(_){}
+      }
     }else{
       loginBtn.style.display = '';
       chip.style.display = 'none';
