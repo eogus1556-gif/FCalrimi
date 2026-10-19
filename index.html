@@ -1663,7 +1663,7 @@
     <div class="rd-head" id="rdHead"></div>
     <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:24px;">
       <div class="rd-current" id="rdCurrent" style="margin:0;"></div>
-      <button class="report-btn" onclick="openFlagFromDetail()">🚨 틀린 시간 신고하기</button>
+      <button class="report-btn" id="rdFlagBtn" style="display:none;" onclick="openFlagFromDetail()">🚨 틀린 시간 신고하기</button>
     </div>
     <div id="rdReports" style="margin-bottom:24px;"></div>
     <div style="font-weight:700; margin-bottom:12px;">댓글</div>
@@ -1801,7 +1801,7 @@
       <p style="color:var(--text); font-size:14.5px; line-height:1.7; margin:0 0 14px;">아직 <b>공식 갱신시간이 없는 선수</b>는 유저들이 알아낸 시간을 서로 제보할 수 있어요. 제보가 쌓이면 대표 시간이 자동으로 뽑혀 선수 카드·즐겨찾기에 표시됩니다.</p>
       <dl style="margin:0; font-size:14.5px; color:var(--text); line-height:1.7;">
         <dt style="font-weight:700; color:var(--report); margin-top:4px; display:flex; align-items:center; gap:8px;"><span class="report-stamp"><span>유저</span><span>제보</span></span> 유저 제보 시간</dt>
-        <dd style="margin:6px 0 0;">공식 확정이 아니라 <b style="color:var(--report);">유저들이 제보한 갱신시간</b>이라는 표시예요. 주황색으로 보이면 참고용 제보 시간이고, 흰색(기본)으로 보이면 공식 확정 시간입니다. 대표 시간은 <b>같은 시간을 제보한 사람이 많을수록, 추천이 많을수록</b> 우선 노출돼요.</dd>
+        <dd style="margin:6px 0 0;">공식 확정이 아니라 <b style="color:var(--report);">유저들이 제보한 갱신시간</b>이라는 표시예요. 주황색으로 보이면 참고용 제보 시간이고, 흰색(기본)으로 보이면 공식 확정 시간입니다.</dd>
         <dt style="font-weight:700; color:var(--red); margin-top:16px;">⚠️ 의심 마크</dt>
         <dd style="margin:6px 0 0;">그 제보가 <b>틀리다는 신고가 여러 번</b> 쌓이면 붙는 표시예요. 신뢰도가 낮으니 참고만 하세요.</dd>
         <dt style="font-weight:700; color:var(--lime); margin-top:16px;">제보하는 법</dt>
@@ -5885,6 +5885,9 @@
        <h1 style="margin:0;">${esc(p.name)}</h1>`;
     document.getElementById('rdCurrent').textContent =
       `현재 등록된 갱신 시간: ${refreshLabel(p.hj, p.min) || '미확인'}`;
+    // 공식 등록시간이 있을 때만 '틀린 시간 신고하기' 노출 (미등록이면 숨김 — 나중에 등록되면 자동 표시)
+    const rdFlagBtn = document.getElementById('rdFlagBtn');
+    if(rdFlagBtn) rdFlagBtn.style.display = p.hj ? '' : 'none';
     document.getElementById('commentInput').value = '';
     document.getElementById('commentList').innerHTML = `<div class="no-result">댓글을 불러오는 중…</div>`;
     const rdr = document.getElementById('rdReports');
@@ -6198,7 +6201,7 @@
 
   // 관리자용 내보내기 버튼: 총 제보 수 + 10건 이상 쌓인 선수 수 뱃지
   const HOT_REPORT_THRESHOLD = 10;
-  const SUSPECT_FLAGS = 5;   // 신고 5회 이상이면 모두에게 '의심' 마크 표시 (정확한 수는 관리자만)
+  const SUSPECT_FLAGS = 2;   // [테스트] 신고 2회부터 '의심' 마크 (운영 전 5로 되돌리기)
   function updateReportAdminUI(){
     const exBtn = document.getElementById('exportReportsBtn');
     if(!exBtn) return;
