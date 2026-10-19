@@ -6201,7 +6201,7 @@
 
   // 관리자용 내보내기 버튼: 총 제보 수 + 10건 이상 쌓인 선수 수 뱃지
   const HOT_REPORT_THRESHOLD = 10;
-  const SUSPECT_FLAGS = 2;   // [테스트] 신고 2회부터 '의심' 마크 (운영 전 5로 되돌리기)
+  const SUSPECT_FLAGS = 3;   // 신고 3회 이상이면 모두에게 '의심' 마크 표시 (정확한 수는 관리자만)
   function updateReportAdminUI(){
     const exBtn = document.getElementById('exportReportsBtn');
     if(!exBtn) return;
