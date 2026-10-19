@@ -1119,7 +1119,7 @@
     .nav-dd-menu a:hover{ background:var(--bg); }
     /* 유저 제보 시간 강조 + 도장풍 딱지 */
     :root{ --report:#F5A524; }
-    .report-stamp{ display:inline-block; font-size:10px; font-weight:800; color:var(--report); border:1.5px solid var(--report); border-radius:6px; padding:1px 5px; margin-left:6px; letter-spacing:.5px; transform:rotate(-4deg); vertical-align:middle; white-space:nowrap; }
+    .report-stamp{ display:inline-flex; flex-direction:column; align-items:center; justify-content:center; width:36px; height:36px; border-radius:50%; border:2px solid var(--report); color:var(--report); font-size:9.5px; font-weight:800; line-height:1.1; margin-left:6px; vertical-align:middle; box-sizing:border-box; transform:rotate(-6deg); }
   </style>
 
   <header>
@@ -4053,7 +4053,7 @@
       }else if(r.report){
         // 미확인이지만 유저 제보 대표시간 있음: 주황색 시간 + '유저 제보' 딱지 (+ 내 커스텀 설정 가능)
         rightHtml = `${timerChip(r.hj, r.min, 'f-timer')}`
-          + `<span class="f-refresh" style="color:var(--report);">${r.refresh} <span class="report-stamp">유저 제보</span></span>`
+          + `<span class="f-refresh" style="color:var(--report);">${r.refresh} <span class="report-stamp"><span>유저</span><span>제보</span></span></span>`
           + `<button class="fav-remove" style="border-color:var(--lime); color:var(--lime);" onclick="event.stopPropagation(); openCustomTime(${r.id})">⏰ 갱신시간 설정</button>`;
       }else{
         // 미확인 + 커스텀 미설정: 설정 버튼 제공
@@ -4266,7 +4266,7 @@
     if(!t) return '';
     const label = refreshLabel(t.hj, t.min);
     if(!label) return '';
-    return `<div class="p-refresh" style="color:var(--report);">${label} <span class="report-stamp">유저 제보</span></div>
+    return `<div class="p-refresh" style="color:var(--report);">${label} <span class="report-stamp"><span>유저</span><span>제보</span></span></div>
             <div class="p-timer">${timerChip(t.hj, t.min)}</div>`;
   }
 
