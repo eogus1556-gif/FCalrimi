@@ -2182,8 +2182,12 @@
   // /api/players 원본([[spid,이름,클래스,홀짝,분,포지션,OVR],...])을 allPlayers로 반영
   function applyPlayersData(raw){
     const compact = (raw || []).filter(r => !CANARY_SPIDS.has(r[0]));   // canary 제외
-    allPlayers = compact.map(([id, name, season, hj, min, pos, ovr]) =>
-      ({ id, name, season, hj: hj || '', min: (min == null ? -1 : min), pos: pos || '', ovr: ovr || 0 }));
+    allPlayers = compact.map(([id, name, season, hj, min, pos, ovr]) => {
+      const m = (min == null ? -1 : min);
+      // 분(min)이 없으면 홀/짝만 있어도 '미등록'으로 통일 (워커 기준과 일치)
+      // → 커스텀 시간 설정·유저 제보가 정상 동작 (예: 22 UCL 반등록 선수)
+      return { id, name, season, hj: (m >= 0 ? (hj || '') : ''), min: m, pos: pos || '', ovr: ovr || 0 };
+    });
     allPlayers.sort((a, b) => {   // 최신 시즌 우선, 같은 시즌 안에서는 OVR 높은 순
       const sa = Math.floor(a.id / 1000000), sb = Math.floor(b.id / 1000000);
       return sb !== sa ? sb - sa : b.ovr - a.ovr;
