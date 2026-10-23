@@ -1023,6 +1023,9 @@
 
   /* ---------- 광고 슬롯 ---------- */
   .ad-slot{ text-align:center; overflow:hidden; }
+  /* 홈 첫 화면: 세로로 꽉 채워 광고를 화면 하단에 붙이고, '사용법'은 아래(스크롤)로 */
+  .home-hero-wrap{ min-height: calc(100vh - 80px); display:flex; flex-direction:column; }
+  #adHome{ margin-top:auto; min-height:100px; padding-bottom:14px; }
   #adTop{ display:none; }                       /* 모바일 상단 배너 전용 */
   #adBottom{ max-width:1000px; margin:24px auto 0; padding:0 12px; }
   .ad-rail{ display:none; }                      /* 데스크톱 양옆 세로 배너 */
@@ -1397,10 +1400,11 @@
   <main id="viewHome">
   <!-- 모바일 상단 배너 -->
   <div id="adTop" class="ad-slot"></div>
+  <div class="home-hero-wrap">
   <section class="hero">
     <div class="eyebrow">FC ONLINE 가격 갱신 알리미</div>
     <h1>갱신 시간, <span class="accent">이제 외우지 마세요</span></h1>
-    <p class="sub">선수마다 다른 갱신 시간을 자동으로 추적하고, 거래량이 발생하면 기준가가 바뀌기 전에 알려드려요.</p>
+    <p class="sub" style="word-break:keep-all;">선수마다 다른 갱신 시간을 자동으로 추적하고, 놓치지 않게 갱신시간에 알려드려요.</p>
 
     <div class="search-box" id="search">
       <div class="search-input-row">
@@ -1418,6 +1422,9 @@
     <div class="stat"><div class="num" id="statConfirmed">0</div><div class="label">갱신시간 등록선수</div></div>
     <div class="stat"><div class="num" id="statAlerts">0</div><div class="label">오늘 발송된 알림</div></div>
     <div class="stat"><div class="num" id="statNew">0</div><div class="label">신규 등록된 선수</div></div>
+  </div>
+    <!-- 홈 첫 화면 하단 광고 (Google AdSense) -->
+    <div id="adHome" class="ad-slot"></div>
   </div>
 
   <section class="section" id="how">
@@ -6656,6 +6663,7 @@
   const ADSENSE_CLIENT = 'ca-pub-8019320351145896';
   const AD_SLOTS = {
     adTop:    '2995181614',   // 모바일 상단 배너
+    adHome:   '2995181614',   // 홈 첫 화면 하단 광고 (슬롯 재사용)
     adBottom: '5429773263',   // 하단 배너 (모바일·PC 공통)
     adLeft:   '4782493315',   // PC 왼쪽 세로 배너
     adRight:  '8648596453',   // PC 오른쪽 세로 배너
@@ -6695,6 +6703,7 @@
       const mobile = window.matchMedia('(max-width: 720px)').matches;
       const wide = window.matchMedia('(min-width: 1560px)').matches;
       if(mobile) mountAd('adTop');
+      mountAd('adHome');
       mountAd('adBottom');
       if(wide){ mountAd('adLeft', { vertical: true }); mountAd('adRight', { vertical: true }); }
     }catch(e){}
