@@ -6705,7 +6705,7 @@
     try{
       const mobile = window.matchMedia('(max-width: 720px)').matches;
       const wide = window.matchMedia('(min-width: 1560px)').matches;
-      if(mobile) mountAd('adTop');
+      // 모바일 상단 배너(adTop)는 홈 광고(adHome)와 중복되어 제거 — adHome 하나만 노출
       mountAd('adHome');
       mountAd('adBottom');
       if(wide){ mountAd('adLeft', { vertical: true }); mountAd('adRight', { vertical: true }); }
