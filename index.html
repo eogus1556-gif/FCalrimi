@@ -2562,11 +2562,22 @@
   }
 
   async function logout(){
+    // 이 기기의 푸시 구독 비활성화 — 로그아웃한 계정의 즐겨찾기 알림이 이 기기로 계속 오는 것 방지.
+    // (다른 계정으로 로그인하면 self-heal(ensurePushSubscription)이 현재 계정으로 다시 켬)
+    // signOut 전에 실행 — 세션이 살아있어야 DB 업데이트가 됨.
+    try{
+      if(sb && ('serviceWorker' in navigator) && ('PushManager' in window)){
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.getSubscription();
+        if(sub) await sb.from('push_subs').update({ enabled:false }).eq('endpoint', sub.endpoint);
+      }
+    }catch(_){}
     try{ if(sb) await sb.auth.signOut(); }catch(e){}
     sbProfile = null;
     favApi._cache = null;
     customTimeApi._cache = null;
     _customTimes = {};
+    try{ pushSubscribed = false; }catch(_){}
     applySession();
   }
 
