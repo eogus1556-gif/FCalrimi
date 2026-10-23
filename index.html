@@ -1023,9 +1023,9 @@
 
   /* ---------- 광고 슬롯 ---------- */
   .ad-slot{ text-align:center; overflow:hidden; }
-  /* 홈 첫 화면: 세로로 꽉 채워 광고를 화면 하단에 붙이고, '사용법'은 아래(스크롤)로 */
-  .home-hero-wrap{ min-height: calc(100vh - 80px); display:flex; flex-direction:column; }
-  #adHome{ margin-top:auto; min-height:90px; padding-bottom:16px; }
+  /* 홈 하단 광고: 통계와 확실히 띄우기(고정 여백) */
+  .home-hero-wrap{ }
+  #adHome{ margin-top:56px; min-height:100px; padding-bottom:16px; }
   #adTop{ display:none; }                       /* 모바일 상단 배너 전용 */
   #adBottom{ max-width:1000px; margin:24px auto 0; padding:0 12px; }
   .ad-rail{ display:none; }                      /* 데스크톱 양옆 세로 배너 */
@@ -6706,7 +6706,7 @@
       const mobile = window.matchMedia('(max-width: 720px)').matches;
       const wide = window.matchMedia('(min-width: 1560px)').matches;
       if(mobile) mountAd('adTop');
-      mountAd('adHome', { banner: true });
+      mountAd('adHome');
       mountAd('adBottom');
       if(wide){ mountAd('adLeft', { vertical: true }); mountAd('adRight', { vertical: true }); }
     }catch(e){}
