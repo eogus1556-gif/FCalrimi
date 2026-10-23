@@ -6684,10 +6684,13 @@
     ins.className = 'adsbygoogle';
     ins.style.display = 'block';
     if(opts && opts.vertical){ ins.style.width = '160px'; ins.style.height = '600px'; }
+    else if(opts && opts.fixed){ ins.style.display = 'inline-block'; ins.style.width = opts.fixed.w + 'px'; ins.style.height = opts.fixed.h + 'px'; }
     ins.setAttribute('data-ad-client', ADSENSE_CLIENT);
     ins.setAttribute('data-ad-slot', slot);
     if(opts && opts.vertical){
       ins.setAttribute('data-ad-format', 'vertical');
+    }else if(opts && opts.fixed){
+      /* 고정 사이즈: data-ad-format 미설정 */
     }else if(opts && opts.banner){
       ins.setAttribute('data-ad-format', 'horizontal');   // 가로 배너(짧게)
       ins.setAttribute('data-full-width-responsive', 'true');
@@ -6707,7 +6710,8 @@
       const wide = window.matchMedia('(min-width: 1560px)').matches;
       // 모바일 상단 배너(adTop)는 홈 광고(adHome)와 중복되어 제거 — adHome 하나만 노출
       mountAd('adHome');
-      mountAd('adBottom');
+      // 모바일: 하단 광고를 글 한 칸 크기(320×100)로 고정 / PC: 반응형 유지
+      mountAd('adBottom', mobile ? { fixed: { w: 320, h: 100 } } : undefined);
       if(wide){ mountAd('adLeft', { vertical: true }); mountAd('adRight', { vertical: true }); }
     }catch(e){}
   }
