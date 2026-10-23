@@ -5223,7 +5223,9 @@
     }catch(e){ showToast('고정 처리 중 오류가 발생했어요.'); }
   }
 
-  // 현재 카테고리·검색 기준으로 정렬된 글 목록 (고정→공지→일반, 각 최신순)
+  // 현재 카테고리·검색 기준으로 정렬된 글 목록
+  // 상단 공지 블록 = (고정 + 공지사항) 합쳐 최대 3개 — 고정 먼저 → 최신순(수정 시 수정시각 반영)
+  // 넘친 공지(4번째~)는 일반 글 사이에 올라온 순서(작성일)로 섞임
   function buildOrderedFreePosts(){
     const field = document.getElementById('freeSearchField').value;
     const q = document.getElementById('freeSearchInput').value.trim();
@@ -5231,16 +5233,24 @@
     if(freeCat !== '전체') posts = posts.filter(p => (p.category || '자유') === freeCat);
     if(q) posts = posts.filter(p => (field === 'nick' ? p.nick : p.title).includes(q));
     const showNotice = (freeCat === '전체' || freeCat === '공지사항');
-    let pinned = [], notices = [], normals = [];
+    const byAtDesc = (a, b) => String(b.at).localeCompare(String(a.at));
+    if(!showNotice){ posts.sort(byAtDesc); return posts; }
+    let noticeBlock = [], normals = [];
     for(const p of posts){
-      if(p.pinned && showNotice) pinned.push(p);
-      else if((p.category || '자유') === '공지사항') notices.push(p);
+      if(p.pinned || (p.category || '자유') === '공지사항') noticeBlock.push(p);
       else normals.push(p);
     }
-    const byAtDesc = (a, b) => String(b.at).localeCompare(String(a.at));
-    pinned.sort(byAtDesc); notices.sort(byAtDesc); normals.sort(byAtDesc);
-    pinned = pinned.slice(0, 3);   // 고정은 최대 3개만 노출
-    return showNotice ? pinned.concat(notices, normals) : normals;
+    // 상단 공지 정렬: 고정 우선 → 최신순(수정된 글은 수정시각 기준으로 끌어올림)
+    const recency = (p) => String(p.editedAt || p.at);
+    noticeBlock.sort((a, b) => {
+      const ap = a.pinned ? 1 : 0, bp = b.pinned ? 1 : 0;
+      if(ap !== bp) return bp - ap;
+      return recency(b).localeCompare(recency(a));
+    });
+    const top = noticeBlock.slice(0, 3);          // 상단 최대 3개
+    const overflow = noticeBlock.slice(3);        // 넘친 공지 → 일반 글과 섞기
+    const rest = normals.concat(overflow).sort(byAtDesc);
+    return top.concat(rest);
   }
 
   function renderFreePosts(){
