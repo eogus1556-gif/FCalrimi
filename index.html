@@ -2203,6 +2203,57 @@
     });
     animateNum(document.getElementById('statConfirmed'), allPlayers.filter(p => p.hj).length, '명');
     buildSeasonDropdown();
+    applySeasonDeepLink();   // 시즌 랜딩페이지에서 ?season=로 넘어온 경우 해당 시즌 필터 미리 선택
+    _playersReady = true; try{ maybeRunFavDeepLink(); }catch(_){}
+  }
+
+  // 시즌 랜딩페이지(정적) → 앱 ?season=CH 로 들어오면 홈 검색의 시즌 필터를 그 시즌으로 고정
+  let _seasonDeepLinkDone = false;
+  function applySeasonDeepLink(){
+    if(_seasonDeepLinkDone) return;
+    try{
+      const sp = new URLSearchParams(location.search);
+      const season = (sp.get('season') || '').trim();
+      const player = (sp.get('player') || '').trim();
+      if(!season && !player){ _seasonDeepLinkDone = true; return; }
+      const seasonOk = !!(season && allPlayers && allPlayers.some(p => p.season === season));
+      // 시즌만 넘어왔는데 아직 유효하지 않으면 다음 로드에서 재시도
+      if(season && !seasonOk && !player) return;
+      _seasonDeepLinkDone = true;
+      // 저장된 뷰 복원이 우선이면 건드리지 않음
+      let hasState = false;
+      try{ const st = JSON.parse(sessionStorage.getItem('fc_view_state') || 'null'); hasState = !!(st && st.view && st.view !== 'viewHome'); }catch(_){}
+      if(hasState) return;
+      if(seasonOk && typeof pickSeason === 'function') pickSeason(season);
+      if(player && typeof showSearchCards === 'function'){
+        showSearchCards(player, seasonOk ? season : '');   // 그 선수 카드로 바로 이동 (즐겨찾기는 거기서)
+      }else{
+        const ps = document.getElementById('playerSearch');
+        if(ps){ try{ ps.focus(); }catch(_){} }
+      }
+    }catch(e){}
+  }
+
+  // 시즌 랜딩페이지 ☆(새 창 ?fav=spid) → 자동으로 즐겨찾기 추가 후 즐겨찾기 화면.
+  // 선수 데이터 + 로그인 상태가 모두 준비된 뒤 실행해야 계정/게스트로 정확히 저장됨.
+  let _favDone = false, _playersReady = false, _authSettled = false;
+  function favSpidFromUrl(){
+    try{ const f = new URLSearchParams(location.search).get('fav'); const n = f ? parseInt(f, 10) : NaN; return (n && !isNaN(n)) ? n : null; }
+    catch(_){ return null; }
+  }
+  function maybeRunFavDeepLink(){
+    if(_favDone) return;
+    const spid = favSpidFromUrl();
+    if(!spid){ _favDone = true; return; }
+    if(!_playersReady || !_authSettled) return;   // 둘 다 준비될 때까지 대기
+    _favDone = true;
+    (async () => {
+      try{ await favApi.add(spid); }catch(_){}
+      try{ ensureNotifyPermission(); }catch(_){}
+      try{ checkAlarms(); }catch(_){}
+      try{ if(typeof showFavorites === 'function') showFavorites(); }catch(_){}
+      try{ if(typeof showToast === 'function') showToast('즐겨찾기에 추가했어요.'); }catch(_){}
+    })();
   }
 
   async function loadAllPlayers(){
@@ -7007,6 +7058,7 @@
         boardsReady.then(() => notifyAdminHotReports());   // 관리자면 제보 누적 알림
       }
     }catch(e){ console.warn('세션 복원 실패', e); }
+    finally{ _authSettled = true; try{ maybeRunFavDeepLink(); }catch(_){} }   // 로그인/게스트 확정 후 ?fav= 처리
   })();
 
   // 스크립트가 끝까지 정상 실행됐다는 표시 (버전 태그 옆에 '정상' 점등)
