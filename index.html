@@ -520,7 +520,7 @@
     background:var(--surface); border:1px solid var(--line); border-radius:14px;
     padding:18px 24px; flex:1; min-width:150px;
   }
-  .stat-box .sv{ font-family:var(--font-display); font-size:30px; font-weight:700; color:var(--lime); }
+  .stat-box .sv{ font-family:var(--font-display); font-size:30px; font-weight:700; color:var(--text); }
   .stat-box .sl{ font-size:13px; color:var(--text-dim); margin-top:4px; }
   .ach-row{
     display:flex; align-items:center; gap:14px;
@@ -531,11 +531,10 @@
   .ach-row .a-season .code{ font-family:var(--font-mono); font-size:13px; }
   .ach-bar{ flex:1; height:8px; background:var(--surface-2); border-radius:100px; overflow:hidden; }
   .ach-bar span{ display:block; height:100%; background:var(--lime); border-radius:100px; }
-  .ach-row .a-num{ font-family:var(--font-mono); font-size:12px; color:var(--text-dim); width:110px; text-align:right; flex-shrink:0; }
-  .ach-row .a-pct{ font-family:var(--font-display); font-weight:700; width:56px; text-align:right; flex-shrink:0; }
-  a.ach-link{ color:inherit; text-decoration:none; cursor:pointer; border-radius:8px; transition:background .12s; }
-  a.ach-link:hover{ background:var(--surface); }
-  a.ach-link .a-season .code{ color:var(--lime); }   /* 클릭 가능(랜딩페이지 있음) 표시 */
+  .ach-row .a-num{ font-family:var(--font-mono); font-size:12px; color:var(--text); width:110px; text-align:right; flex-shrink:0; }
+  .ach-row .a-pct{ font-family:var(--font-display); font-weight:700; width:56px; text-align:right; flex-shrink:0; color:var(--text); }
+  .a-season.a-link{ color:inherit; text-decoration:none; cursor:pointer; }
+  .a-season.a-link:hover .code{ text-decoration:underline; }
 
   /* 즐겨찾기 */
   .fav-btn{
@@ -4021,14 +4020,14 @@
       <div class="stat-box"><div class="sv">${fullSeasons}</div><div class="sl">100% 완료 시즌</div></div>
     `;
     listEl.innerHTML = rows.map(r => {
-      const inner = `<div class="a-season">${seasonIcon(r.seasonId)}<span class="code">${esc(r.season)}</span></div>`
+      // 확정 선수가 있는 시즌만 '시즌 글씨'를 랜딩페이지 링크로 (행 전체 아님)
+      const seasonCell = r.conf > 0
+        ? `<a class="a-season a-link" href="/refresh/${achSlug(r.season)}.html" title="${esc(r.season)} 갱신시간 페이지로 이동">${seasonIcon(r.seasonId)}<span class="code">${esc(r.season)}</span></a>`
+        : `<div class="a-season">${seasonIcon(r.seasonId)}<span class="code">${esc(r.season)}</span></div>`;
+      return `<div class="ach-row">${seasonCell}`
         + `<div class="ach-bar"><span style="width:${r.pct.toFixed(1)}%"></span></div>`
         + `<div class="a-num">${r.done.toLocaleString()} / ${r.total.toLocaleString()}</div>`
-        + `<div class="a-pct">${r.pct.toFixed(0)}%</div>`;
-      // 확정 선수가 있는 시즌만 랜딩페이지로 링크 (없으면 비클릭)
-      return r.conf > 0
-        ? `<a class="ach-row ach-link" href="/refresh/${achSlug(r.season)}.html" title="${esc(r.season)} 갱신시간 페이지로 이동">${inner}</a>`
-        : `<div class="ach-row">${inner}</div>`;
+        + `<div class="a-pct">${r.pct.toFixed(0)}%</div></div>`;
     }).join('');
   }
 
