@@ -6315,7 +6315,7 @@
         <span style="font-size:12px;color:var(--text-dim);">${new Date(r.created_at).toLocaleString('ko-KR')}</span>
         <span style="font-size:11px;color:var(--text-dim);border:1px solid var(--line);border-radius:6px;padding:1px 6px;">${srcBadge}</span>
         <span style="margin-left:auto;display:inline-flex;gap:8px;align-items:center;">
-          ${cnt >= SUSPECT_FLAGS ? `<span style="font-size:11px;font-weight:700;color:var(--red);border:1px solid var(--red);border-radius:6px;padding:1px 6px;" title="신고가 누적돼 신뢰도가 낮은 제보예요">⚠️ 의심</span>` : ''}
+          ${(cnt >= SUSPECT_FLAGS || (lk - dlk) < 0) ? `<span style="font-size:11px;font-weight:700;color:var(--red);border:1px solid var(--red);border-radius:6px;padding:1px 6px;" title="신고가 누적됐거나 비추천이 더 많아 신뢰도가 낮은 제보예요">⚠️ 의심</span>` : ''}
           ${(admin && cnt > 0) ? `<span style="font-size:12px;color:var(--text-dim);">(신고 ${cnt}/10)</span>` : ''}
           ${(r.id != null) ? `<button class="like-comment ${isLked ? 'liked' : ''}" title="이 제보 추천" onclick="toggleReportLike(${r.id})">👍 ${lk || ''}</button>` : ''}
           ${(r.id != null) ? `<button class="like-comment ${isDisliked ? 'disliked' : ''}" title="이 제보 비추천" onclick="toggleReportDislike(${r.id})">👎 ${dlk || ''}</button>` : ''}
