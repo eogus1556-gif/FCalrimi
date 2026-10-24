@@ -533,6 +533,9 @@
   .ach-bar span{ display:block; height:100%; background:var(--lime); border-radius:100px; }
   .ach-row .a-num{ font-family:var(--font-mono); font-size:12px; color:var(--text-dim); width:110px; text-align:right; flex-shrink:0; }
   .ach-row .a-pct{ font-family:var(--font-display); font-weight:700; width:56px; text-align:right; flex-shrink:0; }
+  a.ach-link{ color:inherit; text-decoration:none; cursor:pointer; border-radius:8px; transition:background .12s; }
+  a.ach-link:hover{ background:var(--surface); }
+  a.ach-link .a-season .code{ color:var(--lime); }   /* 클릭 가능(랜딩페이지 있음) 표시 */
 
   /* 즐겨찾기 */
   .fav-btn{
@@ -3979,6 +3982,12 @@
   });
 
   // ---------- 시즌별 달성률 ----------
+  // 시즌명 → 랜딩페이지 slug (build_refresh.py 의 slugify 와 동일 규칙)
+  function achSlug(s){
+    s = (s || '').trim().toLowerCase();
+    s = s.replace(/[^0-9a-z가-힣]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+    return s || 'season';
+  }
   function showAchievement(){
     switchView('viewAchievement');
     const listEl = document.getElementById('achList');
@@ -3989,14 +3998,15 @@
       return;
     }
     // 시즌별 집계: 등록 = 엑셀 입력 or 검증된 유저 제보(10건 이상 일치)
-    const agg = {};   // season -> {seasonId, total, done}
+    const agg = {};   // season -> {seasonId, total, done, conf}
     for(const p of allPlayers){
-      if(!(p.season in agg)) agg[p.season] = { seasonId: Math.floor(p.id / 1000000), total: 0, done: 0 };
+      if(!(p.season in agg)) agg[p.season] = { seasonId: Math.floor(p.id / 1000000), total: 0, done: 0, conf: 0 };
       agg[p.season].total++;
       if(p.hj || publicReport(p.id)) agg[p.season].done++;
+      if(p.hj) agg[p.season].conf++;   // pdb 확정 선수 있음 → 시즌 랜딩페이지 존재
     }
     const rows = Object.entries(agg).map(([season, v]) => ({
-      season, seasonId: v.seasonId, total: v.total, done: v.done,
+      season, seasonId: v.seasonId, total: v.total, done: v.done, conf: v.conf,
       pct: v.total ? v.done / v.total * 100 : 0,
     }));
     rows.sort((a, b) => b.pct - a.pct || b.total - a.total);
@@ -4010,14 +4020,16 @@
       <div class="stat-box"><div class="sv">${rows.length}</div><div class="sl">시즌(클래스) 수</div></div>
       <div class="stat-box"><div class="sv">${fullSeasons}</div><div class="sl">100% 완료 시즌</div></div>
     `;
-    listEl.innerHTML = rows.map(r => `
-      <div class="ach-row">
-        <div class="a-season">${seasonIcon(r.seasonId)}<span class="code">${esc(r.season)}</span></div>
-        <div class="ach-bar"><span style="width:${r.pct.toFixed(1)}%"></span></div>
-        <div class="a-num">${r.done.toLocaleString()} / ${r.total.toLocaleString()}</div>
-        <div class="a-pct">${r.pct.toFixed(0)}%</div>
-      </div>
-    `).join('');
+    listEl.innerHTML = rows.map(r => {
+      const inner = `<div class="a-season">${seasonIcon(r.seasonId)}<span class="code">${esc(r.season)}</span></div>`
+        + `<div class="ach-bar"><span style="width:${r.pct.toFixed(1)}%"></span></div>`
+        + `<div class="a-num">${r.done.toLocaleString()} / ${r.total.toLocaleString()}</div>`
+        + `<div class="a-pct">${r.pct.toFixed(0)}%</div>`;
+      // 확정 선수가 있는 시즌만 랜딩페이지로 링크 (없으면 비클릭)
+      return r.conf > 0
+        ? `<a class="ach-row ach-link" href="/refresh/${achSlug(r.season)}.html" title="${esc(r.season)} 갱신시간 페이지로 이동">${inner}</a>`
+        : `<div class="ach-row">${inner}</div>`;
+    }).join('');
   }
 
   // ---------- 즐겨찾기 ----------
