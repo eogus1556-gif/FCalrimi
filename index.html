@@ -3431,7 +3431,22 @@
     currentView = id;
     window.scrollTo(0, 0);
     saveViewState();
+    try{ trackPageView(id); }catch(e){}   // GA 가상 페이지뷰 → 페이지별 참여시간 집계
     if(id === 'viewPlayer') ensureSearchAd();
+  }
+
+  // 뷰 전환마다 GA에 가상 페이지뷰 전송 (SPA라 자동 집계가 안 돼서 수동 전송)
+  // → GA에서 "어느 페이지에 오래 머무는지" 참여시간이 페이지별로 집계됨. 서버 부하 없음(Google로만 전송).
+  const VIEW_TITLES = {
+    viewHome:'홈', viewPlayer:'선수상세', viewBoardHub:'커뮤니티', viewFreeBoard:'자유게시판',
+    viewBoard:'제보게시판', viewReportBoard:'신고게시판', viewReportDetail:'제보상세',
+    viewAchievement:'업적', viewFavorites:'즐겨찾기', viewGuide:'이용방법', viewRefresh:'갱신싸움팁',
+    viewPrivacy:'개인정보처리방침', viewFaq:'자주묻는질문', viewAbout:'소개', viewTerms:'이용약관'
+  };
+  function trackPageView(id){
+    const title = VIEW_TITLES[id] || id;
+    const path = '/' + id.replace(/^view/, '').toLowerCase();
+    track('page_view', { page_title: title, page_path: path, page_location: location.origin + path });
   }
 
   // 검색 화면 상단 광고 로드 — 컨테이너가 보인 뒤 1회만 push (숨김 상태에서 push하면 폭 0으로 빈 광고)
@@ -3972,7 +3987,7 @@
       const guest = all['guest'] || {};
       const spids = Object.keys(guest).map(Number).filter(n => !isNaN(n));
       if(spids.length === 0) return;
-      await sb.from('favorites').upsert(spids.map(spid => ({ user_id: sbProfile.id, spid })));
+      await sb.from('favorites').upsert(spids.map(spid => ({ user_id: sbProfile.id, spid, removed_at: null })));
       delete all['guest'];
       s.setItem('fc_favs', JSON.stringify(all));
     }catch(e){}
@@ -3988,7 +4003,7 @@
         const now = Date.now();
         if(favApi._cache && now - favApi._cacheAt < 60000) return favApi._cache;   // 60초 캐시
         try{
-          const { data, error } = await sb.from('favorites').select('spid').eq('user_id', sbProfile.id);
+          const { data, error } = await sb.from('favorites').select('spid').eq('user_id', sbProfile.id).is('removed_at', null);
           if(!error && data){
             const o = {};
             data.forEach(r => { o[r.spid] = true; });
@@ -4006,7 +4021,8 @@
     async add(spid){
       if(sbProfile && sb){
         try{
-          const { error } = await sb.from('favorites').upsert({ user_id: sbProfile.id, spid });
+          // 소프트삭제 방식: 재등록이면 removed_at을 다시 null로 되살림 (워커 증분이 updated_at으로 5분 내 반영)
+          const { error } = await sb.from('favorites').upsert({ user_id: sbProfile.id, spid, removed_at: null });
           if(error) return false;
           (favApi._cache = favApi._cache || {})[spid] = true;
           return true;
@@ -4022,7 +4038,8 @@
     async remove(spid){
       if(sbProfile && sb){
         try{
-          await sb.from('favorites').delete().eq('user_id', sbProfile.id).eq('spid', spid);
+          // 하드삭제 대신 소프트삭제 — 유지시간(추가→삭제) 측정 + 워커 증분이 5분 내 반영
+          await sb.from('favorites').update({ removed_at: new Date().toISOString() }).eq('user_id', sbProfile.id).eq('spid', spid);
           if(favApi._cache) delete favApi._cache[spid];
           return true;
         }catch(e){ return false; }
@@ -4114,6 +4131,7 @@
       }
     }else{
       await favApi.remove(spid);
+      track('remove_favorite', { spid: spid });
     }
     // 전체 재렌더(스크롤 튐) 대신 해당 카드의 별 버튼만 그 자리에서 갱신
     const btn = document.querySelector(`.fav-btn[data-spid="${spid}"]`);
@@ -4125,6 +4143,7 @@
 
   async function removeFav(spid){
     await favApi.remove(spid);
+    track('remove_favorite', { spid: spid });
     renderFavorites();   // 목록만 갱신 — 스크롤 위치 유지
   }
 
