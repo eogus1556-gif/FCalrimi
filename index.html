@@ -1634,6 +1634,11 @@
       <button class="write-btn" id="exportReportsBtn" style="display:none; font-size:13px; padding:8px 16px;" onclick="exportReportsCSV()">📥 제보 목록 내보내기 (CSV)</button>
     </h1>
     <p class="page-sub">갱신 시간이 아직 등록되지 않은 선수를 검색하고, 알고 있는 갱신 시간을 제보해주세요. 제보가 모이면 데이터에 반영됩니다.</p>
+
+    <div style="background:rgba(196,255,61,.1); border:2px solid var(--lime); border-radius:16px; padding:20px; margin:0 0 22px; text-align:center;">
+      <div style="font-family:var(--font-display); font-weight:800; font-size:clamp(19px,5.2vw,28px); line-height:1.35; color:var(--lime);">갱신시간은 2시간 거래량이<br>바뀌는 시간입니다</div>
+    </div>
+
     <div class="search-box board-search">
       <div class="search-input-row">
         <button type="button" class="season-select-btn" id="seasonSelectBtn3" onclick="toggleSeasonDropdown(event, '3')">시즌 선택 <span class="sd-caret">▾</span></button>
@@ -1675,6 +1680,11 @@
       <div class="rd-current" id="rdCurrent" style="margin:0;"></div>
       <button class="report-btn" id="rdFlagBtn" style="display:none;" onclick="openFlagFromDetail()">🚨 틀린 시간 신고하기</button>
     </div>
+
+    <div style="background:rgba(196,255,61,.1); border:2px solid var(--lime); border-radius:16px; padding:20px; margin:0 0 24px; text-align:center;">
+      <div style="font-family:var(--font-display); font-weight:800; font-size:clamp(19px,5.2vw,28px); line-height:1.35; color:var(--lime);">갱신시간은 2시간 거래량이<br>바뀌는 시간입니다</div>
+    </div>
+
     <div id="rdReports" style="margin-bottom:24px;"></div>
     <div style="font-weight:700; margin-bottom:12px;">댓글</div>
     <div class="comment-write">
