@@ -4,10 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HOT 시즌 갱신시간 · 선수별 갱신시간 | FC알리미</title>
-<meta name="description" content="FC온라인 HOT 시즌 선수별 갱신시간 전체 38명. 파올로 말디니 홀수시 7분 등. 즐겨찾기하면 갱신시간에 맞춰 알림을 받을 수 있어요.">
+<meta name="description" content="FC온라인 HOT 시즌 선수별 갱신시간 전체 39명. 파올로 말디니 홀수시 7분 등. 즐겨찾기하면 갱신시간에 맞춰 알림을 받을 수 있어요. (약칭: 핫)">
+<meta name="keywords" content="HOT 갱신시간, HOT 시간, 핫 갱신시간, 핫">
 <link rel="canonical" href="https://fcalrimi.com/refresh/hot.html">
 <meta property="og:title" content="HOT 시즌 갱신시간 | FC알리미">
-<meta property="og:description" content="FC온라인 HOT 시즌 선수별 갱신시간 전체 38명. 파올로 말디니 홀수시 7분 등. 즐겨찾기하면 갱신시간에 맞춰 알림을 받을 수 있어요.">
+<meta property="og:description" content="FC온라인 HOT 시즌 선수별 갱신시간 전체 39명. 파올로 말디니 홀수시 7분 등. 즐겨찾기하면 갱신시간에 맞춰 알림을 받을 수 있어요. (약칭: 핫)">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://fcalrimi.com/refresh/hot.html">
 <meta name="theme-color" content="#0B0F14">
@@ -26,7 +27,10 @@ main{max-width:1060px;margin:0 auto;padding:26px 16px 60px;}
 .h1row{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;}
 h1{font-size:26px;font-weight:800;margin:6px 0 8px;}
 .rate{font-size:14px;font-weight:800;color:var(--lime);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 13px;white-space:nowrap;}
-.lead{color:var(--text-dim);font-size:15px;margin:0 0 16px;word-break:keep-all;}
+.lead{color:var(--text-dim);font-size:15px;margin:0 0 10px;word-break:keep-all;}
+.aka{color:var(--text-dim);font-size:13px;margin:0 0 16px;word-break:keep-all;}
+.aka b{color:var(--text);font-weight:700;}
+.aka .tag{display:inline-block;background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:2px 8px;margin:2px 3px 2px 0;color:var(--text);font-size:12.5px;}
 .cta{display:inline-block;background:var(--lime);color:#0B0F14;font-weight:800;border-radius:12px;padding:12px 18px;margin:2px 0 18px;}
 .search-row{margin:0 0 12px;}
 .search-row input{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 16px;color:var(--text);font-size:15px;}
@@ -73,14 +77,15 @@ h1{font-size:26px;font-weight:800;margin:6px 0 8px;}
   <a href="/" class="home-link" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">← 홈으로</a>
 </header>
 <main>
-  <div class="h1row"><h1>HOT 시즌 갱신시간</h1><span class="rate" title="갱신시간 등록 달성률">38/251 · 15%</span></div>
-  <p class="lead">FC온라인 <b>HOT</b> 시즌 선수들의 가격 갱신시간 전체 38명입니다. 선수마다 갱신시간(홀수시/짝수시 + 분)이 다르며, FC알리미에서 즐겨찾기하면 그 시간에 맞춰 <b>웹푸시 알림</b>을 받을 수 있어요.</p>
+  <div class="h1row"><h1>HOT 시즌 갱신시간</h1><span class="rate" title="갱신시간 등록 달성률">39/251 · 16%</span></div>
+  <p class="lead">FC온라인 <b>HOT</b> 시즌 선수들의 가격 갱신시간 전체 39명입니다. 선수마다 갱신시간(홀수시/짝수시 + 분)이 다르며, FC알리미에서 즐겨찾기하면 그 시간에 맞춰 <b>웹푸시 알림</b>을 받을 수 있어요.</p>
+  <p class="aka"><b>HOT</b> 시즌은 유저들 사이에서 <span class="tag">핫</span> 등으로도 불립니다.</p>
   <a class="cta" href="https://fcalrimi.com/" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">🔔 FC알리미에서 선수 알림 받기 →</a>
   <div class="clock"><span class="lab">현재 시각 (KST)</span><span class="t" id="clk">--:--:--</span></div>
   <div class="search-row">
     <input id="q" type="text" placeholder="이 시즌에서 선수 이름 검색" autocomplete="off">
   </div>
-  <p class="count"><span id="shown">38</span>명<span id="hint" class="hint"></span></p>
+  <p class="count"><span id="shown">39</span>명<span id="hint" class="hint"></span></p>
   <div class="grid" id="grid">
 <div class="card" data-name="파올로 말디니"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%ED%8C%8C%EC%98%AC%EB%A1%9C%20%EB%A7%90%EB%94%94%EB%8B%88&amp;season=HOT" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">파올로 말디니</a><div class="c-season">HOT</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=216001109" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p216001109.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p1109.png';}else{this.style.display='none';}"></div><div class="c-meta">LB · OVR 98</div><div class="c-time" data-hj="홀" data-min="7">홀수시 7분</div></div>
 <div class="card" data-name="티에리 앙리"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%ED%8B%B0%EC%97%90%EB%A6%AC%20%EC%95%99%EB%A6%AC&amp;season=HOT" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">티에리 앙리</a><div class="c-season">HOT</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=216001625" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p216001625.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p1625.png';}else{this.style.display='none';}"></div><div class="c-meta">ST · OVR 98</div><div class="c-time" data-hj="짝" data-min="13">짝수시 13분</div></div>
@@ -101,6 +106,7 @@ h1{font-size:26px;font-weight:800;margin:6px 0 8px;}
 <div class="card" data-name="미하엘 발락"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%EB%AF%B8%ED%95%98%EC%97%98%20%EB%B0%9C%EB%9D%BD&amp;season=HOT" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">미하엘 발락</a><div class="c-season">HOT</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=216003647" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p216003647.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p3647.png';}else{this.style.display='none';}"></div><div class="c-meta">CM · OVR 96</div><div class="c-time" data-hj="짝" data-min="14">짝수시 14분</div></div>
 <div class="card" data-name="리오 퍼디난드"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%EB%A6%AC%EC%98%A4%20%ED%8D%BC%EB%94%94%EB%82%9C%EB%93%9C&amp;season=HOT" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">리오 퍼디난드</a><div class="c-season">HOT</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=216007289" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p216007289.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p7289.png';}else{this.style.display='none';}"></div><div class="c-meta">CB · OVR 96</div><div class="c-time" data-hj="짝" data-min="18">짝수시 18분</div></div>
 <div class="card" data-name="에르난 크레스포"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%EC%97%90%EB%A5%B4%EB%82%9C%20%ED%81%AC%EB%A0%88%EC%8A%A4%ED%8F%AC&amp;season=HOT" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">에르난 크레스포</a><div class="c-season">HOT</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=216007512" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p216007512.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p7512.png';}else{this.style.display='none';}"></div><div class="c-meta">ST · OVR 96</div><div class="c-time" data-hj="짝" data-min="20">짝수시 20분</div></div>
+<div class="card" data-name="마누엘 노이어"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%EB%A7%88%EB%88%84%EC%97%98%20%EB%85%B8%EC%9D%B4%EC%96%B4&amp;season=HOT" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">마누엘 노이어</a><div class="c-season">HOT</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=216167495" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p216167495.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p167495.png';}else{this.style.display='none';}"></div><div class="c-meta">GK · OVR 96</div><div class="c-time" data-hj="짝" data-min="35">짝수시 35분</div></div>
 <div class="card" data-name="가레스 베일"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%EA%B0%80%EB%A0%88%EC%8A%A4%20%EB%B2%A0%EC%9D%BC&amp;season=HOT" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">가레스 베일</a><div class="c-season">HOT</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=216173731" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p216173731.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p173731.png';}else{this.style.display='none';}"></div><div class="c-meta">RW · OVR 96</div><div class="c-time" data-hj="짝" data-min="41">짝수시 41분</div></div>
 <div class="card" data-name="메수트 외질"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%EB%A9%94%EC%88%98%ED%8A%B8%20%EC%99%B8%EC%A7%88&amp;season=HOT" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">메수트 외질</a><div class="c-season">HOT</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=216176635" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p216176635.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p176635.png';}else{this.style.display='none';}"></div><div class="c-meta">CAM · OVR 96</div><div class="c-time" data-hj="짝" data-min="42">짝수시 42분</div></div>
 <div class="card" data-name="P. 오바메양"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=P.%20%EC%98%A4%EB%B0%94%EB%A9%94%EC%96%91&amp;season=HOT" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">P. 오바메양</a><div class="c-season">HOT</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=216188567" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p216188567.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p188567.png';}else{this.style.display='none';}"></div><div class="c-meta">ST · OVR 96</div><div class="c-time" data-hj="짝" data-min="54">짝수시 54분</div></div>
@@ -149,21 +155,21 @@ h1{font-size:26px;font-weight:800;margin:6px 0 8px;}
       <a href="/refresh/22-ucl.html">22 UCL</a>
       <a href="/refresh/icon.html">ICON</a>
       <a href="/refresh/ut.html">UT</a>
+      <a href="/refresh/lh.html">LH</a>
       <a href="/refresh/icon-tm.html">ICON TM</a>
       <a href="/refresh/19-ucl.html">19 UCL</a>
       <a href="/refresh/spt.html">SPT</a>
       <a href="/refresh/uc.html">UC</a>
-      <a href="/refresh/lh.html">LH</a>
       <a href="/refresh/bdo.html">BDO</a>
       <a href="/refresh/20-ucl.html">20 UCL</a>
       <a href="/refresh/ln.html">LN</a>
-      <a href="/refresh/bld.html">BLD</a>
+      <a href="/refresh/boe21.html">BOE21</a>
       <a href="/refresh/mc.html">MC</a>
+      <a href="/refresh/bld.html">BLD</a>
       <a href="/refresh/tkl.html">TKL</a>
       <a href="/refresh/26-toty-n.html">26 TOTY-N</a>
-      <a href="/refresh/25-toty-n.html">25 TOTY-N</a>
       <a href="/refresh/23-ucl.html">23 UCL</a>
-      <a href="/refresh/boe21.html">BOE21</a>
+      <a href="/refresh/25-toty-n.html">25 TOTY-N</a>
       <a href="/refresh/dcb.html">DCB</a>
       <a href="/refresh/21-toty-n.html">21 TOTY-N</a>
       <a href="/refresh/mdl.html">MDL</a>
@@ -171,12 +177,13 @@ h1{font-size:26px;font-weight:800;margin:6px 0 8px;}
       <a href="/refresh/20-tots.html">20 TOTS</a>
       <a href="/refresh/25-live.html">25 LIVE</a>
       <a href="/refresh/jnm.html">JNM</a>
+      <a href="/refresh/vtr.html">VTR</a>
       <a href="/refresh/25fsl.html">25FSL</a>
       <a href="/refresh/26fsl.html">26FSL</a>
       <a href="/refresh/20-pla.html">20 PLA</a>
       <a href="/refresh/tk.html">TK</a>
       <a href="/refresh/tc.html">TC</a>
-      <a href="/refresh/vtr.html">VTR</a>
+      <a href="/refresh/btb.html">BTB</a>
       <a href="/refresh/25im-s-p.html">25IM - S&amp;P</a>
       <a href="/refresh/no7.html">NO7</a>
       <a href="/refresh/19-tots.html">19 TOTS</a>
@@ -188,8 +195,10 @@ h1{font-size:26px;font-weight:800;margin:6px 0 8px;}
       <a href="/refresh/25hr.html">25HR</a>
       <a href="/refresh/20ng.html">20NG</a>
       <a href="/refresh/tb.html">TB</a>
+      <a href="/refresh/21-ucl.html">21 UCL</a>
       <a href="/refresh/rmcf.html">RMCF</a>
       <a href="/refresh/mog.html">MOG</a>
+      <a href="/refresh/up.html">UP</a>
       <a href="/refresh/19-pls.html">19 PLS</a>
       <a href="/refresh/icons-match.html">ICONS MATCH</a>
       <a href="/refresh/jva.html">JVA</a>
@@ -204,16 +213,16 @@ h1{font-size:26px;font-weight:800;margin:6px 0 8px;}
       <a href="/refresh/18-toty.html">18 TOTY</a>
       <a href="/refresh/19-pla.html">19 PLA</a>
       <a href="/refresh/26hr.html">26HR</a>
-      <a href="/refresh/up.html">UP</a>
       <a href="/refresh/21-toty.html">21 TOTY</a>
+      <a href="/refresh/ebs.html">EBS</a>
       <a href="/refresh/20kb.html">20KB</a>
       <a href="/refresh/la.html">LA</a>
-      <a href="/refresh/btb.html">BTB</a>
+      <a href="/refresh/bwc.html">BWC</a>
       <a href="/refresh/coc.html">COC</a>
-      <a href="/refresh/21-ucl.html">21 UCL</a>
       <a href="/refresh/19-kfa.html">19 KFA</a>
       <a href="/refresh/hg.html">HG</a>
-      <a href="/refresh/bwc.html">BWC</a>
+      <a href="/refresh/fa.html">FA</a>
+      <a href="/refresh/wc22.html">WC22</a>
       <a href="/refresh/20kleague.html">20KLeague</a>
       <a href="/refresh/dc.html">DC</a>
       <a href="/refresh/mcfc-icon.html">MCFC ICON</a>
@@ -221,7 +230,7 @@ h1{font-size:26px;font-weight:800;margin:6px 0 8px;}
       <a href="/refresh/17-live.html">17 LIVE</a>
       <a href="/refresh/25im-fb.html">25IM - FB</a>
       <a href="/refresh/cc.html">CC</a>
-      <a href="/refresh/ebs.html">EBS</a>
+      <a href="/refresh/spl.html">SPL</a>
       <a href="/refresh/otw.html">OTW</a>
       <a href="/refresh/tki.html">TKI</a>
       <a href="/refresh/21-tots.html">21 TOTS</a>
@@ -230,8 +239,9 @@ h1{font-size:26px;font-weight:800;margin:6px 0 8px;}
       <a href="/refresh/23-live.html">23 LIVE</a>
       <a href="/refresh/19-live.html">19 LIVE</a>
       <a href="/refresh/fca.html">FCA</a>
-      <a href="/refresh/wc22.html">WC22</a>
-      <a href="/refresh/spl.html">SPL</a>
+      <a href="/refresh/lol.html">LOL</a>
+      <a href="/refresh/cap.html">CAP</a>
+      <a href="/refresh/23ng.html">23NG</a>
       <a href="/refresh/22ng.html">22NG</a>
       <a href="/refresh/23-toty-n.html">23 TOTY-N</a>
       <a href="/refresh/18-kfa.html">18 KFA</a>
