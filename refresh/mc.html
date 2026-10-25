@@ -4,10 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MC 시즌 갱신시간 · 선수별 갱신시간 | FC알리미</title>
-<meta name="description" content="FC온라인 MC 시즌 선수별 갱신시간 전체 86명. 지네딘 지단 짝수시 2분 등. 즐겨찾기하면 갱신시간에 맞춰 알림을 받을 수 있어요.">
+<meta name="description" content="FC온라인 MC 시즌 선수별 갱신시간 전체 90명. 지네딘 지단 짝수시 2분 등. 즐겨찾기하면 갱신시간에 맞춰 알림을 받을 수 있어요. (약칭: 맥)">
+<meta name="keywords" content="MC 갱신시간, MC 시간, 맥 갱신시간, 맥">
 <link rel="canonical" href="https://fcalrimi.com/refresh/mc.html">
 <meta property="og:title" content="MC 시즌 갱신시간 | FC알리미">
-<meta property="og:description" content="FC온라인 MC 시즌 선수별 갱신시간 전체 86명. 지네딘 지단 짝수시 2분 등. 즐겨찾기하면 갱신시간에 맞춰 알림을 받을 수 있어요.">
+<meta property="og:description" content="FC온라인 MC 시즌 선수별 갱신시간 전체 90명. 지네딘 지단 짝수시 2분 등. 즐겨찾기하면 갱신시간에 맞춰 알림을 받을 수 있어요. (약칭: 맥)">
 <meta property="og:type" content="article">
 <meta property="og:url" content="https://fcalrimi.com/refresh/mc.html">
 <meta name="theme-color" content="#0B0F14">
@@ -26,7 +27,10 @@ main{max-width:1060px;margin:0 auto;padding:26px 16px 60px;}
 .h1row{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;}
 h1{font-size:26px;font-weight:800;margin:6px 0 8px;}
 .rate{font-size:14px;font-weight:800;color:var(--lime);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 13px;white-space:nowrap;}
-.lead{color:var(--text-dim);font-size:15px;margin:0 0 16px;word-break:keep-all;}
+.lead{color:var(--text-dim);font-size:15px;margin:0 0 10px;word-break:keep-all;}
+.aka{color:var(--text-dim);font-size:13px;margin:0 0 16px;word-break:keep-all;}
+.aka b{color:var(--text);font-weight:700;}
+.aka .tag{display:inline-block;background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:2px 8px;margin:2px 3px 2px 0;color:var(--text);font-size:12.5px;}
 .cta{display:inline-block;background:var(--lime);color:#0B0F14;font-weight:800;border-radius:12px;padding:12px 18px;margin:2px 0 18px;}
 .search-row{margin:0 0 12px;}
 .search-row input{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 16px;color:var(--text);font-size:15px;}
@@ -73,14 +77,15 @@ h1{font-size:26px;font-weight:800;margin:6px 0 8px;}
   <a href="/" class="home-link" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">← 홈으로</a>
 </header>
 <main>
-  <div class="h1row"><h1>MC 시즌 갱신시간</h1><span class="rate" title="갱신시간 등록 달성률">86/228 · 38%</span></div>
-  <p class="lead">FC온라인 <b>MC</b> 시즌 선수들의 가격 갱신시간 전체 86명입니다. 선수마다 갱신시간(홀수시/짝수시 + 분)이 다르며, FC알리미에서 즐겨찾기하면 그 시간에 맞춰 <b>웹푸시 알림</b>을 받을 수 있어요.</p>
+  <div class="h1row"><h1>MC 시즌 갱신시간</h1><span class="rate" title="갱신시간 등록 달성률">90/228 · 39%</span></div>
+  <p class="lead">FC온라인 <b>MC</b> 시즌 선수들의 가격 갱신시간 전체 90명입니다. 선수마다 갱신시간(홀수시/짝수시 + 분)이 다르며, FC알리미에서 즐겨찾기하면 그 시간에 맞춰 <b>웹푸시 알림</b>을 받을 수 있어요.</p>
+  <p class="aka"><b>MC</b> 시즌은 유저들 사이에서 <span class="tag">맥</span> 등으로도 불립니다.</p>
   <a class="cta" href="https://fcalrimi.com/" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">🔔 FC알리미에서 선수 알림 받기 →</a>
   <div class="clock"><span class="lab">현재 시각 (KST)</span><span class="t" id="clk">--:--:--</span></div>
   <div class="search-row">
     <input id="q" type="text" placeholder="이 시즌에서 선수 이름 검색" autocomplete="off">
   </div>
-  <p class="count"><span id="shown">86</span>명<span id="hint" class="hint"></span></p>
+  <p class="count"><span id="shown">90</span>명<span id="hint" class="hint"></span></p>
   <div class="grid" id="grid">
 <div class="card" data-name="지네딘 지단"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%EC%A7%80%EB%84%A4%EB%94%98%20%EC%A7%80%EB%8B%A8&amp;season=MC" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">지네딘 지단</a><div class="c-season">MC</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=237001397" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p237001397.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p1397.png';}else{this.style.display='none';}"></div><div class="c-meta">CAM · OVR 102</div><div class="c-time" data-hj="짝" data-min="2">짝수시 2분</div></div>
 <div class="card" data-name="티에리 앙리"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%ED%8B%B0%EC%97%90%EB%A6%AC%20%EC%95%99%EB%A6%AC&amp;season=MC" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">티에리 앙리</a><div class="c-season">MC</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=237001625" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p237001625.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p1625.png';}else{this.style.display='none';}"></div><div class="c-meta">ST · OVR 102</div><div class="c-time" data-hj="짝" data-min="3">짝수시 3분</div></div>
@@ -101,6 +106,7 @@ h1{font-size:26px;font-weight:800;margin:6px 0 8px;}
 <div class="card" data-name="마라도나"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%EB%A7%88%EB%9D%BC%EB%8F%84%EB%82%98&amp;season=MC" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">마라도나</a><div class="c-season">MC</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=237190042" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p237190042.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p190042.png';}else{this.style.display='none';}"></div><div class="c-meta">CAM · OVR 102</div><div class="c-time" data-hj="짝" data-min="45">짝수시 45분</div></div>
 <div class="card" data-name="펠레"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%ED%8E%A0%EB%A0%88&amp;season=MC" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">펠레</a><div class="c-season">MC</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=237190043" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p237190043.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p190043.png';}else{this.style.display='none';}"></div><div class="c-meta">ST · OVR 102</div><div class="c-time" data-hj="짝" data-min="45">짝수시 45분</div></div>
 <div class="card" data-name="요한 크루이프"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%EC%9A%94%ED%95%9C%20%ED%81%AC%EB%A3%A8%EC%9D%B4%ED%94%84&amp;season=MC" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">요한 크루이프</a><div class="c-season">MC</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=237190045" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p237190045.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p190045.png';}else{this.style.display='none';}"></div><div class="c-meta">CAM · OVR 102</div><div class="c-time" data-hj="짝" data-min="45">짝수시 45분</div></div>
+<div class="card" data-name="로타어 마테우스"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%EB%A1%9C%ED%83%80%EC%96%B4%20%EB%A7%88%ED%85%8C%EC%9A%B0%EC%8A%A4&amp;season=MC" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">로타어 마테우스</a><div class="c-season">MC</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=237191189" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p237191189.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p191189.png';}else{this.style.display='none';}"></div><div class="c-meta">CDM · OVR 102</div><div class="c-time" data-hj="짝" data-min="49">짝수시 49분</div></div>
 <div class="card" data-name="티보 쿠르투아"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%ED%8B%B0%EB%B3%B4%20%EC%BF%A0%EB%A5%B4%ED%88%AC%EC%95%84&amp;season=MC" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">티보 쿠르투아</a><div class="c-season">MC</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=237192119" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p237192119.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p192119.png';}else{this.style.display='none';}"></div><div class="c-meta">GK · OVR 102</div><div class="c-time" data-hj="짝" data-min="50">짝수시 50분</div></div>
 <div class="card" data-name="프랑크 레이카르트"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%ED%94%84%EB%9E%91%ED%81%AC%20%EB%A0%88%EC%9D%B4%EC%B9%B4%EB%A5%B4%ED%8A%B8&amp;season=MC" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">프랑크 레이카르트</a><div class="c-season">MC</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=237214098" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p237214098.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p214098.png';}else{this.style.display='none';}"></div><div class="c-meta">CDM · OVR 102</div><div class="c-time" data-hj="홀" data-min="8">홀수시 8분</div></div>
 <div class="card" data-name="루드 굴리트"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%EB%A3%A8%EB%93%9C%20%EA%B5%B4%EB%A6%AC%ED%8A%B8&amp;season=MC" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">루드 굴리트</a><div class="c-season">MC</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=237214100" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p237214100.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p214100.png';}else{this.style.display='none';}"></div><div class="c-meta">CF · OVR 102</div><div class="c-time" data-hj="홀" data-min="8">홀수시 8분</div></div>
@@ -165,9 +171,12 @@ h1{font-size:26px;font-weight:800;margin:6px 0 8px;}
 <div class="card" data-name="뱅자맹 멘디"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%EB%B1%85%EC%9E%90%EB%A7%B9%20%EB%A9%98%EB%94%94&amp;season=MC" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">뱅자맹 멘디</a><div class="c-season">MC</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=237204884" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p237204884.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p204884.png';}else{this.style.display='none';}"></div><div class="c-meta">LB · OVR 95</div><div class="c-time" data-hj="홀" data-min="0">홀수시 0분</div></div>
 <div class="card" data-name="아드리앙 라비오"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%EC%95%84%EB%93%9C%EB%A6%AC%EC%95%99%20%EB%9D%BC%EB%B9%84%EC%98%A4&amp;season=MC" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">아드리앙 라비오</a><div class="c-season">MC</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=237210008" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p237210008.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p210008.png';}else{this.style.display='none';}"></div><div class="c-meta">CM · OVR 95</div><div class="c-time" data-hj="홀" data-min="4">홀수시 4분</div></div>
 <div class="card" data-name="주앙 칸셀루"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%EC%A3%BC%EC%95%99%20%EC%B9%B8%EC%85%80%EB%A3%A8&amp;season=MC" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">주앙 칸셀루</a><div class="c-season">MC</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=237210514" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p237210514.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p210514.png';}else{this.style.display='none';}"></div><div class="c-meta">RB · OVR 95</div><div class="c-time" data-hj="홀" data-min="4">홀수시 4분</div></div>
+<div class="card" data-name="안드레아스 브레메"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%EC%95%88%EB%93%9C%EB%A0%88%EC%95%84%EC%8A%A4%20%EB%B8%8C%EB%A0%88%EB%A9%94&amp;season=MC" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">안드레아스 브레메</a><div class="c-season">MC</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=237166120" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p237166120.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p166120.png';}else{this.style.display='none';}"></div><div class="c-meta">LB · OVR 94</div><div class="c-time" data-hj="짝" data-min="22">짝수시 22분</div></div>
 <div class="card" data-name="쿠티뉴"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%EC%BF%A0%ED%8B%B0%EB%89%B4&amp;season=MC" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">쿠티뉴</a><div class="c-season">MC</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=237189242" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p237189242.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p189242.png';}else{this.style.display='none';}"></div><div class="c-meta">LW · OVR 94</div><div class="c-time" data-hj="짝" data-min="43">짝수시 43분</div></div>
+<div class="card" data-name="엠레 잔"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%EC%97%A0%EB%A0%88%20%EC%9E%94&amp;season=MC" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">엠레 잔</a><div class="c-season">MC</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=237208333" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p237208333.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p208333.png';}else{this.style.display='none';}"></div><div class="c-meta">CM · OVR 94</div><div class="c-time" data-hj="홀" data-min="2">홀수시 2분</div></div>
 <div class="card" data-name="안데르송 탈리스카"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%EC%95%88%EB%8D%B0%EB%A5%B4%EC%86%A1%20%ED%83%88%EB%A6%AC%EC%8A%A4%EC%B9%B4&amp;season=MC" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">안데르송 탈리스카</a><div class="c-season">MC</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=237212523" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p237212523.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p212523.png';}else{this.style.display='none';}"></div><div class="c-meta">CF · OVR 94</div><div class="c-time" data-hj="홀" data-min="8">홀수시 8분</div></div>
 <div class="card" data-name="로랑 블랑"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%EB%A1%9C%EB%9E%91%20%EB%B8%94%EB%9E%91&amp;season=MC" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">로랑 블랑</a><div class="c-season">MC</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=237222481" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p237222481.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p222481.png';}else{this.style.display='none';}"></div><div class="c-meta">CB · OVR 93</div><div class="c-time" data-hj="홀" data-min="11">홀수시 11분</div></div>
+<div class="card" data-name="헤나투 산시스"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%ED%97%A4%EB%82%98%ED%88%AC%20%EC%82%B0%EC%8B%9C%EC%8A%A4&amp;season=MC" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">헤나투 산시스</a><div class="c-season">MC</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=237230767" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p237230767.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p230767.png';}else{this.style.display='none';}"></div><div class="c-meta">CM · OVR 93</div><div class="c-time" data-hj="홀" data-min="13">홀수시 13분</div></div>
 <div class="card" data-name="주제 사"><div class="c-top"><div class="c-id"><a class="c-name" href="https://fcalrimi.com/?player=%EC%A3%BC%EC%A0%9C%20%EC%82%AC&amp;season=MC" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">주제 사</a><div class="c-season">MC</div></div><a class="c-fav" href="https://fcalrimi.com/?fav=237212442" target="_blank" rel="noopener" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}" title="즐겨찾기 추가 (새 창)">☆</a><img class="c-photo" loading="lazy" alt="" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p237212442.png" onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p212442.png';}else{this.style.display='none';}"></div><div class="c-meta">GK · OVR 89</div><div class="c-time" data-hj="홀" data-min="5">홀수시 5분</div></div>
   </div>
   <p class="more-note">찾는 선수가 없나요? 아직 갱신시간이 등록되지 않은 선수는 <a href="/" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">FC알리미 검색</a>에서 확인하고 직접 제보할 수 있어요.</p>
@@ -197,20 +206,20 @@ h1{font-size:26px;font-weight:800;margin:6px 0 8px;}
       <a href="/refresh/22-ucl.html">22 UCL</a>
       <a href="/refresh/icon.html">ICON</a>
       <a href="/refresh/ut.html">UT</a>
+      <a href="/refresh/lh.html">LH</a>
       <a href="/refresh/icon-tm.html">ICON TM</a>
       <a href="/refresh/19-ucl.html">19 UCL</a>
       <a href="/refresh/spt.html">SPT</a>
       <a href="/refresh/uc.html">UC</a>
-      <a href="/refresh/lh.html">LH</a>
       <a href="/refresh/bdo.html">BDO</a>
       <a href="/refresh/20-ucl.html">20 UCL</a>
       <a href="/refresh/ln.html">LN</a>
+      <a href="/refresh/boe21.html">BOE21</a>
       <a href="/refresh/bld.html">BLD</a>
       <a href="/refresh/tkl.html">TKL</a>
       <a href="/refresh/26-toty-n.html">26 TOTY-N</a>
-      <a href="/refresh/25-toty-n.html">25 TOTY-N</a>
       <a href="/refresh/23-ucl.html">23 UCL</a>
-      <a href="/refresh/boe21.html">BOE21</a>
+      <a href="/refresh/25-toty-n.html">25 TOTY-N</a>
       <a href="/refresh/dcb.html">DCB</a>
       <a href="/refresh/21-toty-n.html">21 TOTY-N</a>
       <a href="/refresh/mdl.html">MDL</a>
@@ -219,12 +228,13 @@ h1{font-size:26px;font-weight:800;margin:6px 0 8px;}
       <a href="/refresh/hot.html">HOT</a>
       <a href="/refresh/25-live.html">25 LIVE</a>
       <a href="/refresh/jnm.html">JNM</a>
+      <a href="/refresh/vtr.html">VTR</a>
       <a href="/refresh/25fsl.html">25FSL</a>
       <a href="/refresh/26fsl.html">26FSL</a>
       <a href="/refresh/20-pla.html">20 PLA</a>
       <a href="/refresh/tk.html">TK</a>
       <a href="/refresh/tc.html">TC</a>
-      <a href="/refresh/vtr.html">VTR</a>
+      <a href="/refresh/btb.html">BTB</a>
       <a href="/refresh/25im-s-p.html">25IM - S&amp;P</a>
       <a href="/refresh/no7.html">NO7</a>
       <a href="/refresh/19-tots.html">19 TOTS</a>
@@ -236,8 +246,10 @@ h1{font-size:26px;font-weight:800;margin:6px 0 8px;}
       <a href="/refresh/25hr.html">25HR</a>
       <a href="/refresh/20ng.html">20NG</a>
       <a href="/refresh/tb.html">TB</a>
+      <a href="/refresh/21-ucl.html">21 UCL</a>
       <a href="/refresh/rmcf.html">RMCF</a>
       <a href="/refresh/mog.html">MOG</a>
+      <a href="/refresh/up.html">UP</a>
       <a href="/refresh/19-pls.html">19 PLS</a>
       <a href="/refresh/icons-match.html">ICONS MATCH</a>
       <a href="/refresh/jva.html">JVA</a>
@@ -252,16 +264,16 @@ h1{font-size:26px;font-weight:800;margin:6px 0 8px;}
       <a href="/refresh/18-toty.html">18 TOTY</a>
       <a href="/refresh/19-pla.html">19 PLA</a>
       <a href="/refresh/26hr.html">26HR</a>
-      <a href="/refresh/up.html">UP</a>
       <a href="/refresh/21-toty.html">21 TOTY</a>
+      <a href="/refresh/ebs.html">EBS</a>
       <a href="/refresh/20kb.html">20KB</a>
       <a href="/refresh/la.html">LA</a>
-      <a href="/refresh/btb.html">BTB</a>
+      <a href="/refresh/bwc.html">BWC</a>
       <a href="/refresh/coc.html">COC</a>
-      <a href="/refresh/21-ucl.html">21 UCL</a>
       <a href="/refresh/19-kfa.html">19 KFA</a>
       <a href="/refresh/hg.html">HG</a>
-      <a href="/refresh/bwc.html">BWC</a>
+      <a href="/refresh/fa.html">FA</a>
+      <a href="/refresh/wc22.html">WC22</a>
       <a href="/refresh/20kleague.html">20KLeague</a>
       <a href="/refresh/dc.html">DC</a>
       <a href="/refresh/mcfc-icon.html">MCFC ICON</a>
@@ -269,7 +281,7 @@ h1{font-size:26px;font-weight:800;margin:6px 0 8px;}
       <a href="/refresh/17-live.html">17 LIVE</a>
       <a href="/refresh/25im-fb.html">25IM - FB</a>
       <a href="/refresh/cc.html">CC</a>
-      <a href="/refresh/ebs.html">EBS</a>
+      <a href="/refresh/spl.html">SPL</a>
       <a href="/refresh/otw.html">OTW</a>
       <a href="/refresh/tki.html">TKI</a>
       <a href="/refresh/21-tots.html">21 TOTS</a>
@@ -278,8 +290,9 @@ h1{font-size:26px;font-weight:800;margin:6px 0 8px;}
       <a href="/refresh/23-live.html">23 LIVE</a>
       <a href="/refresh/19-live.html">19 LIVE</a>
       <a href="/refresh/fca.html">FCA</a>
-      <a href="/refresh/wc22.html">WC22</a>
-      <a href="/refresh/spl.html">SPL</a>
+      <a href="/refresh/lol.html">LOL</a>
+      <a href="/refresh/cap.html">CAP</a>
+      <a href="/refresh/23ng.html">23NG</a>
       <a href="/refresh/22ng.html">22NG</a>
       <a href="/refresh/23-toty-n.html">23 TOTY-N</a>
       <a href="/refresh/18-kfa.html">18 KFA</a>
