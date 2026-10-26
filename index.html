@@ -292,6 +292,10 @@
     background:var(--lime); color:#0B0F14; border:none; border-radius:8px;
     padding:8px 16px; font-weight:700; cursor:pointer; font-family:var(--font-body); font-size:13px;
   }
+  .report-form button.dim{ opacity:.4; filter:grayscale(.5); cursor:not-allowed; }
+  .confirm-chk{ appearance:none; -webkit-appearance:none; width:20px; height:20px; flex:0 0 auto; border:2px solid var(--text-dim); border-radius:6px; margin-top:1px; position:relative; cursor:pointer; background:transparent; }
+  .confirm-chk:checked{ border-color:var(--lime); background:var(--lime); }
+  .confirm-chk:checked::after{ content:"✓"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#0B0F14; font-size:14px; font-weight:900; }
   .report-done{ font-size:12px; color:#F5B84B; }
 
   /* 게시판 허브 */
@@ -533,6 +537,8 @@
   .ach-bar span{ display:block; height:100%; background:var(--lime); border-radius:100px; }
   .ach-row .a-num{ font-family:var(--font-mono); font-size:12px; color:var(--text-dim); width:110px; text-align:right; flex-shrink:0; }
   .ach-row .a-pct{ font-family:var(--font-display); font-weight:700; width:56px; text-align:right; flex-shrink:0; }
+  .a-season.a-link{ color:inherit; text-decoration:none; cursor:pointer; }
+  .a-season.a-link:hover .code{ text-decoration:underline; }
 
   /* 즐겨찾기 */
   .fav-btn{
@@ -1211,12 +1217,9 @@
     <div class="modal">
       <button class="modal-close" onclick="closeFlagModal()">&times;</button>
       <h2>틀린 시간 신고</h2>
-      <p class="modal-sub">갱신시간은 2시간 거래량이 바뀐 후 0~20분 사이에 갱신됩니다. 이를 인지하셨나요?</p>
-      <label for="flagSign">확인하셨다면 아래 칸에 <b style="color:var(--lime);">인지</b> 라고 입력 후 신고해주세요.</label>
-      <div style="display:flex; align-items:center; gap:10px; margin-top:6px;">
-        <input type="text" id="flagSign" placeholder="인지" maxlength="4" style="width:130px; flex:0 0 auto;">
-        <span style="font-size:16px; font-weight:600; color:var(--text);">했습니다</span>
-      </div>
+      <p class="modal-sub">갱신시간은 2시간 거래량이 바뀐 후 0~20분 사이에 갱신됩니다.</p>
+      <label for="flagSign">확인하셨다면 아래 칸에 <b style="color:var(--lime);">갱신시간은 2시간거래량이 바뀌는 시간</b> 이라고 그대로 입력 후 신고해주세요.</label>
+      <input type="text" id="flagSign" placeholder="갱신시간은 2시간거래량이 바뀌는 시간" autocomplete="off" style="width:100%; margin-top:6px;">
       <label style="margin-top:16px;">알고 있는 정확한 갱신시간 제보 <span style="color:var(--text-dim);">(선택)</span></label>
       <div class="report-form" style="flex-wrap:wrap; margin-top:4px;">
         <select id="flagFixHj" class="free-select">
@@ -1649,6 +1652,10 @@
       <div class="season-dropdown" id="seasonDropdown3"></div>
     </div>
     <p style="font-size:12px; color:#ff5a5a; line-height:1.5; margin:-6px 0 16px;">⚠ 지속적으로 잘못된 정보를 제보하면 서비스 이용이 제한될 수 있습니다.</p>
+    <label for="boardConfirmChk" style="display:flex; align-items:flex-start; gap:10px; background:rgba(196,255,61,.06); border:1px solid rgba(196,255,61,.3); border-radius:12px; padding:14px 16px; margin:0 0 16px; cursor:pointer; user-select:none;">
+      <input type="checkbox" id="boardConfirmChk" class="confirm-chk">
+      <span style="font-size:13.5px; line-height:1.5; color:var(--text);"><b style="color:var(--lime);">확인했어요</b> — 갱신시간은 <b style="color:var(--lime);">2시간 거래량이 바뀌는 시간</b>이라는 걸 확인하고 제보합니다. (체크하면 제보 버튼 활성화)</span>
+    </label>
     <div id="boardResults"></div>
   </main>
 
@@ -3989,6 +3996,12 @@
   });
 
   // ---------- 시즌별 달성률 ----------
+  // 시즌명 → 랜딩페이지 slug (build_refresh.py 의 slugify 와 동일 규칙)
+  function achSlug(s){
+    s = (s || '').trim().toLowerCase();
+    s = s.replace(/[^0-9a-z가-힣]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+    return s || 'season';
+  }
   function showAchievement(){
     switchView('viewAchievement');
     const listEl = document.getElementById('achList');
@@ -3999,14 +4012,15 @@
       return;
     }
     // 시즌별 집계: 등록 = 엑셀 입력 or 검증된 유저 제보(10건 이상 일치)
-    const agg = {};   // season -> {seasonId, total, done}
+    const agg = {};   // season -> {seasonId, total, done, conf}
     for(const p of allPlayers){
-      if(!(p.season in agg)) agg[p.season] = { seasonId: Math.floor(p.id / 1000000), total: 0, done: 0 };
+      if(!(p.season in agg)) agg[p.season] = { seasonId: Math.floor(p.id / 1000000), total: 0, done: 0, conf: 0 };
       agg[p.season].total++;
       if(p.hj || publicReport(p.id)) agg[p.season].done++;
+      if(p.hj) agg[p.season].conf++;   // pdb 확정 선수 있음 → 시즌 랜딩페이지 존재
     }
     const rows = Object.entries(agg).map(([season, v]) => ({
-      season, seasonId: v.seasonId, total: v.total, done: v.done,
+      season, seasonId: v.seasonId, total: v.total, done: v.done, conf: v.conf,
       pct: v.total ? v.done / v.total * 100 : 0,
     }));
     rows.sort((a, b) => b.pct - a.pct || b.total - a.total);
@@ -4020,14 +4034,16 @@
       <div class="stat-box"><div class="sv">${rows.length}</div><div class="sl">시즌(클래스) 수</div></div>
       <div class="stat-box"><div class="sv">${fullSeasons}</div><div class="sl">100% 완료 시즌</div></div>
     `;
-    listEl.innerHTML = rows.map(r => `
-      <div class="ach-row">
-        <div class="a-season">${seasonIcon(r.seasonId)}<span class="code">${esc(r.season)}</span></div>
-        <div class="ach-bar"><span style="width:${r.pct.toFixed(1)}%"></span></div>
-        <div class="a-num">${r.done.toLocaleString()} / ${r.total.toLocaleString()}</div>
-        <div class="a-pct">${r.pct.toFixed(0)}%</div>
-      </div>
-    `).join('');
+    listEl.innerHTML = rows.map(r => {
+      // 확정 선수가 있는 시즌만 '시즌 글씨'를 랜딩페이지 링크로 (행 전체 아님)
+      const seasonCell = r.conf > 0
+        ? `<a class="a-season a-link" href="/refresh/${achSlug(r.season)}.html" title="${esc(r.season)} 갱신시간 페이지로 이동">${seasonIcon(r.seasonId)}<span class="code">${esc(r.season)}</span></a>`
+        : `<div class="a-season">${seasonIcon(r.seasonId)}<span class="code">${esc(r.season)}</span></div>`;
+      return `<div class="ach-row">${seasonCell}`
+        + `<div class="ach-bar"><span style="width:${r.pct.toFixed(1)}%"></span></div>`
+        + `<div class="a-num">${r.done.toLocaleString()} / ${r.total.toLocaleString()}</div>`
+        + `<div class="a-pct">${r.pct.toFixed(0)}%</div></div>`;
+    }).join('');
   }
 
   // ---------- 즐겨찾기 ----------
@@ -6105,12 +6121,15 @@
     document.getElementById('flagOverlay').classList.add('show');
     document.getElementById('flagSign').focus();
   }
-  // '인지'를 정확히 입력하면 신고하기 버튼 점등
+  // 신고·제보 공통 확인 문구 — 그대로 입력해야 버튼 활성화 (공백 무시)
+  const CONFIRM_PHRASE = '갱신시간은 2시간거래량이 바뀌는 시간';
+  function confirmPhraseOk(v){ return (v || '').replace(/\s+/g, '') === CONFIRM_PHRASE.replace(/\s+/g, ''); }
+  // 확인 문구를 정확히 입력하면 신고하기 버튼 점등
   function updateFlagBtn(){
     const el = document.getElementById('flagSign');
     const btn = document.getElementById('flagSubmitBtn');
     if(!el || !btn) return;
-    btn.classList.toggle('dim', el.value.trim() !== '인지');
+    btn.classList.toggle('dim', !confirmPhraseOk(el.value));
   }
   function closeFlagModal(){
     document.getElementById('flagOverlay').classList.remove('show');
@@ -6121,8 +6140,8 @@
     if(spid == null) return;
     const errEl = document.getElementById('flagError');
     const sign = document.getElementById('flagSign').value.trim();
-    if(sign !== '인지'){
-      errEl.textContent = '"인지" 라고 정확히 입력해주세요.'; return;
+    if(!confirmPhraseOk(sign)){
+      errEl.textContent = '"' + CONFIRM_PHRASE + '" 이라고 정확히 입력해주세요.'; return;
     }
     const client = await loadSupabase();
     if(!client || !sbProfile){ errEl.textContent = '서버에 연결할 수 없어요. 잠시 후 다시 시도해주세요.'; return; }
@@ -6619,14 +6638,34 @@
             <option value="짝">짝수시</option>
           </select>
           <input type="number" id="rmin_${p.id}" min="0" max="59" placeholder="분">
-          <button onclick="submitReport(${p.id})">제보</button>
+          <button class="rep-btn ${_boardOk ? '' : 'dim'}" ${_boardOk ? '' : 'disabled'} onclick="submitReport(${p.id})">제보</button>
         </div>
       </div>`;
     }).join('') + (totalCount > list.length
       ? `<div class="no-result">외 ${(totalCount - list.length).toLocaleString()}건 — 이름으로 검색해 범위를 좁혀보세요.</div>` : '');
   }
 
+  // 제보게시판 확인 문구 입력 여부 — 맞게 입력해야 제보 버튼 활성화
+  let _boardOk = false;
+  function refreshBoardRepButtons(){
+    document.querySelectorAll('#boardResults .rep-btn').forEach(b => {
+      b.classList.toggle('dim', !_boardOk);
+      b.disabled = !_boardOk;
+    });
+  }
+  function onBoardConfirmInput(){
+    const el = document.getElementById('boardConfirmChk');
+    _boardOk = !!el && el.checked;
+    refreshBoardRepButtons();
+  }
+
   async function submitReport(spid){
+    if(!_boardOk){
+      const el = document.getElementById('boardConfirmChk');
+      if(el){ el.focus(); el.closest('label')?.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+      showToast('위 "확인했어요"를 체크하면 제보할 수 있어요.');
+      return;
+    }
     if(!currentUser()){ openAuth(); return; }
     const hj = document.getElementById('rhj_' + spid).value;
     const min = parseInt(document.getElementById('rmin_' + spid).value, 10);
@@ -6665,6 +6704,7 @@
   on('playerSearch2', 'keydown', (e) => { if(e.key === 'Enter') goSearchFrom('playerSearch2'); });
   on('boardSearch', 'input', runBoardSearch);
   on('boardSearch', 'keydown', (e) => { if(e.key === 'Enter') runBoardSearch(); });
+  on('boardConfirmChk', 'change', onBoardConfirmInput);
   on('reportSearch', 'input', runReportSearch);
   on('reportSearch', 'keydown', (e) => { if(e.key === 'Enter') runReportSearch(); });
   on('freeSearchInput', 'keydown', (e) => { if(e.key === 'Enter') doFreeSearch(); });
