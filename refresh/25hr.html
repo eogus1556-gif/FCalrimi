@@ -24,6 +24,11 @@ a{color:var(--lime);text-decoration:none;}
 .logo .dot{width:10px;height:10px;border-radius:50%;background:var(--lime);display:inline-block;}
 .home-link{font-size:14px;color:var(--text-dim);}
 main{max-width:1060px;margin:0 auto;padding:26px 16px 60px;}
+.ad-rail{display:none;}
+@media (min-width:1500px){
+  .ad-rail{display:block;position:fixed;top:110px;width:160px;height:600px;z-index:5;}
+  #railL{left:20px;} #railR{right:20px;}
+}
 .h1row{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;}
 h1{font-size:26px;font-weight:800;margin:6px 0 8px;}
 .rate{font-size:14px;font-weight:800;color:var(--lime);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px 13px;white-space:nowrap;}
@@ -72,6 +77,8 @@ h1{font-size:26px;font-weight:800;margin:6px 0 8px;}
 </style>
 </head>
 <body>
+<div class="ad-rail" id="railL"><ins class="adsbygoogle" style="display:block;width:160px;height:600px" data-ad-client="ca-pub-8019320351145896" data-ad-slot="4782493315" data-ad-format="vertical"></ins></div><script>(function(){var b=document.getElementById("railL"),i=b.querySelector("ins");function go(){if(b.dataset.on)return;if(!matchMedia("(min-width:1500px)").matches)return;if(b.offsetWidth===0)return;b.dataset.on="1";try{(adsbygoogle=window.adsbygoogle||[]).push({});}catch(e){}setTimeout(function(){try{if(i.getAttribute("data-ad-status")==="unfilled")b.style.display="none";}catch(e){}},2500);}go();var t;addEventListener("resize",function(){clearTimeout(t);t=setTimeout(go,400);});})();</script>
+<div class="ad-rail" id="railR"><ins class="adsbygoogle" style="display:block;width:160px;height:600px" data-ad-client="ca-pub-8019320351145896" data-ad-slot="8648596453" data-ad-format="vertical"></ins></div><script>(function(){var b=document.getElementById("railR"),i=b.querySelector("ins");function go(){if(b.dataset.on)return;if(!matchMedia("(min-width:1500px)").matches)return;if(b.offsetWidth===0)return;b.dataset.on="1";try{(adsbygoogle=window.adsbygoogle||[]).push({});}catch(e){}setTimeout(function(){try{if(i.getAttribute("data-ad-status")==="unfilled")b.style.display="none";}catch(e){}},2500);}go();var t;addEventListener("resize",function(){clearTimeout(t);t=setTimeout(go,400);});})();</script>
 <header class="site-header">
   <a href="/" class="logo" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}"><span class="dot"></span>FC알리미</a>
   <a href="/" class="home-link" onclick="try{sessionStorage.removeItem('fc_view_state')}catch(e){}">← 홈으로</a>
@@ -172,9 +179,9 @@ h1{font-size:26px;font-weight:800;margin:6px 0 8px;}
       <a href="/refresh/tt.html">TT</a>
       <a href="/refresh/20-toty-n.html">20 TOTY-N</a>
       <a href="/refresh/gr.html">GR</a>
+      <a href="/refresh/tb.html">TB</a>
       <a href="/refresh/18-pls.html">18 PLS</a>
       <a href="/refresh/20ng.html">20NG</a>
-      <a href="/refresh/tb.html">TB</a>
       <a href="/refresh/21-ucl.html">21 UCL</a>
       <a href="/refresh/rmcf.html">RMCF</a>
       <a href="/refresh/mog.html">MOG</a>
@@ -201,8 +208,8 @@ h1{font-size:26px;font-weight:800;margin:6px 0 8px;}
       <a href="/refresh/coc.html">COC</a>
       <a href="/refresh/19-kfa.html">19 KFA</a>
       <a href="/refresh/hg.html">HG</a>
-      <a href="/refresh/fa.html">FA</a>
       <a href="/refresh/wc22.html">WC22</a>
+      <a href="/refresh/fa.html">FA</a>
       <a href="/refresh/20kleague.html">20KLeague</a>
       <a href="/refresh/dc.html">DC</a>
       <a href="/refresh/mcfc-icon.html">MCFC ICON</a>
