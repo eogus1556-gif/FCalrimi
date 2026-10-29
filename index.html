@@ -266,6 +266,8 @@
   .p-card .p-season{ display:flex; align-items:center; gap:8px; margin-bottom:12px; }
   .p-card .p-season img{ width:18px; height:18px; object-fit:contain; }
   .p-card .p-season .code{ font-family:var(--font-mono); font-size:12px; color:var(--lime); }
+  .p-season-link{ cursor:pointer; }
+  .p-season-link:hover .code{ text-decoration:underline; }
   .p-card .p-refresh{ font-size:15px; font-weight:600; }
   .p-card .p-refresh.none{ color:var(--text-dim); font-weight:400; }
   .p-card .p-timer{ font-family:var(--font-mono); font-size:12px; color:var(--text-dim); margin-top:6px; }
@@ -1346,11 +1348,17 @@
     <div class="modal-overlay" id="noticeOverlay" onclick="if(event.target===this) closeNotice()">
     <div class="modal" style="text-align:center;">
       <button class="modal-close" onclick="closeNotice()">&times;</button>
-      <h2 style="margin-bottom:10px;">신규 시즌 업데이트 완료</h2>
-      <div style="display:flex; justify-content:center; gap:12px; margin:8px 0 14px;">
+      <h2 style="margin-bottom:10px;">갱신시간 업데이트</h2>
+      <div style="display:flex; justify-content:center; align-items:center; gap:14px; margin:10px 0 14px;">
+        <img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/879.png" onerror="this.style.display='none'" alt="LKI" style="height:30px;">
+        <img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/878.png" onerror="this.style.display='none'" alt="26UP" style="height:30px;">
+      </div>
+      <!--OLDICON <div style="display:flex; justify-content:center; gap:12px; margin:8px 0 14px;">
         <img src="data:image/png;base64,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" alt="UC" style="width:30px; height:24px;">
       </div>
-      <p class="modal-sub" style="line-height:1.7;"><b style="color:var(--lime);">UC 시즌 113명</b>의<br>갱신 시간 업데이트가 완료됐어요!</p>
+      OLDICON-->
+      <p class="modal-sub" style="line-height:1.7;"><b style="color:var(--lime);">LKI · 26UP</b> 갱신시간이<br>업데이트되었습니다!</p>
+      <p class="modal-sub" style="line-height:1.6; font-size:13px; margin-top:8px;">ICON TM 및 EVO 시즌은 거래량이 일정하지 않아<br>추후 업데이트 예정입니다.</p>
       <button class="auth-submit" onclick="closeNotice()">닫기</button>
       <p style="margin-top:14px; font-size:12px; color:var(--text-dim); line-height:1.6;">
         최근 시스템 오류 사항은 <a href="#" onclick="noticeGoBoard(); return false;" style="color:var(--lime); text-decoration:underline; cursor:pointer;">공지사항</a>을 확인해주세요.
@@ -2731,7 +2739,7 @@
     }, 25);
   }
   // 신규 등록된 선수 수 — 데이터 연동 전까지 이 값을 수동으로 바꿔주세요.
-  const NEW_PLAYERS_COUNT = 119;
+  const NEW_PLAYERS_COUNT = 206;
   try{
     animateNum(document.getElementById('statNew'), NEW_PLAYERS_COUNT, '명');
   }catch(e){ console.warn('통계 애니메이션 실패', e); }
@@ -3191,8 +3199,8 @@
 
   // ── 업데이트 안내 1회성 팝업 ──
   // 규칙: (1) 닫기를 누르면 그 기기(브라우저)에서 다시 안 뜸  (2) 공지 만료일이 지나면 아무에게도 안 뜸
-  const NOTICE_ID = 'fc_notice_uc_v1';                 // 새 공지를 낼 땐 이 값만 바꾸면 됩니다
-  const NOTICE_EXPIRE = new Date('2026-09-24T23:59:59+09:00').getTime();  // 이 시각(약 1주) 이후엔 표시 안 함
+  const NOTICE_ID = 'fc_notice_lki26up_v1';            // 새 공지를 낼 땐 이 값만 바꾸면 됩니다
+  const NOTICE_EXPIRE = new Date('2026-11-13T23:59:59+09:00').getTime();  // 이 시각 이후엔 표시 안 함
   function maybeShowNotice(){
     try{
       if(Date.now() > NOTICE_EXPIRE) return;                 // 공지 기간 종료
@@ -3740,7 +3748,7 @@
     document.getElementById('playerCards').innerHTML = cards.map(c => `
       <div class="p-card">
         <span style="cursor:pointer;" title="선수 게시판(댓글) 열기" onclick="openReportDetail(${c.id})">${actionImg(c.id)}</span>
-        <div class="p-season"><span style="display:inline-flex; align-items:center; gap:8px;">${seasonIcon(c.seasonId)}<span class="code">${esc(c.season || '기본')}</span></span><button class="fav-btn ${favs[c.id] ? 'on' : ''}" data-spid="${c.id}" title="즐겨찾기" onclick="toggleFav(${c.id})">${favs[c.id] ? '★' : '☆'}</button></div>
+        <div class="p-season">${seasonRefLink(c)}<button class="fav-btn ${favs[c.id] ? 'on' : ''}" data-spid="${c.id}" title="즐겨찾기" onclick="toggleFav(${c.id})">${favs[c.id] ? '★' : '☆'}</button></div>
         ${c.pos || c.ovr ? `<div class="p-timer" style="margin:0 0 8px;">${esc(c.pos)}${c.pos && c.ovr ? ' · ' : ''}${c.ovr ? 'OVR ' + c.ovr : ''}</div>` : ''}
         ${c.refresh
           ? `<div class="p-refresh">${c.refresh}</div>
@@ -3796,7 +3804,7 @@
       <div class="p-card">
         <span style="cursor:pointer;" title="선수 게시판(댓글) 열기" onclick="openReportDetail(${c.id})">${actionImg(c.id)}</span>
         <div style="font-weight:700; margin-bottom:6px;"><span class="b-name-link" title="선수 게시판(댓글) 열기" onclick="openReportDetail(${c.id})">${esc(c.name)}</span></div>
-        <div class="p-season"><span style="display:inline-flex; align-items:center; gap:8px;">${seasonIcon(c.seasonId)}<span class="code">${esc(c.season || '기본')}</span></span><button class="fav-btn ${favs[c.id] ? 'on' : ''}" data-spid="${c.id}" title="즐겨찾기" onclick="toggleFav(${c.id})">${favs[c.id] ? '★' : '☆'}</button></div>
+        <div class="p-season">${seasonRefLink(c)}<button class="fav-btn ${favs[c.id] ? 'on' : ''}" data-spid="${c.id}" title="즐겨찾기" onclick="toggleFav(${c.id})">${favs[c.id] ? '★' : '☆'}</button></div>
         ${c.pos || c.ovr ? `<div class="p-timer" style="margin:0 0 8px;">${esc(c.pos)}${c.pos && c.ovr ? ' · ' : ''}${c.ovr ? 'OVR ' + c.ovr : ''}</div>` : ''}
         ${c.refresh
           ? `<div class="p-refresh">${c.refresh}</div><div class="p-timer">${timerChip(c.hj, c.min)}</div>`
@@ -4029,6 +4037,14 @@
 
   // ---------- 시즌별 달성률 ----------
   // 시즌명 → 랜딩페이지 slug (build_refresh.py 의 slugify 와 동일 규칙)
+  // 검색카드 시즌명 → 그 시즌 갱신시간 페이지(/refresh)로. 카드 클릭(제보상세)과 겹치지 않게 전파 중단.
+  function seasonRefLink(c){
+    const sn = c.season || '';
+    const inner = `${seasonIcon(c.seasonId)}<span class="code">${esc(sn || '기본')}</span>`;
+    if(!sn || sn === '기본')
+      return `<span style="display:inline-flex; align-items:center; gap:8px;">${inner}</span>`;
+    return `<a class="p-season-link" href="/refresh/${achSlug(sn)}.html" onclick="event.stopPropagation()" title="${esc(sn)} 갱신시간 페이지로 이동" style="display:inline-flex; align-items:center; gap:8px; color:inherit; text-decoration:none;">${inner}</a>`;
+  }
   function achSlug(s){
     s = (s || '').trim().toLowerCase();
     s = s.replace(/[^0-9a-z가-힣]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
