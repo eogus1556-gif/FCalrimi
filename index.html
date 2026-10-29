@@ -1741,11 +1741,17 @@
 
     <div id="rdReports" style="margin-bottom:24px;"></div>
     <div style="font-weight:700; margin-bottom:12px;">댓글</div>
-    <div class="comment-write">
-      <textarea id="commentInput" placeholder="댓글을 입력하세요" maxlength="300" rows="1" oninput="cAutoGrow(this)"></textarea>
-      <button class="search-btn" onclick="submitComment()">등록</button>
+    <!-- 댓글은 '보기'를 눌렀을 때만 불러옵니다 (불필요한 서버 조회 절감) -->
+    <div id="commentToggle" style="margin-bottom:12px;">
+      <button class="search-btn" style="width:100%;" onclick="openComments()">💬 댓글 보기</button>
     </div>
-    <div id="commentList"></div>
+    <div id="commentSection" style="display:none;">
+      <div class="comment-write">
+        <textarea id="commentInput" placeholder="댓글을 입력하세요" maxlength="300" rows="1" oninput="cAutoGrow(this)"></textarea>
+        <button class="search-btn" onclick="submitComment()">등록</button>
+      </div>
+      <div id="commentList"></div>
+    </div>
   </main>
 
   <!-- 즐겨찾기 -->
@@ -5979,7 +5985,31 @@
     if(myCLikes.has(refOther + ':' + id)) await toggleCommentLike(refOther, id);
     await toggleCommentLike(refPressed, id);
   }
-  async function loadPostComments(postId){
+  // 엣지 캐시(/api/post_comments) — 60초. 인기글 중복 조회를 캐시주기당 1번으로 묶음.
+  async function apiPostComments(postId){
+    try{
+      const r = await fetchWithTimeout('/api/post_comments?post_id=' + postId, 8000);
+      if(!r.ok) return null;
+      const j = await r.json();
+      return (j && Array.isArray(j.comments)) ? j : null;
+    }catch(_){ return null; }
+  }
+  async function loadPostComments(postId, force){
+    // 1) force가 아니면 엣지 캐시 먼저 — Supabase 직통 조회 없이 처리
+    if(!force){
+      const j = await apiPostComments(postId);
+      if(j){
+        postCommentsCache[postId] = (j.comments || []).map(c => ({ id: c.id, author: c.author, nick: c.nick, body: c.body, image: c.image || null, parent_id: c.parent_id || null, at: c.created_at, editedAt: c.edited_at || null }));
+        const uid = currentUser();
+        (j.likes || []).forEach(x => {
+          const k = x.ref_type + ':' + x.comment_id;
+          cLikesCache[k] = (cLikesCache[k] || 0) + 1;
+          if(uid && x.user_id === uid) myCLikes.add(k);
+        });
+        return;
+      }
+    }
+    // 2) 폴백(또는 본인 변경 직후 force): Supabase 직통
     const client = await loadSupabase();
     if(!client){ postCommentsCache[postId] = postCommentsCache[postId] || []; return; }
     try{
@@ -6329,7 +6359,31 @@
   // ---------- 신고 선수 상세 (댓글) ----------
   let reportDetailSpid = null;
   let replyToReport = null;      // 답글 대상 { commentId, nick }
-  async function loadComments(spid){
+  // 엣지 캐시(/api/comments) — 60초. 방문자 수에 비례하던 댓글 조회를 캐시주기당 1번으로 묶음.
+  async function apiComments(spid){
+    try{
+      const r = await fetchWithTimeout('/api/comments?spid=' + spid, 8000);
+      if(!r.ok) return null;
+      const j = await r.json();
+      return (j && Array.isArray(j.comments)) ? j : null;
+    }catch(_){ return null; }
+  }
+  async function loadComments(spid, force){
+    // 1) force가 아니면 엣지 캐시 엔드포인트 먼저 — Supabase 직통 조회 없이 처리
+    if(!force){
+      const j = await apiComments(spid);
+      if(j){
+        commentsCache[spid] = (j.comments || []).map(c => ({ id: c.id, author: c.author, nick: c.nick, body: c.body, image: c.image || null, parent_id: c.parent_id || null, at: c.created_at, editedAt: c.edited_at || null }));
+        const uid = currentUser();
+        (j.likes || []).forEach(x => {
+          const k = x.ref_type + ':' + x.comment_id;
+          cLikesCache[k] = (cLikesCache[k] || 0) + 1;
+          if(uid && x.user_id === uid) myCLikes.add(k);
+        });
+        return;
+      }
+    }
+    // 2) 폴백(또는 본인 변경 직후 force): Supabase 직통
     const client = await loadSupabase();
     if(!client){ commentsCache[spid] = commentsCache[spid] || []; return; }
     try{
@@ -6347,6 +6401,20 @@
     const ids = (commentsCache[spid] || []).map(c => c.id).filter(Boolean);
     if(ids.length) await Promise.all([loadCommentLikes('comment', ids), loadCommentLikes('comment_dis', ids)]);
   }
+  // '댓글 보기' 클릭 → 이때 처음으로 댓글을 불러온다
+  let commentsShown = false;
+  function openComments(force){
+    const spid = reportDetailSpid;
+    if(spid == null) return;
+    commentsShown = true;
+    const tog = document.getElementById('commentToggle');
+    const sec = document.getElementById('commentSection');
+    if(tog) tog.style.display = 'none';
+    if(sec) sec.style.display = '';
+    const el = document.getElementById('commentList');
+    if(el) el.innerHTML = `<div class="no-result">댓글을 불러오는 중…</div>`;
+    return loadComments(spid, force).then(() => { if(reportDetailSpid === spid) renderComments(); });
+  }
   function openReportDetail(spid){
     const p = bySpid(spid);
     if(!p) return;
@@ -6360,11 +6428,16 @@
     const rdFlagBtn = document.getElementById('rdFlagBtn');
     if(rdFlagBtn) rdFlagBtn.style.display = p.hj ? '' : 'none';
     document.getElementById('commentInput').value = '';
-    document.getElementById('commentList').innerHTML = `<div class="no-result">댓글을 불러오는 중…</div>`;
+    // 댓글은 자동 로드하지 않고 '댓글 보기' 버튼 상태로 초기화 (조회 절감)
+    commentsShown = false;
+    const cTog = document.getElementById('commentToggle');
+    const cSec = document.getElementById('commentSection');
+    if(cTog) cTog.style.display = '';
+    if(cSec) cSec.style.display = 'none';
+    document.getElementById('commentList').innerHTML = '';
     const rdr = document.getElementById('rdReports');
     if(rdr) rdr.innerHTML = `<div style="color:var(--text-dim);font-size:14px;padding:8px 0;">유저 제보를 불러오는 중…</div>`;
     switchView('viewReportDetail');
-    loadComments(spid).then(() => { if(reportDetailSpid === spid) renderComments(); });
     // 유저 제보 목록(전체공개) + 신고 수 로드 — 해당 선수 것만 로드 (egress 절약)
     loadReportsForSpid(spid)
       .then(() => loadReportFlags(spid))
