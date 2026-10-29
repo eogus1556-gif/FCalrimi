@@ -271,6 +271,9 @@
   .p-card .p-refresh{ font-size:15px; font-weight:600; }
   .p-card .p-refresh.none{ color:var(--text-dim); font-weight:400; }
   .p-card .p-timer{ font-family:var(--font-mono); font-size:12px; color:var(--text-dim); margin-top:6px; }
+  .p-card .report-go{ margin-top:8px; background:none; border:1px solid var(--lime); color:var(--lime);
+    font-family:var(--font-body); font-size:12px; font-weight:700; padding:6px 12px; border-radius:100px; cursor:pointer; }
+  .p-card .report-go:hover{ background:var(--lime); color:#0B0F14; }
   .p-card .report-chip{
     display:inline-block; margin-top:8px; font-size:11px; color:#F5B84B;
     border:1px solid rgba(245,184,75,.35); padding:2px 8px; border-radius:100px;
@@ -1218,6 +1221,29 @@
 
   <!-- 신고 확인 모달 -->
   <!-- 제보 전 확인 팝업 (제보 버튼을 누르면 뜸) -->
+  <!-- 선수 카드에서 바로 제보 (갱신시간 입력 + 안내 확인) -->
+  <div class="modal-overlay" id="reportOverlay" onclick="if(event.target===this) closeReportModal()">
+    <div class="modal">
+      <button class="modal-close" onclick="closeReportModal()">&times;</button>
+      <h2>갱신시간 제보</h2>
+      <p class="modal-sub" id="rmName" style="margin-bottom:4px;"></p>
+      <p class="modal-sub" style="font-size:13px; line-height:1.6;">갱신시간은 <b style="color:var(--lime);">2시간 거래량이 바뀌는 시간</b>입니다.<br>알고 있는 정확한 시간을 제보해주세요.</p>
+      <div class="report-form" style="justify-content:center; margin-top:14px; flex-wrap:wrap;">
+        <select id="rmHj" class="free-select">
+          <option value="홀">홀수시</option>
+          <option value="짝">짝수시</option>
+        </select>
+        <input type="number" id="rmMin" min="0" max="59" placeholder="분">
+      </div>
+      <label for="rmChk" style="display:flex; align-items:flex-start; gap:10px; background:rgba(196,255,61,.06); border:1px solid rgba(196,255,61,.3); border-radius:12px; padding:14px 16px; margin:14px 0 0; cursor:pointer; user-select:none;">
+        <input type="checkbox" id="rmChk" class="confirm-chk" onchange="onReportModalChk()">
+        <span style="flex:1; min-width:0; font-size:13.5px; line-height:1.5; color:var(--text); text-align:left;"><b style="color:var(--lime);">확인했어요</b> — 갱신시간은 2시간 거래량이 바뀌는 시간이라는 걸 확인하고 제보합니다.</span>
+      </label>
+      <p style="margin-top:10px; font-size:12px; color:#ff5a5a; line-height:1.5;">⚠ 지속적으로 잘못된 정보를 제보하면 서비스 이용이 제한될 수 있습니다.</p>
+      <button class="auth-submit dim" id="rmSubmit" disabled onclick="submitReportModal()">제보하기</button>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="repConfirmOverlay" onclick="if(event.target===this) closeRepConfirm()">
     <div class="modal">
       <button class="modal-close" onclick="closeRepConfirm()">&times;</button>
@@ -3755,7 +3781,7 @@
              <div class="p-timer">${c.hj ? timerChip(c.hj, c.min) : ''}</div>`
           : (reportTimeHtml(c.id)
              || `<div class="p-refresh none">갱신 시간 미확인</div>
-             ${reportCountOf(c.id) === 0 ? `<div class="p-timer">커뮤니티 &gt; 제보게시판에서 제보할 수 있어요</div>` : ''}`)}
+             ${reportCountOf(c.id) === 0 ? `<button class="report-go" onclick="event.stopPropagation(); openReportModal(${c.id})">제보</button>` : ''}`)}
         ${reportChipHtml(c.id)}
       </div>
     `).join('');
@@ -3808,7 +3834,7 @@
         ${c.pos || c.ovr ? `<div class="p-timer" style="margin:0 0 8px;">${esc(c.pos)}${c.pos && c.ovr ? ' · ' : ''}${c.ovr ? 'OVR ' + c.ovr : ''}</div>` : ''}
         ${c.refresh
           ? `<div class="p-refresh">${c.refresh}</div><div class="p-timer">${timerChip(c.hj, c.min)}</div>`
-          : (reportTimeHtml(c.id) || `<div class="p-refresh none">갱신 시간 미확인</div>${reportCountOf(c.id) === 0 ? `<div class="p-timer">커뮤니티 &gt; 제보게시판에서 제보할 수 있어요</div>` : ''}`)}
+          : (reportTimeHtml(c.id) || `<div class="p-refresh none">갱신 시간 미확인</div>${reportCountOf(c.id) === 0 ? `<button class="report-go" onclick="event.stopPropagation(); openReportModal(${c.id})">제보</button>` : ''}`)}
         ${reportChipHtml(c.id)}
       </div>`;
   }
@@ -6653,6 +6679,56 @@
   // ---------- 제보게시판: 미등록 선수 검색 + 갱신시간 제보 ----------
   function getReports(){ return reportsCache; }
 
+  // ── 선수 카드에서 바로 제보하는 모달 ──
+  let _reportModalSpid = null;
+  function openReportModal(spid){
+    _reportModalSpid = spid;
+    const pl = allPlayers && allPlayers.find(x => x.id === spid);
+    document.getElementById('rmName').innerHTML = pl
+      ? `<b style="color:var(--text);font-size:15px;">${esc(pl.name)}</b> <span style="color:var(--text-dim);font-size:13px;">${esc(pl.season || '')}${pl.pos ? ' · ' + esc(pl.pos) : ''}</span>`
+      : '';
+    document.getElementById('rmHj').value = '홀';
+    document.getElementById('rmMin').value = '';
+    const chk = document.getElementById('rmChk'); if(chk) chk.checked = false;
+    onReportModalChk();
+    document.getElementById('reportOverlay').classList.add('show');
+    setTimeout(() => { try{ document.getElementById('rmMin').focus(); }catch(_){} }, 60);
+  }
+  function closeReportModal(){ _reportModalSpid = null;
+    const ov = document.getElementById('reportOverlay'); if(ov) ov.classList.remove('show'); }
+  function onReportModalChk(){
+    const ok = !!document.getElementById('rmChk') && document.getElementById('rmChk').checked;
+    const btn = document.getElementById('rmSubmit');
+    if(btn){ btn.classList.toggle('dim', !ok); btn.disabled = !ok; }
+  }
+  async function submitReportModal(){
+    const spid = _reportModalSpid; if(spid == null) return;
+    const chk = document.getElementById('rmChk'); if(!chk || !chk.checked) return;
+    const min = parseInt(document.getElementById('rmMin').value, 10);
+    if(isNaN(min) || min < 0 || min > 59){
+      document.getElementById('rmMin').focus(); showToast('분을 0~59 사이로 입력해주세요.'); return;
+    }
+    if(!currentUser()){ openAuth(); return; }
+    const hj = document.getElementById('rmHj').value;
+    const client = await loadSupabase();
+    if(!client || !sbProfile){ showToast('서버에 연결할 수 없어 제보를 저장하지 못했어요.'); return; }
+    try{
+      let { error } = await client.from('reports')
+        .upsert({ spid, hj, min, nick: currentNick(), author: sbProfile.id, source: '참여' }, { onConflict: 'spid,author' });
+      if(error && /source/i.test(error.message)){
+        ({ error } = await client.from('reports')
+          .upsert({ spid, hj, min, nick: currentNick(), author: sbProfile.id }, { onConflict: 'spid,author' }));
+      }
+      if(error){ showToast('제보 실패: ' + error.message); return; }
+      track('report_submit', { spid: spid });
+      showToast('제보 감사합니다!!');
+      invalidateBoardCache();
+      invalidateReportsFor(spid);
+      await loadHomeSummary(true);
+      closeReportModal();
+      try{ if(currentView === 'viewBoard') runBoardSearch(); }catch(_){}
+    }catch(e){ showToast('제보 중 오류가 발생했어요.'); }
+  }
   function showBoard(){
     switchView('viewBoard');
     runBoardSearch();
