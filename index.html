@@ -1213,6 +1213,21 @@
   </div>
 
   <!-- 신고 확인 모달 -->
+  <!-- 제보 전 확인 팝업 (제보 버튼을 누르면 뜸) -->
+  <div class="modal-overlay" id="repConfirmOverlay" onclick="if(event.target===this) closeRepConfirm()">
+    <div class="modal">
+      <button class="modal-close" onclick="closeRepConfirm()">&times;</button>
+      <h2>제보 전 확인</h2>
+      <p class="modal-sub">갱신시간은 <b style="color:var(--lime);">2시간 거래량이 바뀌는 시간</b>입니다.</p>
+      <label for="repConfirmChk" style="display:flex; align-items:flex-start; gap:10px; background:rgba(196,255,61,.06); border:1px solid rgba(196,255,61,.3); border-radius:12px; padding:14px 16px; margin:14px 0 0; cursor:pointer; user-select:none;">
+        <input type="checkbox" id="repConfirmChk" class="confirm-chk">
+        <span style="font-size:13.5px; line-height:1.5; color:var(--text);"><b style="color:var(--lime);">확인했어요</b> — 갱신시간은 2시간 거래량이 바뀌는 시간이라는 걸 확인하고 제보합니다.</span>
+      </label>
+      <p style="margin-top:10px; font-size:12px; color:#ff5a5a; line-height:1.5;">⚠ 지속적으로 잘못된 정보를 제보하면 서비스 이용이 제한될 수 있습니다.</p>
+      <button class="auth-submit dim" id="repConfirmBtn" disabled onclick="confirmRepAndSubmit()">제보하기</button>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="flagOverlay" onclick="if(event.target===this) closeFlagModal()">
     <div class="modal">
       <button class="modal-close" onclick="closeFlagModal()">&times;</button>
@@ -1652,10 +1667,6 @@
       <div class="season-dropdown" id="seasonDropdown3"></div>
     </div>
     <p style="font-size:12px; color:#ff5a5a; line-height:1.5; margin:-6px 0 16px;">⚠ 지속적으로 잘못된 정보를 제보하면 서비스 이용이 제한될 수 있습니다.</p>
-    <label for="boardConfirmChk" style="display:flex; align-items:flex-start; gap:10px; background:rgba(196,255,61,.06); border:1px solid rgba(196,255,61,.3); border-radius:12px; padding:14px 16px; margin:0 0 16px; cursor:pointer; user-select:none;">
-      <input type="checkbox" id="boardConfirmChk" class="confirm-chk">
-      <span style="font-size:13.5px; line-height:1.5; color:var(--text);"><b style="color:var(--lime);">확인했어요</b> — 갱신시간은 <b style="color:var(--lime);">2시간 거래량이 바뀌는 시간</b>이라는 걸 확인하고 제보합니다. (체크하면 제보 버튼 활성화)</span>
-    </label>
     <div id="boardResults"></div>
   </main>
 
@@ -2734,8 +2745,13 @@
       const client = await loadSupabase();
       if(!client){ el.textContent = '0건'; return; }
       const day = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);   // 한국(KST) 날짜 — 자정 리셋
+      const ck = 'fc_alertstat_' + day;
+      const c = lsGet(ck, 300000);                       // 5분 캐시 — 방문마다 조회하던 걸 줄임
+      if(c != null){ animateNum(el, Number(c) || 0, '건'); return; }
       const { data } = await client.from('alert_stats').select('count').eq('day', day).maybeSingle();
-      animateNum(el, (data && Number(data.count)) || 0, '건');
+      const v = (data && Number(data.count)) || 0;
+      lsSet(ck, v);
+      animateNum(el, v, '건');
     }catch(e){ el.textContent = '0건'; }
   }
 
@@ -4619,6 +4635,24 @@
   }
   function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify({ t: Date.now(), v })); }catch(e){} }
   function lsDel(k){ try{ localStorage.removeItem(k); }catch(e){} }
+  // 선수 상세의 '유저 제보 목록'은 1주일 캐시 — 열람 수만큼 나가던 조회를 줄인다.
+  // 내가 제보·수정·삭제·신고하면 그 선수 캐시를 즉시 버려서 바로 보이게 한다.
+  const REPORTS_TTL = 7 * 24 * 60 * 60 * 1000;
+  function repKey(spid){ return 'fc_rep_' + spid; }
+  function invalidateReportsFor(spid){
+    if(spid == null) return;
+    lsDel(repKey(spid)); delete _pdFlags[spid]; delete _pdLikes[spid];
+  }
+  // /api/player — 선수 상세에 필요한 조회 4건(제보·제보신고·추천·비추천)을 엣지에서 한 번에
+  let _pdFlags = {}, _pdLikes = {};   // spid -> 엣지에서 같이 받아온 행들 (있으면 추가 조회 안 함)
+  async function apiPlayer(spid){
+    try{
+      const r = await fetchWithTimeout('/api/player?spid=' + spid, 8000);
+      if(!r.ok) return null;
+      const j = await r.json();
+      return (j && Array.isArray(j.reports)) ? j : null;
+    }catch(_){ return null; }
+  }
   // 제보/글 변경 후 홈·목록 캐시 무효화 (다음 진입 시 최신 반영)
   function invalidateBoardCache(){
     _summaryLoaded = false; _freeLoaded = false;
@@ -4643,12 +4677,42 @@
     });
   }
 
+  // /api/reports 엣지 캐시 — 같은 주기 안에서는 한 번만 왕복 (요약·신고 동시 호출 중복 제거)
+  let _apiReportsP = null;
+  function apiReports(){
+    if(!_apiReportsP){
+      _apiReportsP = fetchWithTimeout('/api/reports', 8000)
+        .then(r => r.ok ? r.json() : null).catch(() => null);
+      setTimeout(() => { _apiReportsP = null; }, BOARD_TTL);
+    }
+    return _apiReportsP;
+  }
+
   // 홈·카드·달성률용: 선수별 제보 "요약"만 로드 (뷰 없으면 raw 폴백)
   async function loadHomeSummary(force){
     if(_summaryLoaded && !force) return true;
     if(!force){
       const cached = lsGet('fc_report_summary', BOARD_TTL);
       if(cached){ buildReportCachesFromSummary(cached); _summaryLoaded = true; return true; }
+    }
+    // 엣지 캐시(/api/reports) — Supabase egress 절감 (방문자 수만큼 → 캐시주기당 1번)
+    if(!force){
+      try{
+        {
+          const j = await apiReports();
+          if(j && Array.isArray(j.summary)){
+            buildReportCachesFromSummary(j.summary);
+            lsSet('fc_report_summary', j.summary);
+            _summaryLoaded = true;
+            if(Array.isArray(j.flags)){
+              flagsCache = {};
+              j.flags.forEach(x => { flagsCache[x.spid] = { nick: x.nick || '', at: x.created_at }; });
+              _flagsLoaded = true;
+            }
+            return true;
+          }
+        }
+      }catch(_){}
     }
     const client = await loadSupabase();
     if(!client) return false;
@@ -4677,7 +4741,23 @@
   }
 
   // 제보 상세용: 해당 선수 raw만 로드 (.eq) → reportsAll[spid] + 요약 재계산
-  async function loadReportsForSpid(spid){
+  async function loadReportsForSpid(spid, force){
+    if(!force){
+      const cached = lsGet(repKey(spid), REPORTS_TTL);
+      if(cached && cached.r){   // 번들 캐시 (제보 + 신고 + 추천)
+        reportsAll[spid] = cached.r; _pdFlags[spid] = cached.f || []; _pdLikes[spid] = cached.l || [];
+        recomputeReportCacheEntry(spid); return true;
+      }
+      if(Array.isArray(cached)){   // 예전 형식(제보만) — 그대로 쓰되 신고·추천은 따로 조회
+        reportsAll[spid] = cached; recomputeReportCacheEntry(spid); return true;
+      }
+      const j = await apiPlayer(spid);
+      if(j){
+        reportsAll[spid] = j.reports; _pdFlags[spid] = j.flags || []; _pdLikes[spid] = j.likes || [];
+        lsSet(repKey(spid), { r: j.reports, f: j.flags || [], l: j.likes || [] });
+        recomputeReportCacheEntry(spid); return true;
+      }
+    }
     const client = await loadSupabase();
     if(!client) return false;
     try{
@@ -4685,7 +4765,7 @@
       if(reps.error){ reps = await client.from('reports').select('id,spid,hj,min,nick,created_at,author').eq('spid', spid); }
       if(reps.error){ reps = await client.from('reports').select('spid,hj,min,nick,created_at,source,author').eq('spid', spid); }
       if(reps.error){ reps = await client.from('reports').select('spid,hj,min,nick,created_at,author').eq('spid', spid); }
-      if(reps.data){ reportsAll[spid] = reps.data; recomputeReportCacheEntry(spid); }
+      if(reps.data){ reportsAll[spid] = reps.data; lsSet(repKey(spid), { r: reps.data, f: null, l: null }); recomputeReportCacheEntry(spid); }
       return !reps.error;
     }catch(e){ return false; }
   }
@@ -4795,6 +4875,19 @@
   // 신고게시판용: report_flags 전체 (선수당 1행이라 작음)
   async function loadReportFlagsAll(force){
     if(_flagsLoaded && !force) return true;
+    if(!force){                                   // 엣지 캐시(/api/reports) — 신고 목록도 같은 엔드포인트
+      try{
+        {
+          const j = await apiReports();
+          if(j && Array.isArray(j.flags)){
+            flagsCache = {};
+            j.flags.forEach(x => { flagsCache[x.spid] = { nick: x.nick || '', at: x.created_at }; });
+            _flagsLoaded = true;
+            return true;
+          }
+        }
+      }catch(_){}
+    }
     const client = await loadSupabase();
     if(!client) return false;
     try{
@@ -6167,6 +6260,7 @@
       }
       closeFlagModal();
       invalidateBoardCache();                                          // 홈·목록 캐시 무효화
+      if(reported) invalidateReportsFor(spid);                         // 내 제보가 바로 보이게
       await Promise.all([loadHomeSummary(true), loadReportFlagsAll(true)]);   // 제보 집계 갱신
       runReportSearch();
       showToast(reported ? '신고와 갱신시간 제보 감사합니다!!' : '신고 감사합니다!!');
@@ -6324,9 +6418,27 @@
   let myReportFlags = new Set(); // 내가 신고한 report_id
   async function loadReportFlags(spid){
     reportFlagCount = {}; myReportFlags = new Set();
-    const client = await loadSupabase();
     const ids = (reportsAll[spid] || []).map(r => r.id).filter(v => v != null);
-    if(!client || !ids.length) return;
+    if(!ids.length) return;
+    // /api/player 로 같이 받아온 게 있으면 추가 조회 없이 그걸로 채운다
+    if(_pdFlags[spid] && _pdLikes[spid]){
+      (_pdFlags[spid] || []).forEach(f => {
+        reportFlagCount[f.report_id] = (reportFlagCount[f.report_id] || 0) + 1;
+        if(sbProfile && f.voter === sbProfile.id) myReportFlags.add(f.report_id);
+      });
+      const uid = currentUser();
+      const idset = new Set(ids);
+      ['report','report_dis'].forEach(rt => ids.forEach(id => { cLikesCache[rt+':'+id] = 0; }));
+      (_pdLikes[spid] || []).forEach(r => {
+        if(!idset.has(r.comment_id)) return;
+        const k = r.ref_type + ':' + r.comment_id;
+        cLikesCache[k] = (cLikesCache[k] || 0) + 1;
+        if(uid && r.user_id === uid) myCLikes.add(k);
+      });
+      return;
+    }
+    const client = await loadSupabase();
+    if(!client) return;
     try{
       const { data } = await client.from('report_content_flags').select('report_id,voter').in('report_id', ids);
       (data || []).forEach(f => {
@@ -6425,7 +6537,8 @@
       _editingReportId = null;
       const spid = reportDetailSpid;
       lsDel('fc_report_summary');           // 홈 요약 캐시 무효화 (변경 반영)
-      await loadReportsForSpid(spid);       // 해당 선수 제보만 다시 로드
+      invalidateReportsFor(spid);           // 내 변경은 바로 보이게
+      await loadReportsForSpid(spid, true); // 해당 선수 제보만 다시 로드
       await loadReportFlags(spid);
       if(reportDetailSpid === spid) renderReportSubs(spid);
       showToast('제보를 수정했어요.');
@@ -6448,7 +6561,8 @@
       if(error){ showToast('삭제 실패: ' + error.message); return; }
       const spid = reportDetailSpid;
       lsDel('fc_report_summary');           // 홈 요약 캐시 무효화 (변경 반영)
-      await loadReportsForSpid(spid);       // 해당 선수 제보만 다시 로드
+      invalidateReportsFor(spid);           // 내 변경은 바로 보이게
+      await loadReportsForSpid(spid, true); // 해당 선수 제보만 다시 로드
       await loadReportFlags(spid);
       if(reportDetailSpid === spid) renderReportSubs(spid);
       showToast('제보를 삭제했어요.');
@@ -6497,7 +6611,8 @@
       }catch(e){ showToast('신고 중 오류가 발생했어요.'); return; }
     }
     lsDel('fc_report_summary');           // 홈 요약 캐시 무효화 (변경 반영)
-    await loadReportsForSpid(spid);       // 해당 선수 제보만 다시 로드
+    invalidateReportsFor(spid);           // 내 변경은 바로 보이게
+    await loadReportsForSpid(spid, true); // 해당 선수 제보만 다시 로드
     await loadReportFlags(spid);
     if(reportDetailSpid === spid) renderReportSubs(spid);
   }
@@ -6638,34 +6753,54 @@
             <option value="짝">짝수시</option>
           </select>
           <input type="number" id="rmin_${p.id}" min="0" max="59" placeholder="분">
-          <button class="rep-btn ${_boardOk ? '' : 'dim'}" ${_boardOk ? '' : 'disabled'} onclick="submitReport(${p.id})">제보</button>
+          <button class="rep-btn" onclick="submitReport(${p.id})">제보</button>
         </div>
       </div>`;
     }).join('') + (totalCount > list.length
       ? `<div class="no-result">외 ${(totalCount - list.length).toLocaleString()}건 — 이름으로 검색해 범위를 좁혀보세요.</div>` : '');
   }
 
-  // 제보게시판 확인 문구 입력 여부 — 맞게 입력해야 제보 버튼 활성화
+  // 제보 전 확인 — 제보 버튼을 누르면 팝업이 뜨고, 체크해야 제출된다 (한 번 확인하면 그 뒤로는 바로 제출)
   let _boardOk = false;
-  function refreshBoardRepButtons(){
-    document.querySelectorAll('#boardResults .rep-btn').forEach(b => {
-      b.classList.toggle('dim', !_boardOk);
-      b.disabled = !_boardOk;
-    });
-  }
+  let _repPendingSpid = null;
+  function refreshBoardRepButtons(){ /* 제보 버튼은 항상 활성 — 확인은 팝업에서 */ }
   function onBoardConfirmInput(){
-    const el = document.getElementById('boardConfirmChk');
-    _boardOk = !!el && el.checked;
-    refreshBoardRepButtons();
+    const el = document.getElementById('repConfirmChk');
+    const btn = document.getElementById('repConfirmBtn');
+    const ok = !!el && el.checked;
+    if(btn){ btn.classList.toggle('dim', !ok); btn.disabled = !ok; }
+  }
+  function openRepConfirm(spid){
+    _repPendingSpid = spid;
+    const el = document.getElementById('repConfirmChk');
+    if(el) el.checked = false;
+    onBoardConfirmInput();
+    document.getElementById('repConfirmOverlay').classList.add('show');
+  }
+  function closeRepConfirm(){
+    _repPendingSpid = null;
+    document.getElementById('repConfirmOverlay').classList.remove('show');
+  }
+  function confirmRepAndSubmit(){
+    const el = document.getElementById('repConfirmChk');
+    if(!el || !el.checked) return;
+    const spid = _repPendingSpid;
+    _boardOk = true;                 // 이 세션 동안은 다시 묻지 않음
+    closeRepConfirm();
+    if(spid != null) submitReport(spid);
   }
 
   async function submitReport(spid){
-    if(!_boardOk){
-      const el = document.getElementById('boardConfirmChk');
-      if(el){ el.focus(); el.closest('label')?.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
-      showToast('위 "확인했어요"를 체크하면 제보할 수 있어요.');
+    // 입력값 먼저 확인 — 팝업을 띄웠다가 되돌아오는 일이 없게
+    const hjEl0 = document.getElementById('rhj_' + spid);
+    const minEl0 = document.getElementById('rmin_' + spid);
+    const min0 = minEl0 ? parseInt(minEl0.value, 10) : NaN;
+    if(isNaN(min0) || min0 < 0 || min0 > 59){
+      if(minEl0) minEl0.focus();
+      showToast('분을 0~59 사이로 입력해주세요.');
       return;
     }
+    if(!_boardOk){ openRepConfirm(spid); return; }
     if(!currentUser()){ openAuth(); return; }
     const hj = document.getElementById('rhj_' + spid).value;
     const min = parseInt(document.getElementById('rmin_' + spid).value, 10);
@@ -6687,6 +6822,7 @@
       track('report_submit', { spid: spid });
       showToast('제보 감사합니다!!');
       invalidateBoardCache();
+      invalidateReportsFor(spid);    // 내 제보가 바로 보이게
       await loadHomeSummary(true);   // 집계 다시 계산
       if(currentView === 'viewBoard') runBoardSearch();
       updateReportAdminUI();
@@ -6704,7 +6840,7 @@
   on('playerSearch2', 'keydown', (e) => { if(e.key === 'Enter') goSearchFrom('playerSearch2'); });
   on('boardSearch', 'input', runBoardSearch);
   on('boardSearch', 'keydown', (e) => { if(e.key === 'Enter') runBoardSearch(); });
-  on('boardConfirmChk', 'change', onBoardConfirmInput);
+  on('repConfirmChk', 'change', onBoardConfirmInput);
   on('reportSearch', 'input', runReportSearch);
   on('reportSearch', 'keydown', (e) => { if(e.key === 'Enter') runReportSearch(); });
   on('freeSearchInput', 'keydown', (e) => { if(e.key === 'Enter') doFreeSearch(); });
