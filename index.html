@@ -295,6 +295,8 @@
   .report-form button.dim{ opacity:.4; filter:grayscale(.5); cursor:not-allowed; }
   .confirm-chk{ appearance:none; -webkit-appearance:none; width:20px; height:20px; flex:0 0 auto; border:2px solid var(--text-dim); border-radius:6px; margin-top:1px; position:relative; cursor:pointer; background:transparent; }
   .confirm-chk:checked{ border-color:var(--lime); background:var(--lime); }
+  /* .modal input{width:100%} 이 체크박스까지 늘리는 걸 막는다 (구체성 맞춤) */
+  .modal .confirm-chk{ width:20px; height:20px; padding:0; flex:0 0 auto; border-radius:6px; }
   .confirm-chk:checked::after{ content:"✓"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#0B0F14; font-size:14px; font-weight:900; }
   .report-done{ font-size:12px; color:#F5B84B; }
 
@@ -1221,7 +1223,7 @@
       <p class="modal-sub">갱신시간은 <b style="color:var(--lime);">2시간 거래량이 바뀌는 시간</b>입니다.</p>
       <label for="repConfirmChk" style="display:flex; align-items:flex-start; gap:10px; background:rgba(196,255,61,.06); border:1px solid rgba(196,255,61,.3); border-radius:12px; padding:14px 16px; margin:14px 0 0; cursor:pointer; user-select:none;">
         <input type="checkbox" id="repConfirmChk" class="confirm-chk">
-        <span style="font-size:13.5px; line-height:1.5; color:var(--text);"><b style="color:var(--lime);">확인했어요</b> — 갱신시간은 2시간 거래량이 바뀌는 시간이라는 걸 확인하고 제보합니다.</span>
+        <span style="flex:1; min-width:0; font-size:13.5px; line-height:1.5; color:var(--text); text-align:left;"><b style="color:var(--lime);">확인했어요</b> — 갱신시간은 2시간 거래량이 바뀌는 시간이라는 걸 확인하고 제보합니다.</span>
       </label>
       <p style="margin-top:10px; font-size:12px; color:#ff5a5a; line-height:1.5;">⚠ 지속적으로 잘못된 정보를 제보하면 서비스 이용이 제한될 수 있습니다.</p>
       <button class="auth-submit dim" id="repConfirmBtn" disabled onclick="confirmRepAndSubmit()">제보하기</button>
