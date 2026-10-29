@@ -1037,7 +1037,7 @@
   #adTop{ display:none; }                       /* 모바일 상단 배너 전용 */
   #adBottom{ max-width:1000px; margin:24px auto 0; padding:0 12px; }
   .ad-rail{ display:none; }                      /* 데스크톱 양옆 세로 배너 */
-  @media (min-width: 1560px){
+  @media (min-width: 1440px){
     .ad-rail{ display:block; position:fixed; top:120px; width:160px; min-height:600px; z-index:40; }
     #adLeft{ left:20px; }
     #adRight{ right:20px; }
@@ -3480,6 +3480,13 @@
     }
   }
 
+  // 검색어 최소 2글자 — 1글자로는 결과가 너무 많고 느려서 막는다.
+  // 단 '존'·'킹'처럼 이름 자체가 1글자인 선수는 통과시켜 못 찾는 일이 없게 한다.
+  const MIN_Q = 2;
+  function qTooShort(q){
+    if(!q || q.length >= MIN_Q) return false;
+    return !(allPlayers && allPlayers.some(p => p.name === q));
+  }
   function runSearch(){
     const q = document.getElementById('playerSearch').value.trim();
     if(q === ''){
@@ -3518,6 +3525,7 @@
     window.scrollTo(0, 0);
     saveViewState();
     try{ trackPageView(id); }catch(e){}   // GA 가상 페이지뷰 → 페이지별 참여시간 집계
+    try{ mountRails(); }catch(e){}        // 세로 배너가 비어 있으면 화면 옮길 때 다시 시도
     if(id === 'viewPlayer') ensureSearchAd();
   }
 
@@ -3763,10 +3771,16 @@
     if(!q){
       // 클래스만 선택해서는 검색되지 않음 — 반드시 선수 이름을 입력해야 함
       if(useSeason){
-        try{ showToast('선수 이름을 한 글자 이상 입력해주세요.'); }catch(e){}
+        try{ showToast('선수 이름을 두 글자 이상 입력해주세요.'); }catch(e){}
         const el = document.getElementById(inputId);
         if(el) el.focus();
       }
+      return;
+    }
+    if(qTooShort(q)){
+      try{ showToast('두 글자 이상 입력해주세요.'); }catch(e){}
+      const el = document.getElementById(inputId);
+      if(el) el.focus();
       return;
     }
     const list = buildPlayerList(q, useSeason);
@@ -6178,6 +6192,7 @@
       return;
     }
     const q = document.getElementById('reportSearch').value.trim();
+    if(qTooShort(q)){ boxEl.innerHTML = `<div class="no-result">두 글자 이상 입력해주세요.</div>`; return; }
     const flags = getReportFlags();
     // 등록됨 = 갱신시간(홀/짝+분)이 입력된 카드
     let list = allPlayers.filter(p => p.hj && (q === '' || p.name.includes(q)));
@@ -6722,6 +6737,7 @@
       return;
     }
     const q = document.getElementById('boardSearch').value.trim();
+    if(qTooShort(q)){ boxEl.innerHTML = `<div class="no-result">두 글자 이상 입력해주세요.</div>`; return; }
     const season = selectedSeason3 || '';
     const reports = getReports();
     // 미등록 = 갱신시간(홀/짝+분)이 입력되지 않은 카드 (+ 시즌 필터)
@@ -6941,6 +6957,8 @@
     const box = document.getElementById(id);
     if(!box || !slot) return;                       // 슬롯 미설정 → 표시 안 함
     if(box.dataset.mounted) return;
+    // 앞서 unfilled 로 숨겨둔 칸이면 다시 펴서 폭을 재게 한다 (안 펴면 offsetWidth 가 0이라 영원히 대기)
+    if(box.style.display === 'none') box.style.display = '';
     // 컨테이너 폭이 0이면(레이아웃 전·숨김) push 시 "availableWidth=0" 오류 → 폭이 생길 때까지 재시도
     if(box.offsetWidth === 0){
       box._adTries = (box._adTries || 0) + 1;
@@ -6970,17 +6988,44 @@
     box.style.display = 'block';
     try{ (window.adsbygoogle = window.adsbygoogle || []).push({}); }catch(e){}
     // 광고가 채워지지 않으면 빈 칸이 안 남도록 컨테이너 숨김
-    setTimeout(() => { try{ if(ins.getAttribute('data-ad-status') === 'unfilled') box.style.display = 'none'; }catch(e){} }, 2500);
+    setTimeout(() => {
+      try{
+        if(ins.getAttribute('data-ad-status') !== 'unfilled') return;
+        box.style.display = 'none';
+        if(opts && opts.retry){        // 세로 배너: 재고가 들쭉날쭉해서 다음 기회에 다시 요청
+          box.dataset.mounted = '';
+          box._adTries = 0;
+          box.innerHTML = '';          // AdSense는 비어 있지 않은 ins 를 재사용하면 안 됨
+        }
+      }catch(e){}
+    }, 2500);
   }
+  // 세로 배너는 '한 번 실패하면 끝'이 아니라, 폭이 생기거나 화면을 옮길 때 다시 시도한다.
+  const RAIL_MIN = 1440;
+  let _railAt = 0;
+  function mountRails(){
+    try{
+      if(!window.matchMedia('(min-width: ' + RAIL_MIN + 'px)').matches) return;
+      const now = Date.now();
+      if(now - _railAt < 60000) return;      // 과도한 재요청 방지 (이미 채워진 건 mountAd 가 알아서 건너뜀)
+      _railAt = now;
+      mountAd('adLeft',  { vertical: true, retry: true });
+      mountAd('adRight', { vertical: true, retry: true });
+    }catch(e){}
+  }
+  let _railTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(_railTimer);
+    _railTimer = setTimeout(mountRails, 400);   // 창을 넓히면 그때 붙는다
+  });
   function initAds(){
     try{
       const mobile = window.matchMedia('(max-width: 720px)').matches;
-      const wide = window.matchMedia('(min-width: 1560px)').matches;
       // 모바일 상단 배너(adTop)는 홈 광고(adHome)와 중복되어 제거 — adHome 하나만 노출
       mountAd('adHome');
       // 모바일: 하단 광고를 글 한 칸 크기(320×100)로 고정 / PC: 반응형 유지
       mountAd('adBottom', mobile ? { fixed: { w: 320, h: 100 } } : undefined);
-      if(wide){ mountAd('adLeft', { vertical: true }); mountAd('adRight', { vertical: true }); }
+      mountRails();
     }catch(e){}
   }
   // 레이아웃(폭)이 준비된 뒤 광고 로드 — 폭 0 상태에서 push하면 "availableWidth=0" 오류가 남
