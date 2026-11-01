@@ -2702,7 +2702,10 @@
       if(sb && ('serviceWorker' in navigator) && ('PushManager' in window)){
         const reg = await navigator.serviceWorker.ready;
         const sub = await reg.pushManager.getSubscription();
-        if(sub) await sb.from('push_subs').update({ enabled:false }).eq('endpoint', sub.endpoint);
+        if(sub){
+          await sb.from('push_subs').update({ enabled:false }).eq('endpoint', sub.endpoint);
+          await requestPushSelfSync();
+        }
       }
     }catch(_){}
     try{ if(sb) await sb.auth.signOut(); }catch(e){}
@@ -3223,6 +3226,7 @@
       await sb.from('push_subs')
         .update({ quiet_start: (start == null ? null : start), quiet_end: (end == null ? null : end) })
         .eq('user_id', sbProfile.id);
+      requestPushSelfSync();
     }catch(e){}
   }
   // ── 문의 팝업 (mailto 대신, 어느 기기에서든 이메일 주소 표시·복사) ──
@@ -4211,6 +4215,7 @@
           const { error } = await sb.from('favorites').upsert({ user_id: sbProfile.id, spid, removed_at: null });
           if(error) return false;
           (favApi._cache = favApi._cache || {})[spid] = true;
+          requestPushSelfSync();
           return true;
         }catch(e){ return false; }
       }
@@ -4227,6 +4232,7 @@
           // 하드삭제 대신 소프트삭제 — 유지시간(추가→삭제) 측정 + 워커 증분이 5분 내 반영
           await sb.from('favorites').update({ removed_at: new Date().toISOString() }).eq('user_id', sbProfile.id).eq('spid', spid);
           if(favApi._cache) delete favApi._cache[spid];
+          requestPushSelfSync();
           return true;
         }catch(e){ return false; }
       }
@@ -4276,6 +4282,7 @@
           const { error } = await sb.from('custom_times').upsert({ user_id: sbProfile.id, spid, hj, min });
           if(error) return false;
           (customTimeApi._cache = customTimeApi._cache || {})[spid] = { hj, min };
+          requestPushSelfSync();
           return true;
         }catch(e){ return false; }
       }
@@ -4291,6 +4298,7 @@
         try{
           await sb.from('custom_times').delete().eq('user_id', sbProfile.id).eq('spid', spid);
           if(customTimeApi._cache) delete customTimeApi._cache[spid];
+          requestPushSelfSync();
           return true;
         }catch(e){ return false; }
       }
@@ -7289,6 +7297,21 @@
 
   // ---------- 웹 푸시 (앱을 꺼도 오는 알림) ----------
   const VAPID_PUBLIC = 'BHwzmA9kHzz-ZijTeUG6ONWsb8OzcA2SjqmtmYLMxRyIsiqZoX99PN69bfoWI1pD8vkHmWmgTRj71235EtaJEdo';
+  async function requestPushSelfSync(){
+    try{
+      if(!sbProfile) return;
+      const client = (typeof sb !== 'undefined' && sb) ? sb : await loadSupabase();
+      if(!client) return;
+      const { data } = await client.auth.getSession();
+      const token = data && data.session && data.session.access_token;
+      if(!token) return;
+      await fetch('https://fc-push-scheduler.eogus1556.workers.dev/sync-self', {
+        method:'POST',
+        headers:{ 'Authorization':'Bearer ' + token, 'Content-Type':'application/json' },
+        body:'{}'
+      });
+    }catch(_){}
+  }
   function urlB64ToUint8Array(b64){
     const pad = '='.repeat((4 - b64.length % 4) % 4);
     const base64 = (b64 + pad).replace(/-/g, '+').replace(/_/g, '/');
@@ -7361,6 +7384,7 @@
           error = r2.error;
         }
         if(error){ showPushStatus('❌', '구독 저장 실패', '서버 오류: ' + error.message); return; }
+        requestPushSelfSync();
       }
       try{ if(store()) store().setItem('fc_push_key', VAPID_PUBLIC); }catch(_){}   // 현재 키로 구독됨 표시
       pushSubscribed = true;
@@ -7430,6 +7454,7 @@
       };
       let { error } = await client.from('push_subs').upsert({ ...base, leads: getAlarmLeads() }, { onConflict: 'endpoint' });
       if(error) await client.from('push_subs').upsert(base, { onConflict: 'endpoint' });
+      requestPushSelfSync();
       try{ if(store()) store().setItem('fc_push_key', VAPID_PUBLIC); }catch(_){}
       pushSubscribed = true;
     }catch(_){}
@@ -7472,6 +7497,7 @@
       const client = (typeof sb !== 'undefined' && sb) ? sb : await loadSupabase();
       if(client && sub){
         await client.from('push_subs').update({ enabled: false }).eq('endpoint', sub.endpoint);
+        requestPushSelfSync();
       }
       closePushStatus();
       showToast('알림이 꺼졌어요.');
@@ -7518,6 +7544,7 @@
         .update({ lead_min: leadMin, leads }).eq('user_id', sbProfile.id);
       if(error) await sb.from('push_subs')
         .update({ lead_min: leadMin }).eq('user_id', sbProfile.id);   // leads 컬럼 없으면 lead_min만
+      requestPushSelfSync();
     }catch(e){}
   }
 
