@@ -3385,17 +3385,41 @@
     }
   }
 
-  // 알림이 실제로 뜨는지 즉시 확인용
-  function testAlarm(){
-    const msg = '알림이 정상 작동합니다. 즐겨찾기한 카드의 갱신이 임박하면 이렇게 알려드려요. (확인을 누르기 전까지 소리가 반복됩니다)';
-    if(('Notification' in window)){
-      if(window.Notification.permission === 'granted'){
-        fireNotification('FC알리미 알림 테스트', msg);
-      }else if(window.Notification.permission === 'default'){
-        window.Notification.requestPermission().then((perm) => { if(perm === 'granted') fireNotification('FC알리미 알림 테스트', msg); });
+  // 현재 로그인 계정의 현재 기기 한 대에만 실서버 푸시를 보내 즉시 확인한다.
+  async function testAlarm(){
+    try{
+      if(!sbProfile){ showToast('로그인 후 알림 테스트를 이용해 주세요.'); openAuth(); return; }
+      if(!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)){
+        showToast('이 브라우저는 푸시 알림을 지원하지 않습니다.'); return;
       }
+      if(Notification.permission !== 'granted'){
+        const permission = await Notification.requestPermission();
+        if(permission !== 'granted'){ showToast('브라우저 알림 권한을 허용해 주세요.'); return; }
+      }
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if(!sub){ showToast('먼저 즐겨찾기에서 앱 꺼도 알림 받기를 켜 주세요.'); return; }
+      const client = (typeof sb !== 'undefined' && sb) ? sb : await loadSupabase();
+      const sessionResult = client ? await client.auth.getSession() : null;
+      const accessToken = sessionResult && sessionResult.data && sessionResult.data.session && sessionResult.data.session.access_token;
+      if(!accessToken){ showToast('로그인 정보를 다시 확인해 주세요.'); return; }
+      showToast('현재 기기로 서버 푸시를 보내는 중입니다…');
+      const response = await fetch('https://fc-push-scheduler.eogus1556.workers.dev/send-self', {
+        method:'POST',
+        headers:{ 'Authorization':'Bearer ' + accessToken, 'Content-Type':'application/json' },
+        body:JSON.stringify({ endpoint:sub.endpoint })
+      });
+      const result = await response.json().catch(() => ({}));
+      if(result.ok && result.status === 201){
+        showToast('서버 발송 성공(201). 잠시 후 기기 알림을 확인해 주세요.');
+      }else if(result.error === 'subscription_not_linked'){
+        showToast('현재 기기 구독이 계정과 연결되지 않았습니다. 앱 꺼도 알림 받기를 다시 눌러 주세요.');
+      }else{
+        showToast('서버 푸시 실패: ' + (result.status || result.error || response.status));
+      }
+    }catch(e){
+      showToast('서버 푸시 테스트 오류: ' + String(e && e.message || e));
     }
-    showAlarmModal(msg);   // 팝업 + 확인 누를 때까지 알림음 반복
   }
 
   const MAX_RESULTS = 20;
