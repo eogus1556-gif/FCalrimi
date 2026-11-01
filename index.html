@@ -2487,7 +2487,9 @@
     const fallbackNick = (user.email || '').split('@')[0] || '유저';
     const loginId = (user.email || '').split('@')[0];
     try{
-      const { data } = await sb.from('profiles').select('*').eq('id', user.id).single();
+      const { data } = await sb.from('profiles')
+        .select('nick,is_admin,suspended_until,alarm_lead,quiet_hours')
+        .eq('id', user.id).single();
       sbProfile = { id: user.id, loginId, nick: (data && data.nick) || fallbackNick,
         is_admin: !!(data && data.is_admin), suspended_until: (data && data.suspended_until) || null };
       // 계정에 저장된 알림 시점을 이 기기에 반영 (기기 간 동기화)
@@ -4688,11 +4690,22 @@
   }
 
   // 글 하나의 본문·사진까지 전체 로드 (목록은 요약만 받아 전송량 절약)
+  async function apiCommunity(params){
+    try{
+      const q = new URLSearchParams(params || {});
+      const r = await fetchWithTimeout('/api/community?' + q.toString(), 8000);
+      if(!r.ok) return null;
+      return await r.json();
+    }catch(_){ return null; }
+  }
   async function fetchPostFull(id){
+    const edge = await apiCommunity({ mode:'post', id });
+    if(edge && edge.post) return mapPost(edge.post);
     const client = await loadSupabase();
     if(!client) return null;
     try{
-      const { data } = await client.from('free_posts').select('*').eq('id', id).maybeSingle();
+      const cols = FREE_COLS + ',pinned,body,image,images,poll,file_url,file_name';
+      const { data } = await client.from('free_posts').select(cols).eq('id', id).maybeSingle();
       return data ? mapPost(data) : null;
     }catch(e){ return null; }
   }
@@ -4794,7 +4807,8 @@
     const client = await loadSupabase();
     if(!client) return false;
     try{
-      const { data, error } = await client.from('report_summary').select('*');
+      const { data, error } = await client.from('report_summary')
+        .select('spid,best_hj,best_min,latest_nick,latest_at,cnt_total,agree,best_flags,cnt_join,cnt_report');
       if(error) return await loadReportsRawAll(force);   // 뷰 미설치 → 기존 raw 방식
       buildReportCachesFromSummary(data || []);
       lsSet('fc_report_summary', data || []);
@@ -4896,6 +4910,18 @@
         _freeLoaded = true; return true;
       }
     }
+    if(!force){
+      const edge = await apiCommunity({ mode:'list' });
+      if(edge && Array.isArray(edge.rows)){
+        const latest = edge.rows || [], pn = edge.pinned || [];
+        _freeAllLoaded = latest.length < FREE_FETCH_SIZE;
+        _freeOldestAt = latest.length ? latest[latest.length - 1].created_at : null;
+        _freeRaw = []; mergeFreeRows(latest); mergeFreeRows(pn);
+        postCommentCounts = edge.counts || {};
+        saveFreeCache(); lsSet('fc_pcc', postCommentCounts);
+        _freeLoaded = true; return true;
+      }
+    }
     const client = await loadSupabase();
     if(!client) return false;
     try{
@@ -4918,6 +4944,16 @@
   // 이전(오래된) 글 한 페이지 더 불러오기 — 새로 받아온 게 있으면 true (렌더는 호출부에서)
   async function loadMoreFreePosts(){
     if(_freeAllLoaded || !_freeOldestAt) return false;
+    const edge = await apiCommunity({ mode:'list', before:_freeOldestAt });
+    if(edge && Array.isArray(edge.rows)){
+      const rows = edge.rows;
+      _freeAllLoaded = rows.length < FREE_FETCH_SIZE;
+      if(rows.length) _freeOldestAt = rows[rows.length - 1].created_at;
+      mergeFreeRows(rows);
+      Object.assign(postCommentCounts, edge.counts || {});
+      saveFreeCache(); lsSet('fc_pcc', postCommentCounts);
+      return rows.length > 0;
+    }
     const client = await loadSupabase();
     if(!client) return false;
     try{
@@ -4936,9 +4972,13 @@
     freePage = 1;
     const q = (document.getElementById('freeSearchInput').value || '').trim();
     if(q && !_freeAllLoaded){
+      const col = document.getElementById('freeSearchField').value === 'nick' ? 'nick' : 'title';
+      const edge = await apiCommunity({ mode:'search', field:col, q });
+      if(edge && Array.isArray(edge.rows)){
+        mergeFreeRows(edge.rows); saveFreeCache(); renderFreePosts(); return;
+      }
       const client = await loadSupabase();
       if(client){
-        const col = document.getElementById('freeSearchField').value === 'nick' ? 'nick' : 'title';
         try{
           let r = await client.from('free_posts').select(FREE_COLS + ',pinned').ilike(col, '%' + q + '%').order('created_at', { ascending: false }).limit(200);
           if(r.error){ r = await client.from('free_posts').select(FREE_COLS).ilike(col, '%' + q + '%').order('created_at', { ascending: false }).limit(200); }
