@@ -1151,6 +1151,7 @@
         </div>
       </div>
       <a href="#" onclick="showAchievement(); return false;">시즌별 달성률</a>
+      <a href="#" onclick="showJerseyHelper(); return false;">선수 데이터 도구</a>
       <a href="#" onclick="showBoardHub(); return false;">커뮤니티</a>
       <a href="#" onclick="showFavorites(); return false;">즐겨찾기</a>
     </nav>
@@ -1180,6 +1181,7 @@
     <a onclick="mmNav('guide')">이용 방법</a>
     <a onclick="mmNav('refresh')">갱신시간 개념</a>
     <a onclick="mmNav('ach')">시즌별 달성률</a>
+    <a onclick="mmNav('jersey')">선수 데이터 도구</a>
     <a onclick="mmNav('board')">커뮤니티</a>
     <a onclick="mmNav('fav')">즐겨찾기</a>
     <a onclick="closeMobileMenu(); openInstallGuide();">📱 앱 설치</a>
@@ -1376,14 +1378,15 @@
       <button class="modal-close" onclick="closeNotice()">&times;</button>
       <h2 style="margin-bottom:10px;">갱신시간 업데이트</h2>
       <div style="display:flex; justify-content:center; align-items:center; gap:14px; margin:10px 0 14px;">
-        <img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/LKI.png" onerror="this.style.display='none'" alt="LKI" style="height:30px;">
         <img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/26UP.png" onerror="this.style.display='none'" alt="26UP" style="height:30px;">
+        <img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/LKI.png" onerror="this.style.display='none'" alt="LKI" style="height:30px;">
+        <img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/ICON.png" onerror="this.style.display='none'" alt="ICON" style="height:30px;">
       </div>
       <!--OLDICON <div style="display:flex; justify-content:center; gap:12px; margin:8px 0 14px;">
         <img src="data:image/png;base64,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" alt="UC" style="width:30px; height:24px;">
       </div>
       OLDICON-->
-      <p class="modal-sub" style="line-height:1.7;"><b style="color:var(--lime);">LKI · 26UP</b> 갱신시간이<br>업데이트되었습니다!</p>
+      <p class="modal-sub" style="line-height:1.7;"><b style="color:var(--lime);">26UP · LKI · ICON</b> 갱신시간이<br>업데이트되었습니다!</p>
       <p class="modal-sub" style="line-height:1.6; font-size:13px; margin-top:8px;">ICON TM 및 EVO 시즌은 거래량이 일정하지 않아<br>추후 업데이트 예정입니다.</p>
       <button class="auth-submit" onclick="closeNotice()">닫기</button>
       <p style="margin-top:14px; font-size:12px; color:var(--text-dim); line-height:1.6;">
@@ -1755,6 +1758,10 @@
   </main>
 
   <!-- 즐겨찾기 -->
+  <main id="viewJerseyHelper" class="subpage" style="display:none; padding:0; max-width:1200px;">
+    <iframe title="선수명·등번호 데이터 추출기" src="등번호_추출기.html" style="display:block; width:100%; height:calc(100vh - 74px); min-height:720px; border:0; background:var(--bg); border-radius:12px;"></iframe>
+  </main>
+
   <main id="viewFavorites" class="subpage" style="display:none;">
     <h1 style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">즐겨찾기
       <button class="write-btn" id="pushBtn" onclick="enablePush()" style="font-size:13px; padding:8px 16px; background:transparent; color:var(--lime); border:1px solid var(--lime);">🔔 앱 꺼도 알림 받기</button>
@@ -2241,7 +2248,7 @@
 
   // players.json 캐시 버전 — 선수 데이터(players.json)를 갱신해 배포할 때마다 이 값을 바꾸면
   // 브라우저·CDN이 옛 파일을 캐시하고 있어도 새 파일을 강제로 다시 받아옵니다.
-  const PLAYERS_VER = '20261025-1';
+  const PLAYERS_VER = '20261101-1';
   // 크롤링 탐지용 표식(canary) — 실제로 존재하지 않는 선수. 화면엔 절대 노출하지 않음.
   const CANARY_SPIDS = new Set([863990001, 863990002, 863990003]);
   const PLAYERS_CACHE = 'fc-players-cache-v1';   // 선수데이터 로컬 캐시 (검색 즉시 로드용)
@@ -2771,7 +2778,7 @@
     }, 25);
   }
   // 신규 등록된 선수 수 — 데이터 연동 전까지 이 값을 수동으로 바꿔주세요.
-  const NEW_PLAYERS_COUNT = 206;
+  const NEW_PLAYERS_COUNT = 8;
   try{
     animateNum(document.getElementById('statNew'), NEW_PLAYERS_COUNT, '명');
   }catch(e){ console.warn('통계 애니메이션 실패', e); }
@@ -3231,7 +3238,7 @@
 
   // ── 업데이트 안내 1회성 팝업 ──
   // 규칙: (1) 닫기를 누르면 그 기기(브라우저)에서 다시 안 뜸  (2) 공지 만료일이 지나면 아무에게도 안 뜸
-  const NOTICE_ID = 'fc_notice_lki26up_v1';            // 새 공지를 낼 땐 이 값만 바꾸면 됩니다
+  const NOTICE_ID = 'fc_notice_26up_lki_icon_v2';       // 새 공지를 낼 땐 이 값만 바꾸면 됩니다
   const NOTICE_EXPIRE = new Date('2026-11-13T23:59:59+09:00').getTime();  // 이 시각 이후엔 표시 안 함
   function maybeShowNotice(){
     try{
@@ -3548,7 +3555,7 @@
   // ---------- 뷰 전환 ----------
   // 뷰 이동 히스토리 (뒤로가기용)
   let currentView = 'viewHome';
-  const ALL_VIEWS = ['viewHome','viewPlayer','viewBoardHub','viewFreeBoard','viewBoard','viewReportBoard','viewReportDetail','viewAchievement','viewFavorites','viewGuide','viewRefresh','viewPrivacy','viewFaq','viewAbout','viewTerms'];
+  const ALL_VIEWS = ['viewHome','viewPlayer','viewBoardHub','viewFreeBoard','viewBoard','viewReportBoard','viewReportDetail','viewAchievement','viewJerseyHelper','viewFavorites','viewGuide','viewRefresh','viewPrivacy','viewFaq','viewAbout','viewTerms'];
 
   function applyView(id){
     if(id !== 'viewPlayer'){
@@ -3574,7 +3581,7 @@
   const VIEW_TITLES = {
     viewHome:'홈', viewPlayer:'선수상세', viewBoardHub:'커뮤니티', viewFreeBoard:'자유게시판',
     viewBoard:'제보게시판', viewReportBoard:'신고게시판', viewReportDetail:'제보상세',
-    viewAchievement:'업적', viewFavorites:'즐겨찾기', viewGuide:'이용방법', viewRefresh:'갱신싸움팁',
+    viewAchievement:'업적', viewJerseyHelper:'선수 데이터 도구', viewFavorites:'즐겨찾기', viewGuide:'이용방법', viewRefresh:'갱신싸움팁',
     viewPrivacy:'개인정보처리방침', viewFaq:'자주묻는질문', viewAbout:'소개', viewTerms:'이용약관'
   };
   function trackPageView(id){
@@ -3631,6 +3638,7 @@
           if(st.searchQ || st.searchSeason) showSearchCards(st.searchQ || '', st.searchSeason || '');
           else if(st.player) showPlayer(st.player, st.playerSeason || '');
           break;
+        case 'viewJerseyHelper': showJerseyHelper(); break;
         case 'viewFavorites':    showFavorites(); break;
         case 'viewAchievement':  showAchievement(); break;
         case 'viewBoardHub':     showBoardHub(); break;
@@ -3700,6 +3708,7 @@
       else if(target === 'ach') showAchievement();
       else if(target === 'board') showBoardHub();
       else if(target === 'fav') showFavorites();
+      else if(target === 'jersey') showJerseyHelper();
     }catch(e){}
   }
   // 메뉴 바깥을 누르면 닫기
@@ -4210,6 +4219,13 @@
     },
   };
 
+  // 스쿼드메이커의 일괄 등록 직후, 이미 열려 있던 FC알리미 탭의 60초 캐시를 비운다.
+  window.addEventListener('storage', e => {
+    if(e.key !== 'fc_fav_refresh_signal') return;
+    favApi._cache = null;
+    favApi._cacheAt = 0;
+  });
+
   // 커스텀 갱신시간: 갱신시간 미확인 선수를 즐겨찾기한 유저가 직접 설정한 시간.
   // 로그인 시 서버(custom_times) 저장 → 기기 동기화 + 앱 꺼도 푸시. 비로그인은 localStorage.
   const customTimeApi = {
@@ -4313,6 +4329,8 @@
     }
     return spidIndex.get(spid) || null;
   }
+
+  function showJerseyHelper(){ switchView('viewJerseyHelper'); }
 
   async function showFavorites(){
     switchView('viewFavorites');
@@ -5822,7 +5840,6 @@
         ${isAdmin() ? `<button class="like-btn" style="color:var(--lime); border-color:var(--lime);" onclick="togglePin(${p.id})">${p.pinned ? '📌 고정 해제' : '📌 상단 고정'}</button>` : ''}
         ${canReportPost ? `<button class="like-btn" style="color:var(--red);" onclick="openUserReport('${esc(p.authorUid)}','post:${p.id}','${safeQ(p.nick)}')">🚨 신고</button>` : ''}
       </div>
-      ${isNotice ? '' : `
       <div style="border-top:1px solid var(--line); margin-top:20px; padding-top:16px;">
         <div style="font-weight:600; margin-bottom:12px;">댓글</div>
         <div class="comment-write">
@@ -5830,18 +5847,16 @@
           <button class="search-btn" onclick="submitPostComment(${p.id})">등록</button>
         </div>
         <div id="pcList"><div class="no-result">댓글을 불러오는 중…</div></div>
-      </div>`}
+      </div>
       ${buildPostListBottom(p.id)}`;
     document.getElementById('freeListView').style.display = 'none';
     document.getElementById('freeWriteView').style.display = 'none';
     document.getElementById('freeReadView').style.display = '';
     // 본문 안의 URL을 클릭 링크(새 탭)로
     document.querySelectorAll('#freeReadBox .fr-body-rich, #freeReadBox .fr-body').forEach(linkifyIn);
-    if(!isNotice){
-      const inp = document.getElementById('pcInput');
-      if(inp) inp.addEventListener('keydown', (e) => { if(e.key === 'Enter' && !e.shiftKey && !isMobileDevice()){ e.preventDefault(); submitPostComment(p.id); } });
-      loadPostComments(p.id).then(() => renderPostComments(p.id));
-    }
+    const inp = document.getElementById('pcInput');
+    if(inp) inp.addEventListener('keydown', (e) => { if(e.key === 'Enter' && !e.shiftKey && !isMobileDevice()){ e.preventDefault(); submitPostComment(p.id); } });
+    loadPostComments(p.id).then(() => renderPostComments(p.id));
     // 투표 데이터 비동기 로드
     if(p.poll) loadPollData(p.id);
   }
