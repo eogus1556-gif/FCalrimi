@@ -2498,7 +2498,6 @@
         if(al && /^\d{1,2}(\+\d{1,2})?$/.test(al) && store()){
           store().setItem('fc_alarm_lead', al);
           reflectAlarmLead();
-          updateServerLeadMin();   // 이 기기의 푸시 구독 leads 도 계정 값으로 맞춤
         }
       }catch(_){}
       // 계정에 저장된 취침모드를 이 기기에 반영
@@ -2507,7 +2506,6 @@
         if(store()){
           if(qh && /^\d{1,4}-\d{1,4}$/.test(qh)) store().setItem('fc_quiet', qh);
           else if(qh === '' || qh === null) store().removeItem('fc_quiet');
-          updateServerQuiet();   // 이 기기 푸시 구독에도 취침모드 반영
         }
       }catch(_){}
     }catch(e){
@@ -3221,9 +3219,10 @@
     if(!sbProfile || !sb) return;
     if(start === undefined || end === undefined){ const q = getQuiet(); start = q ? q.start : null; end = q ? q.end : null; }
     try{
-      const reg = await navigator.serviceWorker.ready;
-      const sub = await reg.pushManager.getSubscription();
-      if(sub) sb.from('push_subs').update({ quiet_start: (start == null ? null : start), quiet_end: (end == null ? null : end) }).eq('endpoint', sub.endpoint).then(()=>{}, ()=>{});
+      // 계정의 모든 기기 구독에 즉시 반영한다. 현재 기기에 구독이 없어도 PC↔모바일 동기화됨.
+      await sb.from('push_subs')
+        .update({ quiet_start: (start == null ? null : start), quiet_end: (end == null ? null : end) })
+        .eq('user_id', sbProfile.id);
     }catch(e){}
   }
   // ── 문의 팝업 (mailto 대신, 어느 기기에서든 이메일 주소 표시·복사) ──
@@ -7321,12 +7320,15 @@
       }
       const j = sub.toJSON();
       const platform = isIOS() ? 'ios' : (/android/i.test(navigator.userAgent) ? 'android' : 'desktop');
+      const quiet = getQuiet();
       const client = (typeof sb !== 'undefined' && sb) ? sb : await loadSupabase();
       if(client){
         const base = {
           user_id: sbProfile.id, nick: sbProfile.nick,
           endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth,
-          platform, enabled: true, lead_min: Math.max(...getAlarmLeads()), last_seen: new Date().toISOString()
+          platform, enabled: true, lead_min: Math.max(...getAlarmLeads()),
+          quiet_start: quiet ? quiet.start : null, quiet_end: quiet ? quiet.end : null,
+          last_seen: new Date().toISOString()
         };
         let { error } = await client.from('push_subs').upsert({ ...base, leads: getAlarmLeads() }, { onConflict: 'endpoint' });
         if(error){   // leads 컬럼이 아직 없으면 그거 빼고 다시 저장 (SQL 미실행 대비)
@@ -7338,7 +7340,6 @@
       try{ if(store()) store().setItem('fc_push_key', VAPID_PUBLIC); }catch(_){}   // 현재 키로 구독됨 표시
       pushSubscribed = true;
       track('notify_on', { platform: platform });   // 앱 꺼도 알림 받기(구독) 완료
-      updateServerQuiet();   // 취침모드 설정을 새 구독에도 반영
       try{ await reg.showNotification('FC알리미', { body: '푸시 알림이 켜졌어요! 🔔 이제 앱을 꺼도 갱신시간 알림을 받을 수 있어요.', tag: 'fc-alarm' }); }catch(_){}
       showPushStatus('✅', '알림이 켜졌어요! 🔔', '이제 앱을 꺼도 갱신시간 알림을 받을 수 있어요.');
     }catch(e){
@@ -7365,22 +7366,42 @@
       if(!sbProfile) return;
       if(!('serviceWorker' in navigator) || !('PushManager' in window)) return;
       if(!('Notification' in window) || Notification.permission !== 'granted') return;
-      const optedIn = !!(store() && store().getItem('fc_push_key'));
+      const savedKey = (store() && store().getItem('fc_push_key')) || '';
+      const optedIn = !!savedKey;
       if(!optedIn) return;   // 한 번도 안 켠 기기는 건드리지 않음
       const reg = await navigator.serviceWorker.ready;
       let sub = await reg.pushManager.getSubscription();
+      const client = (typeof sb !== 'undefined' && sb) ? sb : await loadSupabase();
+      if(!client) return;
+
+      // 예전 VAPID 키 또는 서버가 404/410으로 비활성화한 주소면 자동으로 새 구독으로 교체.
+      let renew = !!(sub && savedKey !== VAPID_PUBLIC);
+      if(sub && !renew){
+        try{
+          const { data, error } = await client.from('push_subs')
+            .select('enabled').eq('endpoint', sub.endpoint).maybeSingle();
+          if(!error && data && data.enabled === false) renew = true;
+        }catch(_){}
+      }
+      if(sub && renew){
+        const oldEndpoint = sub.endpoint;
+        try{ await sub.unsubscribe(); }catch(_){}
+        try{ await client.from('push_subs').update({ enabled:false }).eq('endpoint', oldEndpoint); }catch(_){}
+        sub = null;
+      }
       if(!sub){
         try{ sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8Array(VAPID_PUBLIC) }); }
         catch(_){ return; }
       }
       const j = sub.toJSON();
       const platform = isIOS() ? 'ios' : (/android/i.test(navigator.userAgent) ? 'android' : 'desktop');
-      const client = (typeof sb !== 'undefined' && sb) ? sb : await loadSupabase();
-      if(!client) return;
+      const quiet = getQuiet();
       const base = {
         user_id: sbProfile.id, nick: sbProfile.nick,
         endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth,
-        platform, enabled: true, lead_min: Math.max(...getAlarmLeads()), last_seen: new Date().toISOString()
+        platform, enabled: true, lead_min: Math.max(...getAlarmLeads()),
+        quiet_start: quiet ? quiet.start : null, quiet_end: quiet ? quiet.end : null,
+        last_seen: new Date().toISOString()
       };
       let { error } = await client.from('push_subs').upsert({ ...base, leads: getAlarmLeads() }, { onConflict: 'endpoint' });
       if(error) await client.from('push_subs').upsert(base, { onConflict: 'endpoint' });
@@ -7467,12 +7488,11 @@
     const leads = getAlarmLeads();
     const leadMin = Math.max(...leads);
     try{
-      const reg = await navigator.serviceWorker.ready;
-      const sub = await reg.pushManager.getSubscription();
-      if(sub){
-        let { error } = await sb.from('push_subs').update({ lead_min: leadMin, leads }).eq('endpoint', sub.endpoint);
-        if(error) await sb.from('push_subs').update({ lead_min: leadMin }).eq('endpoint', sub.endpoint);   // leads 컬럼 없으면 lead_min만
-      }
+      // 현재 endpoint 하나가 아니라 계정의 PC·모바일·태블릿 구독을 한 번에 맞춘다.
+      let { error } = await sb.from('push_subs')
+        .update({ lead_min: leadMin, leads }).eq('user_id', sbProfile.id);
+      if(error) await sb.from('push_subs')
+        .update({ lead_min: leadMin }).eq('user_id', sbProfile.id);   // leads 컬럼 없으면 lead_min만
     }catch(e){}
   }
 
