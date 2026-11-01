@@ -3404,14 +3404,14 @@
       const accessToken = sessionResult && sessionResult.data && sessionResult.data.session && sessionResult.data.session.access_token;
       if(!accessToken){ showToast('로그인 정보를 다시 확인해 주세요.'); return; }
       showToast('현재 기기로 서버 푸시를 보내는 중입니다…');
-      const response = await fetch('https://fc-push-scheduler.eogus1556.workers.dev/send-self', {
+      const response = await fetch('https://fc-push-scheduler.eogus1556.workers.dev/queue-self-test', {
         method:'POST',
         headers:{ 'Authorization':'Bearer ' + accessToken, 'Content-Type':'application/json' },
         body:JSON.stringify({ endpoint:sub.endpoint })
       });
       const result = await response.json().catch(() => ({}));
-      if(result.ok && result.status === 201){
-        showToast('서버 발송 성공(201). 잠시 후 기기 알림을 확인해 주세요.');
+      if(result.ok && result.queued){
+        showToast('Queue 등록 성공. 잠시 후 기기 알림을 확인해 주세요.');
       }else if(result.error === 'subscription_not_linked'){
         showToast('현재 기기 구독이 계정과 연결되지 않았습니다. 앱 꺼도 알림 받기를 다시 눌러 주세요.');
       }else{
