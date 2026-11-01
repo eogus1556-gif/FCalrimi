@@ -1151,7 +1151,6 @@
         </div>
       </div>
       <a href="#" onclick="showAchievement(); return false;">시즌별 달성률</a>
-      <a href="#" onclick="showJerseyHelper(); return false;">선수 데이터 도구</a>
       <a href="#" onclick="showBoardHub(); return false;">커뮤니티</a>
       <a href="#" onclick="showFavorites(); return false;">즐겨찾기</a>
     </nav>
@@ -1181,7 +1180,6 @@
     <a onclick="mmNav('guide')">이용 방법</a>
     <a onclick="mmNav('refresh')">갱신시간 개념</a>
     <a onclick="mmNav('ach')">시즌별 달성률</a>
-    <a onclick="mmNav('jersey')">선수 데이터 도구</a>
     <a onclick="mmNav('board')">커뮤니티</a>
     <a onclick="mmNav('fav')">즐겨찾기</a>
     <a onclick="closeMobileMenu(); openInstallGuide();">📱 앱 설치</a>
@@ -1758,9 +1756,7 @@
   </main>
 
   <!-- 즐겨찾기 -->
-  <main id="viewJerseyHelper" class="subpage" style="display:none; padding:0; max-width:1200px;">
-    <iframe title="선수명·등번호 데이터 추출기" src="등번호_추출기.html" style="display:block; width:100%; height:calc(100vh - 74px); min-height:720px; border:0; background:var(--bg); border-radius:12px;"></iframe>
-  </main>
+  <main id="viewJerseyHelper" class="subpage" style="display:none;"></main>
 
   <main id="viewFavorites" class="subpage" style="display:none;">
     <h1 style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">즐겨찾기
@@ -3581,7 +3577,7 @@
   const VIEW_TITLES = {
     viewHome:'홈', viewPlayer:'선수상세', viewBoardHub:'커뮤니티', viewFreeBoard:'자유게시판',
     viewBoard:'제보게시판', viewReportBoard:'신고게시판', viewReportDetail:'제보상세',
-    viewAchievement:'업적', viewJerseyHelper:'선수 데이터 도구', viewFavorites:'즐겨찾기', viewGuide:'이용방법', viewRefresh:'갱신싸움팁',
+    viewAchievement:'업적', viewFavorites:'즐겨찾기', viewGuide:'이용방법', viewRefresh:'갱신싸움팁',
     viewPrivacy:'개인정보처리방침', viewFaq:'자주묻는질문', viewAbout:'소개', viewTerms:'이용약관'
   };
   function trackPageView(id){
@@ -3708,7 +3704,6 @@
       else if(target === 'ach') showAchievement();
       else if(target === 'board') showBoardHub();
       else if(target === 'fav') showFavorites();
-      else if(target === 'jersey') showJerseyHelper();
     }catch(e){}
   }
   // 메뉴 바깥을 누르면 닫기
@@ -4330,7 +4325,7 @@
     return spidIndex.get(spid) || null;
   }
 
-  function showJerseyHelper(){ switchView('viewJerseyHelper'); }
+  function showJerseyHelper(){ showHome(); }
 
   async function showFavorites(){
     switchView('viewFavorites');
