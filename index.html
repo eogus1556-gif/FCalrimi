@@ -7495,7 +7495,20 @@
         const reg = await navigator.serviceWorker.ready;
         const sub = await reg.pushManager.getSubscription();
         const perm = ('Notification' in window) ? Notification.permission : 'denied';
-        if(sub && perm === 'granted') await disablePush();
+        // 로컬 endpoint가 남아 있어도 서버에서는 이미 꺼진 구독일 수 있다.
+        // 서버의 enabled 상태까지 일치할 때만 끄고, 그 외에는 다시 켠다.
+        let serverEnabled = false;
+        if(sub && perm === 'granted' && sbProfile){
+          try{
+            const client = (typeof sb !== 'undefined' && sb) ? sb : await loadSupabase();
+            if(client){
+              const { data, error } = await client.from('push_subs')
+                .select('enabled').eq('endpoint', sub.endpoint).eq('user_id', sbProfile.id).maybeSingle();
+              serverEnabled = !error && !!(data && data.enabled === true);
+            }
+          }catch(_){}
+        }
+        if(sub && perm === 'granted' && serverEnabled) await disablePush();
         else await enablePush();
       }else{
         await enablePush();
@@ -7627,7 +7640,18 @@
       const reg = await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.getSubscription();
       const perm = ('Notification' in window) ? Notification.permission : 'denied';
+      let serverEnabled = false;
       if(sub && perm === 'granted'){
+        try{
+          const client = (typeof sb !== 'undefined' && sb) ? sb : await loadSupabase();
+          if(client){
+            const { data, error } = await client.from('push_subs')
+              .select('enabled').eq('endpoint', sub.endpoint).eq('user_id', sbProfile.id).maybeSingle();
+            serverEnabled = !error && !!(data && data.enabled === true);
+          }
+        }catch(_){}
+      }
+      if(sub && perm === 'granted' && serverEnabled){
         btn.textContent = '✅ 알림 켜짐 — 끄기'; btn.style.opacity = '';
       }else if(perm === 'denied'){
         btn.textContent = '🔕 알림 차단됨'; btn.style.opacity = '.5';
