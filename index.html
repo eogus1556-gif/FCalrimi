@@ -1779,7 +1779,7 @@
 
   <main id="viewFavorites" class="subpage" style="display:none;">
     <h1 style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">즐겨찾기
-      <button class="write-btn" id="pushBtn" onclick="enablePush()" style="font-size:13px; padding:8px 16px; background:transparent; color:var(--lime); border:1px solid var(--lime);">🔔 앱 꺼도 알림 받기</button>
+      <button class="write-btn" id="pushBtn" onclick="togglePush()" style="font-size:13px; padding:8px 16px; background:transparent; color:var(--lime); border:1px solid var(--lime);">🔔 앱 꺼도 알림 받기</button>
       <span id="favClock" style="font-family:var(--font-mono); font-size:36px; font-weight:700; color:var(--text); letter-spacing:1px;" title="현재 시각 · 15초 카운트"></span>
     </h1>
     <p class="page-sub" id="favSub">자주 확인하는 카드를 모아두고 갱신 시간을 한눈에 확인하세요.</p>
@@ -4186,6 +4186,13 @@
     s = s.replace(/[^0-9a-z가-힣]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
     return s || 'season';
   }
+  async function openAchievementSeason(season){
+    if(!season) return;
+    // 확정 갱신시간이 0명이라 정적 /refresh 페이지가 없는 시즌도
+    // 앱 안의 시즌 전체 카드 화면으로 이동해 미확인 선수와 제보 버튼을 보여준다.
+    pickSeasonFrom('2', season);
+    await showSearchCards('', season);
+  }
   function showAchievement(){
     switchView('viewAchievement');
     const listEl = document.getElementById('achList');
@@ -4219,10 +4226,9 @@
       <div class="stat-box"><div class="sv">${fullSeasons}</div><div class="sl">100% 완료 시즌</div></div>
     `;
     listEl.innerHTML = rows.map(r => {
-      // 확정 선수가 있는 시즌만 '시즌 글씨'를 랜딩페이지 링크로 (행 전체 아님)
-      const seasonCell = r.conf > 0
-        ? `<a class="a-season a-link" href="/refresh/${achSlug(r.season)}.html" title="${esc(r.season)} 갱신시간 페이지로 이동">${seasonIcon(r.seasonId)}<span class="code">${esc(r.season)}</span></a>`
-        : `<div class="a-season">${seasonIcon(r.seasonId)}<span class="code">${esc(r.season)}</span></div>`;
+      // 확정 선수가 있는 시즌은 정적 갱신시간 페이지로, 0명인 시즌은
+      // 앱 안의 시즌 전체 카드 화면으로 연결한다.
+      const seasonCell = `<a class="a-season a-link" href="/refresh/${achSlug(r.season)}.html" title="${esc(r.season)} 갱신시간 페이지로 이동">${seasonIcon(r.seasonId)}<span class="code">${esc(r.season)}</span></a>`;
       return `<div class="ach-row">${seasonCell}`
         + `<div class="ach-bar"><span style="width:${r.pct.toFixed(1)}%"></span></div>`
         + `<div class="a-num">${r.done.toLocaleString()} / ${r.total.toLocaleString()}</div>`
@@ -7476,6 +7482,31 @@
     }
   }
 
+  // 즐겨찾기 상단 버튼 하나로 현재 기기의 푸시를 켜고 끈다.
+  // 서버 구독까지 끝난 뒤에만 버튼 상태를 바꿔 연속 클릭/중복 요청을 막는다.
+  let pushToggleBusy = false;
+  async function togglePush(){
+    if(pushToggleBusy) return;
+    const btn = document.getElementById('pushBtn');
+    pushToggleBusy = true;
+    if(btn) btn.disabled = true;
+    try{
+      if('serviceWorker' in navigator && 'PushManager' in window){
+        const reg = await navigator.serviceWorker.ready;
+        const sub = await reg.pushManager.getSubscription();
+        const perm = ('Notification' in window) ? Notification.permission : 'denied';
+        if(sub && perm === 'granted') await disablePush();
+        else await enablePush();
+      }else{
+        await enablePush();
+      }
+    }finally{
+      pushToggleBusy = false;
+      if(btn) btn.disabled = false;
+      await refreshPushBtn();
+    }
+  }
+
   // ── 앱 열 때 자기 구독 self-heal ──
   // 로그인 + 알림 권한 허용 + 이 기기에서 전에 푸시를 켠 적 있음(fc_push_key) 이면,
   // 현재 구독을 조용히 enabled:true 로 되살린다. (구독 만료/비활성화돼도 앱만 열면 복구)
@@ -7572,11 +7603,13 @@
       }
       closePushStatus();
       showToast('알림이 꺼졌어요.');
+      await refreshPushBtn();
     }catch(e){
       showToast('알림 해제 중 오류가 발생했어요.');
     }
   }
   window.enablePush = enablePush;
+  window.togglePush = togglePush;
   window.disablePush = disablePush;
   window.refreshPushBtn = refreshPushBtn;
 
