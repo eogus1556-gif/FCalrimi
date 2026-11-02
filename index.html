@@ -1113,9 +1113,28 @@
     .season-dropdown .sd-filter,
     input[type="text"], input[type="password"], input[type="number"], input[type="search"], textarea, select{ font-size:16px; }
   }
+  /* 모바일 웹앱: 화면 최상단에서 아래로 당겨 새로고침 */
+  .pull-refresh{
+    position:fixed; left:50%; top:calc(env(safe-area-inset-top, 0px) + 8px);
+    transform:translate(-50%, -58px); z-index:10000; pointer-events:none;
+    display:flex; align-items:center; gap:7px; padding:8px 13px;
+    border:1px solid var(--line); border-radius:999px;
+    background:rgba(17,24,34,.96); color:var(--text-dim);
+    box-shadow:0 8px 24px rgba(0,0,0,.35); opacity:0;
+    font-size:12px; font-weight:700; transition:transform .18s ease, opacity .18s ease;
+  }
+  .pull-refresh.show{ opacity:1; }
+  .pull-refresh.ready{ color:var(--lime); border-color:var(--lime); }
+  .pull-refresh.loading .pull-refresh-icon{ animation:pullSpin .7s linear infinite; }
+  @keyframes pullSpin{ to{ transform:rotate(360deg); } }
+  @media (min-width:769px), (hover:hover) and (pointer:fine){ .pull-refresh{ display:none; } }
 </style>
 </head>
 <body>
+
+  <div id="pullRefresh" class="pull-refresh" aria-hidden="true">
+    <span class="pull-refresh-icon">↻</span><span class="pull-refresh-text">당겨서 새로고침</span>
+  </div>
 
   <noscript>
     <div style="max-width:720px; margin:40px auto; padding:24px; font-family:sans-serif; line-height:1.7; color:#1a1a1a;">
@@ -2158,6 +2177,58 @@
       }
     }catch(_){}
   });
+
+  // 모바일/PWA 공통 당겨서 새로고침. 최상단의 빈 영역에서 시작할 때만 동작한다.
+  (function initPullToRefresh(){
+    const el = document.getElementById('pullRefresh');
+    if(!el || !('ontouchstart' in window)) return;
+    const text = el.querySelector('.pull-refresh-text');
+    const threshold = 72;
+    let startX = 0, startY = 0, distance = 0, pulling = false, cancelled = false;
+    const blocked = 'input,textarea,select,button,a,[contenteditable="true"],[draggable="true"],.modal-overlay,.season-dropdown,.free-table';
+
+    document.addEventListener('touchstart', function(e){
+      if(e.touches.length !== 1 || window.scrollY > 0) return;
+      if(document.querySelector('.modal-overlay.show')) return;
+      const target = e.target instanceof Element ? e.target : null;
+      if(target && target.closest(blocked)) return;
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      distance = 0; pulling = true; cancelled = false;
+    }, { passive:true });
+
+    document.addEventListener('touchmove', function(e){
+      if(!pulling || cancelled || e.touches.length !== 1) return;
+      const dx = e.touches[0].clientX - startX;
+      const dy = e.touches[0].clientY - startY;
+      if(Math.abs(dx) > Math.abs(dy) + 8 || dy < 0 || window.scrollY > 0){ cancelled = true; return; }
+      if(dy < 8) return;
+      distance = Math.min(110, dy * .55);
+      e.preventDefault();
+      el.classList.add('show');
+      el.classList.toggle('ready', distance >= threshold);
+      el.style.transform = `translate(-50%, ${Math.min(58, distance - 46)}px)`;
+      text.textContent = distance >= threshold ? '놓아서 새로고침' : '당겨서 새로고침';
+    }, { passive:false });
+
+    function finishPull(){
+      if(!pulling) return;
+      pulling = false;
+      if(!cancelled && distance >= threshold){
+        el.classList.remove('ready'); el.classList.add('loading', 'show');
+        el.style.transform = 'translate(-50%, 0)';
+        text.textContent = '새로고침 중…';
+        setTimeout(() => location.reload(), 120);
+        return;
+      }
+      el.classList.remove('show', 'ready');
+      el.style.transform = 'translate(-50%, -58px)';
+      text.textContent = '당겨서 새로고침';
+      distance = 0;
+    }
+    document.addEventListener('touchend', finishPull, { passive:true });
+    document.addEventListener('touchcancel', finishPull, { passive:true });
+  })();
 
   // ---------- 저장 데이터 자동 복구 ----------
   // 배포 버전이 바뀌면 문제를 일으킬 수 있는 '임시 상태'만 자동 청소한다.
