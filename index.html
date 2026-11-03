@@ -7380,6 +7380,20 @@
   const VAPID_PUBLIC = 'BHwzmA9kHzz-ZijTeUG6ONWsb8OzcA2SjqmtmYLMxRyIsiqZoX99PN69bfoWI1pD8vkHmWmgTRj71235EtaJEdo';
   // Supabase가 push_subs/favorites/custom_times를 직접 읽으므로 별도 Worker 동기화는 필요 없다.
   async function requestPushSelfSync(){ return; }
+  async function savePushSubscription(client, base){
+    const { error } = await client.rpc('register_push_subscription', {
+      p_endpoint: base.endpoint,
+      p_p256dh: base.p256dh,
+      p_auth: base.auth,
+      p_nick: base.nick || null,
+      p_platform: base.platform || null,
+      p_lead_min: base.lead_min,
+      p_leads: Array.isArray(base.leads) ? base.leads : [base.lead_min],
+      p_quiet_start: base.quiet_start == null ? null : base.quiet_start,
+      p_quiet_end: base.quiet_end == null ? null : base.quiet_end
+    });
+    return error || null;
+  }
   function urlB64ToUint8Array(b64){
     const pad = '='.repeat((4 - b64.length % 4) % 4);
     const base64 = (b64 + pad).replace(/-/g, '+').replace(/_/g, '/');
@@ -7446,11 +7460,7 @@
           quiet_start: quiet ? quiet.start : null, quiet_end: quiet ? quiet.end : null,
           last_seen: new Date().toISOString()
         };
-        let { error } = await client.from('push_subs').upsert({ ...base, leads: getAlarmLeads() }, { onConflict: 'endpoint' });
-        if(error){   // leads 컬럼이 아직 없으면 그거 빼고 다시 저장 (SQL 미실행 대비)
-          const r2 = await client.from('push_subs').upsert(base, { onConflict: 'endpoint' });
-          error = r2.error;
-        }
+        const error = await savePushSubscription(client, { ...base, leads: getAlarmLeads() });
         if(error){ showPushStatus('❌', '구독 저장 실패', '서버 오류: ' + error.message); return; }
         requestPushSelfSync();
       }
@@ -7558,8 +7568,8 @@
         quiet_start: quiet ? quiet.start : null, quiet_end: quiet ? quiet.end : null,
         last_seen: new Date().toISOString()
       };
-      let { error } = await client.from('push_subs').upsert({ ...base, leads: getAlarmLeads() }, { onConflict: 'endpoint' });
-      if(error) await client.from('push_subs').upsert(base, { onConflict: 'endpoint' });
+      const error = await savePushSubscription(client, { ...base, leads: getAlarmLeads() });
+      if(error) return;
       requestPushSelfSync(false);
       try{ if(store()) store().setItem('fc_push_key', VAPID_PUBLIC); }catch(_){}
       pushSubscribed = true;
