@@ -3479,14 +3479,18 @@
       const accessToken = sessionResult && sessionResult.data && sessionResult.data.session && sessionResult.data.session.access_token;
       if(!accessToken){ showToast('로그인 정보를 다시 확인해 주세요.'); return; }
       showToast('현재 기기로 서버 푸시를 보내는 중입니다…');
-      const response = await fetch('https://fc-push-scheduler.eogus1556.workers.dev/queue-self-test', {
+      const response = await fetch(SUPABASE_URL + '/functions/v1/fc-push-dispatch', {
         method:'POST',
-        headers:{ 'Authorization':'Bearer ' + accessToken, 'Content-Type':'application/json' },
-        body:JSON.stringify({ endpoint:sub.endpoint })
+        headers:{
+          'Authorization':'Bearer ' + accessToken,
+          'apikey':SUPABASE_KEY,
+          'Content-Type':'application/json'
+        },
+        body:JSON.stringify({ action:'self-test', endpoint:sub.endpoint })
       });
       const result = await response.json().catch(() => ({}));
-      if(result.ok && result.queued){
-        showToast('Queue 등록 성공. 잠시 후 기기 알림을 확인해 주세요.');
+      if(result.ok){
+        showToast('서버 발송 성공. 기기 알림을 확인해 주세요.');
       }else if(result.error === 'subscription_not_linked'){
         showToast('현재 기기 구독이 계정과 연결되지 않았습니다. 앱 꺼도 알림 받기를 다시 눌러 주세요.');
       }else{
@@ -7374,21 +7378,8 @@
 
   // ---------- 웹 푸시 (앱을 꺼도 오는 알림) ----------
   const VAPID_PUBLIC = 'BHwzmA9kHzz-ZijTeUG6ONWsb8OzcA2SjqmtmYLMxRyIsiqZoX99PN69bfoWI1pD8vkHmWmgTRj71235EtaJEdo';
-  async function requestPushSelfSync(){
-    try{
-      if(!sbProfile) return;
-      const client = (typeof sb !== 'undefined' && sb) ? sb : await loadSupabase();
-      if(!client) return;
-      const { data } = await client.auth.getSession();
-      const token = data && data.session && data.session.access_token;
-      if(!token) return;
-      await fetch('https://fc-push-scheduler.eogus1556.workers.dev/sync-self', {
-        method:'POST',
-        headers:{ 'Authorization':'Bearer ' + token, 'Content-Type':'application/json' },
-        body:'{}'
-      });
-    }catch(_){}
-  }
+  // Supabase가 push_subs/favorites/custom_times를 직접 읽으므로 별도 Worker 동기화는 필요 없다.
+  async function requestPushSelfSync(){ return; }
   function urlB64ToUint8Array(b64){
     const pad = '='.repeat((4 - b64.length % 4) % 4);
     const base64 = (b64 + pad).replace(/-/g, '+').replace(/_/g, '/');
@@ -7569,7 +7560,7 @@
       };
       let { error } = await client.from('push_subs').upsert({ ...base, leads: getAlarmLeads() }, { onConflict: 'endpoint' });
       if(error) await client.from('push_subs').upsert(base, { onConflict: 'endpoint' });
-      requestPushSelfSync();
+      requestPushSelfSync(false);
       try{ if(store()) store().setItem('fc_push_key', VAPID_PUBLIC); }catch(_){}
       pushSubscribed = true;
     }catch(_){}
