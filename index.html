@@ -1152,6 +1152,26 @@
     .nav-dd:hover .nav-dd-menu, .nav-dd:focus-within .nav-dd-menu{ display:block; }
     .nav-dd-menu a{ display:block; padding:8px 12px; white-space:nowrap; border-radius:6px; }
     .nav-dd-menu a:hover{ background:var(--bg); }
+    /* 스쿼드메이커 출시 안내 — 기존 갱신시간 공지와 분리된 4페이지 팝업 */
+    .launch-modal{width:min(760px,94vw);max-width:760px;padding:0;overflow:hidden;}
+    .launch-head{display:flex;align-items:center;justify-content:space-between;padding:17px 20px 12px;border-bottom:1px solid var(--line);}
+    .launch-head b{font-size:16px;}.launch-step{font-size:12px;color:var(--text-dim);font-weight:800;}
+    .launch-body{padding:16px 20px 12px;text-align:center;}
+    .launch-shot{display:block;width:100%;max-height:48vh;object-fit:contain;border:1px solid var(--line);border-radius:12px;background:#080d12;}
+    .launch-copy{min-height:78px;padding:14px 4px 4px;}
+    .launch-copy h3{margin:0 0 7px;font-size:20px;color:var(--lime);}
+    .launch-copy p{margin:0;color:var(--text);font-size:14px;line-height:1.65;word-break:keep-all;}
+    .launch-dots{display:flex;justify-content:center;gap:7px;margin:8px 0 2px;}
+    .launch-dot{width:8px;height:8px;border:0;border-radius:50%;padding:0;background:var(--line-2);cursor:pointer;}
+    .launch-dot.active{width:22px;border-radius:6px;background:var(--lime);}
+    .launch-foot{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;padding:12px 20px 17px;border-top:1px solid var(--line);}
+    .launch-week{border:0;background:none;color:var(--text-dim);font-size:12px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;}
+    .launch-nav{display:flex;justify-content:flex-end;gap:8px;grid-column:3;}
+    .modal .launch-btn{width:auto;min-width:86px;margin:0;padding:10px 17px;border-radius:9px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);font:700 14px var(--font-body);cursor:pointer;}
+    .modal .launch-btn:hover{border-color:var(--lime);}
+    .modal .launch-btn:disabled{opacity:.35;cursor:default;border-color:var(--line);}
+    .modal .launch-btn.primary{background:var(--lime);border-color:var(--lime);color:#0B0F14;}
+    @media(max-width:600px){.launch-modal{width:96vw}.launch-head{padding:14px 15px 10px}.launch-body{padding:12px 12px 9px}.launch-shot{max-height:42vh}.launch-copy{min-height:92px;padding-top:12px}.launch-copy h3{font-size:18px}.launch-copy p{font-size:13px}.launch-foot{grid-template-columns:1fr;padding:10px 12px 14px}.launch-week{grid-row:2;text-align:left}.launch-nav{grid-column:1;grid-row:1;justify-content:stretch}.launch-nav button,.launch-nav a{flex:1}}
     /* 유저 제보 시간 강조 + 도장풍 딱지 */
     :root{ --report:#F5A524; }
     .report-stamp{ display:inline-flex; flex-direction:column; align-items:center; justify-content:center; width:36px; height:36px; border-radius:50%; border:2px solid var(--report); color:var(--report); font-size:9.5px; font-weight:800; line-height:1.1; margin-left:6px; vertical-align:middle; box-sizing:border-box; transform:rotate(-6deg); }
@@ -1166,10 +1186,12 @@
           <a href="#" onclick="showGuide(); return false;">이용 방법</a>
           <a href="#" onclick="showRefresh(); return false;">갱신시간 개념</a>
           <a href="#" onclick="showRefreshBattle(); return false;">갱신싸움 팁</a>
+          <a href="#" onclick="showAchievement(); return false;">시즌별 달성률</a>
           <a href="#" onclick="openInstallGuide(); return false;">앱으로 설치</a>
         </div>
       </div>
-      <a href="#" onclick="showAchievement(); return false;">시즌별 달성률</a>
+      <a href="/jersey.html">너의 등번호는</a>
+      <a href="/자료/스쿼드메이커%20db만들기/squadmaker_v6_2.html">스쿼드메이커</a>
       <a href="#" onclick="showBoardHub(); return false;">커뮤니티</a>
       <a href="#" onclick="showFavorites(); return false;">즐겨찾기</a>
     </nav>
@@ -1197,10 +1219,12 @@
   <!-- 모바일 메뉴 (720px 이하에서 ☰ 버튼으로 열림) -->
   <div id="mobileMenu" class="mobile-menu">
     <a onclick="mmNav('guide')">이용 방법</a>
-    <a onclick="mmNav('refresh')">갱신시간 개념</a>
-    <a onclick="mmNav('ach')">시즌별 달성률</a>
+    <a href="/jersey.html" onclick="closeMobileMenu()">너의 등번호는</a>
+    <a href="/자료/스쿼드메이커%20db만들기/squadmaker_v6_2.html" onclick="closeMobileMenu()">스쿼드메이커</a>
     <a onclick="mmNav('board')">커뮤니티</a>
     <a onclick="mmNav('fav')">즐겨찾기</a>
+    <a onclick="mmNav('refresh')">갱신시간 개념</a>
+    <a onclick="mmNav('ach')">시즌별 달성률</a>
     <a onclick="closeMobileMenu(); openInstallGuide();">📱 앱 설치</a>
     <div id="mmUserSec" style="display:none; border-top:1px solid var(--line); margin-top:6px; padding-top:6px;">
       <a onclick="closeMobileMenu(); openProfile();">👤 내 정보</a>
@@ -1394,21 +1418,41 @@
     <div class="modal" style="text-align:center;">
       <button class="modal-close" onclick="closeNotice()">&times;</button>
       <h2 style="margin-bottom:10px;">갱신시간 업데이트</h2>
-      <div style="display:flex; justify-content:center; align-items:center; gap:14px; margin:10px 0 14px;">
-        <img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/26UP.png" onerror="this.style.display='none'" alt="26UP" style="height:30px;">
-        <img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/LKI.png" onerror="this.style.display='none'" alt="LKI" style="height:30px;">
-        <img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/ICON.png" onerror="this.style.display='none'" alt="ICON" style="height:30px;">
+      <div style="display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:14px; margin:10px 0 14px;">
+        <img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/26UP.png" onerror="this.style.display='none'" alt="26UP">
+        <img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/LKI.png" onerror="this.style.display='none'" alt="LKI">
+        <img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/ICON.png" onerror="this.style.display='none'" alt="ICON">
+        <img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/EVO_CU.png" onerror="this.style.display='none'" alt="EVO CU">
+        <img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/EVO_EP.png" onerror="this.style.display='none'" alt="EVO EP">
       </div>
-      <!--OLDICON <div style="display:flex; justify-content:center; gap:12px; margin:8px 0 14px;">
-        <img src="data:image/png;base64,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" alt="UC" style="width:30px; height:24px;">
-      </div>
-      OLDICON-->
-      <p class="modal-sub" style="line-height:1.7;"><b style="color:var(--lime);">26UP · LKI · ICON</b> 갱신시간이<br>업데이트되었습니다!</p>
-      <p class="modal-sub" style="line-height:1.6; font-size:13px; margin-top:8px;">ICON TM 및 EVO 시즌은 거래량이 일정하지 않아<br>추후 업데이트 예정입니다.</p>
+      <p class="modal-sub" style="line-height:1.7;"><b style="color:var(--lime);">26UP · LKI · ICON · EVO</b> 시즌<br>갱신시간이 업데이트되었습니다!</p>
       <button class="auth-submit" onclick="closeNotice()">닫기</button>
       <p style="margin-top:14px; font-size:12px; color:var(--text-dim); line-height:1.6;">
         최근 시스템 오류 사항은 <a href="#" onclick="noticeGoBoard(); return false;" style="color:var(--lime); text-decoration:underline; cursor:pointer;">공지사항</a>을 확인해주세요.
       </p>
+    </div>
+  </div>
+
+  <!-- 스쿼드메이커 출시 안내: 닫으면 다음 접속에 다시 표시, '일주일 동안 그만보기'만 7일 숨김 -->
+  <div class="modal-overlay" id="launchNoticeOverlay" onclick="if(event.target===this) closeLaunchNotice()" aria-hidden="true">
+    <div class="modal launch-modal" role="dialog" aria-modal="true" aria-labelledby="launchNoticeTitle">
+      <div class="launch-head">
+        <b id="launchNoticeTitle">스쿼드메이커 출시</b>
+        <span class="launch-step" id="launchStep">1 / 4</span>
+        <button class="modal-close" onclick="closeLaunchNotice()" aria-label="닫기">&times;</button>
+      </div>
+      <div class="launch-body">
+        <img class="launch-shot" id="launchShot" src="/assets/squadmaker-launch/01-jersey.png" alt="등번호 자동 맞춤 기능 화면">
+        <div class="launch-copy"><h3 id="launchTitle"></h3><p id="launchText"></p></div>
+        <div class="launch-dots" id="launchDots" aria-label="기능 페이지"></div>
+      </div>
+      <div class="launch-foot">
+        <button type="button" class="launch-week" onclick="hideLaunchNoticeForWeek()">일주일 동안 그만보기</button>
+        <div class="launch-nav">
+          <button type="button" class="launch-btn" id="launchPrev" onclick="moveLaunchNotice(-1)">이전</button>
+          <button type="button" class="launch-btn primary" id="launchNext" onclick="moveLaunchNotice(1)">다음</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -2848,13 +2892,14 @@
     }, 25);
   }
   // 신규 등록된 선수 수 — 데이터 연동 전까지 이 값을 수동으로 바꿔주세요.
-  const NEW_PLAYERS_COUNT = 8;
+  const NEW_PLAYERS_COUNT = 314;
   try{
     animateNum(document.getElementById('statNew'), NEW_PLAYERS_COUNT, '명');
   }catch(e){ console.warn('통계 애니메이션 실패', e); }
 
   // 업데이트 안내 팝업 (홈 화면 진입 후 잠깐 뒤 표시)
   try{ setTimeout(function(){ try{ maybeShowNotice(); }catch(_){}}, 900); }catch(e){}
+  try{ setTimeout(function(){ try{ maybeShowLaunchNotice(); }catch(_){}}, 1400); }catch(e){}
 
   // '오늘 발송된 알림': 서버(alert_stats) 실집계 표시. 연결 실패 시 0건.
   async function refreshAlertStat(){
@@ -3310,7 +3355,7 @@
 
   // ── 업데이트 안내 1회성 팝업 ──
   // 규칙: (1) 닫기를 누르면 그 기기(브라우저)에서 다시 안 뜸  (2) 공지 만료일이 지나면 아무에게도 안 뜸
-  const NOTICE_ID = 'fc_notice_26up_lki_icon_v2';       // 새 공지를 낼 땐 이 값만 바꾸면 됩니다
+  const NOTICE_ID = 'fc_notice_26up_lki_icon_evo_v1';       // 새 공지를 낼 땐 이 값만 바꾸면 됩니다
   const NOTICE_EXPIRE = new Date('2026-11-13T23:59:59+09:00').getTime();  // 이 시각 이후엔 표시 안 함
   function maybeShowNotice(){
     try{
@@ -3325,12 +3370,107 @@
     try{ localStorage.setItem(NOTICE_ID, '1'); }catch(e){}    // 다시 안 뜨게 기록
     var ov = document.getElementById('noticeOverlay');
     if(ov) ov.classList.remove('show');
+    setTimeout(function(){ try{ maybeShowLaunchNotice(); }catch(e){} }, 180);
   }
   // 팝업 하단 '공지사항' 클릭 → 팝업 닫고 커뮤니티 공지사항으로 이동
   function noticeGoBoard(){
     try{ localStorage.setItem(NOTICE_ID, '1'); }catch(e){}
     var ov = document.getElementById('noticeOverlay'); if(ov) ov.classList.remove('show');
     try{ showFreeBoard(); setTimeout(function(){ try{ setFreeCat('공지사항'); }catch(e){} }, 350); }catch(e){}
+  }
+
+  // ── 스쿼드메이커 출시 안내 ──
+  // 일반 닫기는 다음 접속 때 다시 표시하며, '일주일 동안 그만보기'만 7일간 숨깁니다.
+  const LAUNCH_NOTICE_KEY = 'fc_squadmaker_launch_hide_until_v1';
+  const LAUNCH_NOTICE_EXPIRE = new Date('2026-11-11T23:59:59+09:00').getTime();
+  const LAUNCH_NOTICE_PAGES = [
+    {
+      image:'/assets/squadmaker-launch/01-jersey.png',
+      alt:'등번호 자동 맞춤 기능 화면',
+      title:'그 시절, 그 팀에서 달았던 바로 그 번호',
+      text:'등번호 고증을 위해 해당 팀에서 달고 뛰었던 번호를 자동으로 맞춰보세요.'
+    },
+    {
+      image:'/assets/squadmaker-launch/02-uniform.png',
+      alt:'유니폼 색 자동 맞춤 기능 화면',
+      title:'유니폼 색도 한 번에 자동 맞춤',
+      text:'유니폼을 일일이 맞추기 귀찮을 때는 유니폼 색 자동 맞춤 기능을 사용해보세요.'
+    },
+    {
+      image:'/assets/squadmaker-launch/03-ai-squad.png',
+      alt:'딸깍 스쿼드 메이커 화면',
+      title:'랭커픽으로 만드는 딸깍 스쿼드',
+      text:'스쿼드는 맞추기 귀찮지만 좋은 팀은 짜고 싶다면, 랭커픽 선수로 딸깍 스쿼드를 만들어보세요.'
+    },
+    {
+      image:'/assets/squadmaker-launch/04-training.png',
+      alt:'집중훈련 최대 오버롤 화면',
+      title:'집중훈련 최대 OVR까지 확인',
+      text:'집중훈련으로 찍을 수 있는 최대 오버롤과 적용된 세부 능력치도 바로 확인할 수 있어요.'
+    }
+  ];
+  let launchNoticePage = 0;
+  let launchNoticeWaitTimer = 0;
+  function renderLaunchNotice(){
+    const page = LAUNCH_NOTICE_PAGES[launchNoticePage];
+    if(!page) return;
+    const shot = document.getElementById('launchShot');
+    const title = document.getElementById('launchTitle');
+    const text = document.getElementById('launchText');
+    const step = document.getElementById('launchStep');
+    const prev = document.getElementById('launchPrev');
+    const next = document.getElementById('launchNext');
+    if(shot){ shot.src = page.image; shot.alt = page.alt; }
+    if(title) title.textContent = page.title;
+    if(text) text.textContent = page.text;
+    if(step) step.textContent = (launchNoticePage + 1) + ' / ' + LAUNCH_NOTICE_PAGES.length;
+    if(prev) prev.disabled = launchNoticePage === 0;
+    if(next) next.textContent = launchNoticePage === LAUNCH_NOTICE_PAGES.length - 1 ? '스쿼드메이커 시작' : '다음';
+    const dots = document.getElementById('launchDots');
+    if(dots){
+      dots.innerHTML = LAUNCH_NOTICE_PAGES.map(function(_, i){
+        return '<button type="button" class="launch-dot' + (i === launchNoticePage ? ' active' : '') + '" onclick="setLaunchNoticePage(' + i + ')" aria-label="' + (i + 1) + '페이지"></button>';
+      }).join('');
+    }
+  }
+  function maybeShowLaunchNotice(){
+    try{
+      if(Date.now() > LAUNCH_NOTICE_EXPIRE) return;
+      const hiddenUntil = Number(localStorage.getItem(LAUNCH_NOTICE_KEY) || 0);
+      if(hiddenUntil > Date.now()) return;
+      const home = document.getElementById('viewHome');
+      if(home && home.style.display === 'none') return;
+      const updateNotice = document.getElementById('noticeOverlay');
+      if(updateNotice && updateNotice.classList.contains('show')){
+        clearTimeout(launchNoticeWaitTimer);
+        launchNoticeWaitTimer = setTimeout(maybeShowLaunchNotice, 500);
+        return;
+      }
+      launchNoticePage = 0;
+      renderLaunchNotice();
+      const overlay = document.getElementById('launchNoticeOverlay');
+      if(overlay){ overlay.classList.add('show'); overlay.setAttribute('aria-hidden', 'false'); }
+    }catch(e){}
+  }
+  function closeLaunchNotice(){
+    const overlay = document.getElementById('launchNoticeOverlay');
+    if(overlay){ overlay.classList.remove('show'); overlay.setAttribute('aria-hidden', 'true'); }
+  }
+  function hideLaunchNoticeForWeek(){
+    try{ localStorage.setItem(LAUNCH_NOTICE_KEY, String(Date.now() + 7 * 24 * 60 * 60 * 1000)); }catch(e){}
+    closeLaunchNotice();
+  }
+  function setLaunchNoticePage(index){
+    launchNoticePage = Math.max(0, Math.min(LAUNCH_NOTICE_PAGES.length - 1, Number(index) || 0));
+    renderLaunchNotice();
+  }
+  function moveLaunchNotice(direction){
+    if(direction > 0 && launchNoticePage === LAUNCH_NOTICE_PAGES.length - 1){
+      closeLaunchNotice();
+      location.href = '/자료/스쿼드메이커%20db만들기/squadmaker_v6_2.html';
+      return;
+    }
+    setLaunchNoticePage(launchNoticePage + direction);
   }
   function copyContact(){
     const v = 'fcalrimi@gmail.com';
