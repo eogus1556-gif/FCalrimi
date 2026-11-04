@@ -3870,6 +3870,12 @@
   function restoreViewState(){
     // 어떤 경우에도 복원 로직이 초기 로딩을 깨뜨리지 않도록 전체를 방어 처리
     try{
+      // 스쿼드메이커 등 외부 페이지에서 즐겨찾기를 직접 열 때는 이전 화면 복원보다 우선한다.
+      const directView = new URLSearchParams(location.search).get('view');
+      if(directView === 'favorites'){
+        showFavorites();
+        return;
+      }
       let st = null;
       try{ st = JSON.parse(sessionStorage.getItem('fc_view_state') || 'null'); }catch(e){}
       if(!st || !st.view || st.view === 'viewHome') return;
