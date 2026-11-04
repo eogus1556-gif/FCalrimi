@@ -636,6 +636,8 @@ button{cursor:pointer;}
 .favPickBox{width:min(560px,100%);max-height:min(720px,90vh);display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line-2);border-radius:15px;box-shadow:0 24px 70px rgba(0,0,0,.58);overflow:hidden;}
 .favPickHead{display:flex;align-items:center;gap:9px;padding:14px 16px;border-bottom:1px solid var(--line);}
 .favPickHead strong{font-size:15px;}.favPickHead small{color:var(--text-dim);font-size:10.5px;}.favPickHead button{margin-left:auto;}
+.favGoLink{color:var(--lime);font-weight:950;text-decoration:underline;text-decoration-color:rgba(196,255,61,.45);text-underline-offset:3px;}.favGoLink:hover{filter:brightness(1.15);}
+.favCloseBtn,.favCancelBtn{border:1px solid #52647a!important;background:#243246!important;color:#fff!important;font-weight:900!important;box-shadow:0 2px 8px rgba(0,0,0,.28);}.favCloseBtn{min-height:34px;padding:7px 12px!important;border-radius:8px;cursor:pointer;}.favCancelBtn{font-size:12px!important;}
 .favPickTools{display:flex;align-items:center;gap:7px;padding:10px 12px;border-bottom:1px solid var(--line);}
 .favPickTools button{padding:6px 9px;border:1px solid var(--line);border-radius:7px;background:var(--surface-2);color:var(--text-dim);font-size:10.5px;font-weight:800;cursor:pointer;}
 .favPickCount{margin-left:auto;color:var(--lime);font-size:11px;font-weight:900;}
@@ -816,7 +818,7 @@ button{cursor:pointer;}
 <div class="app">
 
   <header class="smHeader">
-    <a class="smLogo" href="/" title="FC알리미 홈으로">FC<b>알리미</b> · 스쿼드 메이커</a>
+    <a class="smLogo" href="https://fcalrimi.com/index.html" target="_self" onclick="event.preventDefault();event.stopPropagation();window.location.assign('https://fcalrimi.com/index.html');return false;" title="FC알리미 홈으로">FC<b>알리미</b> · 스쿼드 메이커</a>
     <div class="smHeaderSpacer"></div>
     <input type="hidden" id="squadTitle" value="">
     <button class="uToggle squadFavBtn" id="btnSquadFav" onclick="addSquadToRefreshFavorites()" title="선발과 후보의 현재 시즌 카드를 갱신시간 즐겨찾기에 한 번에 추가">★ 갱신시간 즐겨찾기</button>
@@ -981,10 +983,10 @@ button{cursor:pointer;}
 
 <div class="favPickModal" id="favPickModal" aria-hidden="true">
   <div class="favPickBox" role="dialog" aria-modal="true" aria-labelledby="favPickTitle">
-    <div class="favPickHead"><strong id="favPickTitle">갱신시간 즐겨찾기</strong><small>등록할 선수를 선택하세요</small><button class="ghostBtn" type="button" onclick="closeSquadFavoritePicker()">닫기</button></div>
+    <div class="favPickHead"><strong id="favPickTitle">갱신시간 <a class="favGoLink" href="https://fcalrimi.com/index.html?view=favorites" target="_self" title="FC알리미 즐겨찾기로 이동">즐겨찾기</a></strong><small>등록할 선수를 선택하세요</small><button class="ghostBtn favCloseBtn" type="button" onclick="closeSquadFavoritePicker()">✕ 닫기</button></div>
     <div class="favPickTools"><button type="button" onclick="setAllSquadFavoritePicks(true)">전체 선택</button><button type="button" onclick="setAllSquadFavoritePicks(false)">전체 해제</button><span class="favPickCount" id="favPickCount"></span></div>
     <div class="favPickList" id="favPickList"></div>
-    <div class="favPickFoot"><button class="ghostBtn" type="button" onclick="closeSquadFavoritePicker()">취소</button><button class="btnPrimary" id="favPickSave" type="button" onclick="saveSquadFavoritePicks()">선택 선수 등록</button></div>
+    <div class="favPickFoot"><button class="ghostBtn favCancelBtn" type="button" onclick="closeSquadFavoritePicker()">취소하고 닫기</button><button class="btnPrimary" id="favPickSave" type="button" onclick="saveSquadFavoritePicks()">선택 선수 등록</button></div>
   </div>
 </div>
 
@@ -992,7 +994,7 @@ button{cursor:pointer;}
 <div class="qsOverlay" id="quickSearch">
   <div class="qsBox">
     <div class="qsHead">
-      <a class="qsHome" href="/" aria-label="FC알리미 홈으로">FC<b>알리미</b></a>
+      <a class="qsHome" href="https://fcalrimi.com/index.html" target="_self" onclick="event.preventDefault();event.stopPropagation();window.location.assign('https://fcalrimi.com/index.html');return false;" aria-label="FC알리미 홈으로">FC<b>알리미</b></a>
       <div class="inClear" style="flex:1;min-width:0;"><input id="qsName" class="qsInput" placeholder="선수명 (2자 이상)" autocomplete="off"><button type="button" class="inX" onclick="clearInput('qsName')" title="지우기">×</button></div>
       <button class="qsClose" id="qsClose" title="닫기">×</button>
     </div>
@@ -1005,7 +1007,7 @@ button{cursor:pointer;}
 <div class="popup" id="searchPopup">
   <div class="popBox">
     <div class="popHead">
-      <a class="popHome" href="/" aria-label="FC알리미 홈으로">FC<b>알리미</b></a>
+      <a class="popHome" href="https://fcalrimi.com/index.html" target="_self" onclick="event.preventDefault();event.stopPropagation();window.location.assign('https://fcalrimi.com/index.html');return false;" aria-label="FC알리미 홈으로">FC<b>알리미</b></a>
       <div class="popTitle">선수 검색</div>
       <div class="popSub" id="popSub"></div>
       <button class="popClose" onclick="closeSearch()">×</button>
@@ -3405,29 +3407,54 @@ function disableJerseyToggle(){
   showJersey=false;
   document.getElementById('btnJersey')?.classList.remove('on');
 }
+function disableFaceSnToggle(){
+  if(!showFaceSn)return;
+  showFaceSn=false;
+  document.getElementById('btnFaceSn')?.classList.remove('on');
+}
+function disableExclusiveDisplayToggles(){
+  disableJerseyToggle();
+  disableFaceSnToggle();
+}
+function disableOtherFeatureToggles(except){
+  if(except!=='foot'){showFoot=false;document.getElementById('btnFoot')?.classList.remove('on');}
+  if(except!=='trait'){showTrait=false;document.getElementById('btnTrait')?.classList.remove('on');}
+  if(except!=='train'){showTrain=false;document.getElementById('btnTrain')?.classList.remove('on');}
+  if(except!=='wr'){showWr=false;document.getElementById('btnWr')?.classList.remove('on');}
+  if(except!=='jersey')disableJerseyToggle();
+  if(except!=='faceSn')disableFaceSnToggle();
+  if(except!=='uni'){
+    autoUni=false;
+    document.getElementById('btnUni')?.classList.remove('on');
+    const ctl=document.getElementById('uniCtl');
+    if(ctl)ctl.style.display='none';
+  }
+}
 function toggleFoot(){keepMenu(()=>{showFoot=!showFoot;   // 가격 ↔ 주발·약발 전환
-  if(showFoot)disableJerseyToggle();
+  disableExclusiveDisplayToggles();
   document.getElementById('btnFoot').classList.toggle('on',showFoot);});}
 function toggleTrait(){                                      // 미페 시즌과 같은 자리 → 하나만 켜짐
   const next=!showTrait;
   if(next&&!CHEM){toast('특성 데이터(chem.json)가 아직 없어요');}
   keepMenu(()=>{showTrait=next;
-    if(showTrait)disableJerseyToggle();
-    if(showTrait&&showFaceSn){ showFaceSn=false; document.getElementById('btnFaceSn').classList.remove('on'); }
+    disableExclusiveDisplayToggles();
     document.getElementById('btnTrait').classList.toggle('on',showTrait);});
 }
 function toggleTrain(){keepMenu(()=>{showTrain=!showTrain;   // OVR에 집중훈련 반영 on/off
-  if(showTrain)disableJerseyToggle();
+  disableExclusiveDisplayToggles();
   document.getElementById('btnTrain').classList.toggle('on',showTrain);});}
 function toggleWr(){keepMenu(()=>{showWr=!showWr;            // 카드 참여도 표시 on/off
-  if(showWr)disableJerseyToggle();
+  disableExclusiveDisplayToggles();
   document.getElementById('btnWr').classList.toggle('on',showWr);});}
-function toggleFaceSn(){keepMenu(()=>{showFaceSn=!showFaceSn;   // 금빛특성과 같은 자리 → 하나만 켜짐
-  if(showFaceSn)disableJerseyToggle();
-  if(showFaceSn&&showTrait){ showTrait=false; document.getElementById('btnTrait').classList.remove('on'); }
+function toggleFaceSn(){keepMenu(()=>{
+  const next=!showFaceSn;
+  if(next)disableOtherFeatureToggles('faceSn');
+  showFaceSn=next;
   document.getElementById('btnFaceSn').classList.toggle('on',showFaceSn);});}
 function toggleJersey(){
-  showJersey=!showJersey;
+  const next=!showJersey;
+  if(next)disableOtherFeatureToggles('jersey');
+  showJersey=next;
   document.getElementById('btnJersey').classList.toggle('on',showJersey);
   save();
   if(!showJersey){renderBoard();return;}
@@ -3438,8 +3465,8 @@ function toggleJersey(){
 // 수동 지정한 미페(s.img) 초기화 → 자동 재적용 대상으로 되돌림 (색변경·자동 재실행 시 호출)
 function clearAutoFaces(){ for(const s of squad){ if(s&&s.img!=null)delete s.img; } }
 function toggleUni(){
+  disableExclusiveDisplayToggles();
   autoUni=!autoUni;
-  if(autoUni)disableJerseyToggle();
   document.getElementById('btnUni').classList.toggle('on',autoUni);
   document.getElementById('uniCtl').style.display=autoUni?'inline-flex':'none';
   if(autoUni) clearAutoFaces();                              // 켤 때 전체 자동 적용
@@ -3511,6 +3538,12 @@ function load(){
     showFoot=!!d.showFoot; showTrait=!!d.showTrait; showTrain=d.showTrain!==false; showWr=!!d.showWr;
     showFaceSn=!!d.showFaceSn;
     showJersey=!!d.showJersey;
+    autoUni=!!d.autoUni; autoUniTarget=d.autoUniTarget||null;
+    // 이전 저장값에 여러 표시 모드가 함께 켜져 있어도 단독 모드 규칙으로 정리한다.
+    if(showFaceSn||showJersey){
+      if(showFaceSn)showJersey=false;
+      showFoot=false;showTrait=false;showTrain=false;showWr=false;autoUni=false;
+    }
     document.getElementById('btnWr').classList.toggle('on',showWr);
     document.getElementById('btnFaceSn').classList.toggle('on',showFaceSn);
     document.getElementById('btnJersey').classList.toggle('on',showJersey);
@@ -3519,7 +3552,6 @@ function load(){
     document.getElementById('btnFoot').classList.toggle('on',showFoot);
     document.getElementById('btnTrait').classList.toggle('on',showTrait);
     document.getElementById('btnTrain').classList.toggle('on',showTrain);
-    autoUni=!!d.autoUni; autoUniTarget=d.autoUniTarget||null;
     document.getElementById('btnUni').classList.toggle('on',autoUni);
     document.getElementById('uniCtl').style.display=autoUni?'inline-flex':'none';
     if(autoUniTarget){const uc=document.getElementById('uniColor');if(uc)uc.value=autoUniTarget;
