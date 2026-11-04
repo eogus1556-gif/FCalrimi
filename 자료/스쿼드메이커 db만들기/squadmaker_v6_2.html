@@ -363,6 +363,12 @@ button{cursor:pointer;}
 .aiRow img{width:22px;height:22px;object-fit:contain;flex-shrink:0;}
 .aiRow .t{flex:1;font-size:13px;font-weight:700;}
 .aiRow .n{font-size:11px;color:var(--text-dim);}
+.aiBuildTitle{font-size:30px;}
+.aiBuildHint{font-size:15px;max-width:680px;}
+.aiBuildSummary{width:min(640px,94vw);}
+.aiBuildSummary .aiRow{padding:14px 18px;}
+.aiBuildSummary .aiRow .t{font-size:15px;}
+.aiBuildSummary .aiRow .n{font-size:14px;font-weight:700;line-height:1.45;}
 .aiAutoName{display:inline-block;margin-top:3px;padding:3px 8px;border-radius:999px;background:var(--lime);color:#0B0F14;font-size:12px;font-weight:900;box-shadow:0 0 16px rgba(196,255,61,.28);}
 .tInput{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;
   padding:10px 12px;font-size:13px;outline:none;}
@@ -956,7 +962,7 @@ button{cursor:pointer;}
     <div class="featureHelpList">
       <div class="featureHelpItem"><b>딸깍 스쿼드</b><p>클릭 몇 번으로 랭커들이 검증한 선수만 골라 스쿼드를 완성시켜드려요.</p></div>
       <div class="featureHelpItem"><b>금빛 특성</b><p>토글을 활성화한 뒤 선수를 클릭하면 8강 이상 선수에게 금빛 특성을 추가할 수 있어요.</p></div>
-      <div class="featureHelpItem"><b>집중훈련</b><p>선수별 최고 OVR 조합을 추천받고, 집중훈련으로 가능한 최대 오버롤을 적용할 수 있어요.</p></div>
+      <div class="featureHelpItem"><b>집중훈련</b><p>선수를 클릭한 뒤 계산기 아이콘을 누르면 최고 OVR 조합을 추천받고, 집중훈련으로 가능한 최대 오버롤을 적용할 수 있어요.</p></div>
       <div class="featureHelpItem"><b>등번호</b><p>등번호를 켠 뒤 선수를 클릭하면 ‘너의 등번호는’ 페이지에서 해당 선수의 팀·연도별 등번호 기록을 바로 볼 수 있어요.</p></div>
       <div class="featureHelpItem"><b>미페 자동맞춤</b><p>스쿼드에서 같은 색이 많은 유니폼으로 자동 보정돼요. 미세한 색 차이는 색상 선택으로 직접 조절할 수 있어요.</p></div>
       <div class="featureHelpItem"><b>미페 시즌</b><p>현재 미니페이스온 선수가 착용 중인 유니폼의 시즌을 알려줘요.</p></div>
@@ -2813,7 +2819,7 @@ function rollAutoTc(){   // 자동 선택/재추첨. 성공 시 true
   if(c.length>1){ let g=0; while(p.no===prev && g++<8) p=c[Math.floor(Math.random()*c.length)]; }
   aiState.tcAuto=true; aiState.tc=p.no; aiState.tcName=p.name; return true;
 }
-let aiState={budget:null, mode:'manager', tc:null, tcName:'', tcAuto:false, form:null, grade:'auto', locks:[], gmap:{}, gmapForm:'', noRare:false};
+let aiState={budget:null, mode:'manager', tc:null, tcName:'', tcAuto:true, form:null, grade:'auto', locks:[], gmap:{}, gmapForm:'', noRare:false};
 let aiIdx=0;
 let aiOpenG=null;   // 필수선수 강화 picker 열린 행 index
 let aiOpenGm=null;  // 개별강화 11칸 강화 picker 열린 행 index
@@ -2855,7 +2861,7 @@ function pickGrade(spid){
 function aiMode(){
   if(!PICK){ toast('픽률 데이터(pickrate.json)가 아직 없어요'); return; }
   if(!CHEM){ toast('data.json 로딩 후 사용하세요'); return; }
-  aiState={budget:null, mode:'manager', tc:null, tcName:'', tcAuto:false, form:null, grade:'auto', locks:[], gmap:{}, gmapForm:'', noRare:false};
+  aiState={budget:null, mode:'manager', tc:null, tcName:'', tcAuto:true, form:null, grade:'auto', locks:[], gmap:{}, gmapForm:'', noRare:false};
   tcbLoad(); rareLoad(); liveLoad();
   aiIdx=0; aiOpenG=null; aiOpenGm=null; document.getElementById('aiWiz').classList.add('on'); renderAiStep();
 }
@@ -2870,6 +2876,8 @@ function aiSaveCurrentStep(){
 function aiGoto(i,saveCurrent=true){if(saveCurrent)aiSaveCurrentStep();aiIdx=Math.max(0,Math.min(AI_STEPS.length-1,i));renderAiStep();}
 function renderAiStep(){
   const step=AI_STEPS[aiIdx], body=document.getElementById('aiBody');
+  // 새 딸깍 스쿼드는 인기 팀컬러 자동 선택이 기본값이다. 사용자가 '선택 안 함'을 누르면 tcAuto=false라 재선택하지 않는다.
+  if(aiIdx>=2&&aiState.tcAuto&&aiState.tc==null) rollAutoTc();
   // 스텝 표시
   document.getElementById('aiSteps').innerHTML=
     `<span class="aiStepNum">${aiIdx+1}/${AI_STEPS.length}</span>`+
@@ -2943,9 +2951,9 @@ function renderAiStep(){
     const budTxt=aiState.budget?`${aiState.budget}억 BP${budgetBucketLabel(aiState.budget)?` · ${budgetBucketLabel(aiState.budget)} 랭커 기준`:''}`:'제한 없음';
     const grTxt=aiState.grade==='custom'?'개별 설정':((GRADE_PRESETS[aiState.grade]||{}).label||'자동');
     const lockTxt=aiState.locks.length?`${aiState.locks.length}명`:'없음';
-    body.innerHTML=`<div class="aiQ">이대로 만들까요?</div>
-      <div class="aiHint">아래 설정으로 포지션별 픽률 1위부터 채우고, 강화 적용 후 급여 315·예산에 맞춰요.</div>
-      <div class="aiWrapList" style="max-height:none;">
+    body.innerHTML=`<div class="aiQ aiBuildTitle">이대로 만들까요?</div>
+      <div class="aiHint aiBuildHint">아래 설정으로 포지션별 픽률 1위부터 채우고, 강화 적용 후 급여 315·예산에 맞춰요.</div>
+      <div class="aiWrapList aiBuildSummary" style="max-height:none;">
         <div class="aiRow"><span class="t">모드</span><span class="n">${modeTxt}</span></div>
         <div class="aiRow"><span class="t">팀컬러</span><span class="n">${esc(tcTxt)}${aiState.tc&&liveWrTxt(aiState.mode,aiState.tc)?`<br><small style="color:var(--text-dim);font-weight:700;">랭커 ${liveWrTxt(aiState.mode,aiState.tc)}</small>`:''}</span></div>
         <div class="aiRow"><span class="t">포메이션</span><span class="n">${formTxt}</span></div>
@@ -3375,20 +3383,30 @@ function keepMenu(fn){
     document.querySelector(`[data-idx="${k}"]`)?.classList.add('selected');positionMenu();}
   save();
 }
+function disableJerseyToggle(){
+  if(!showJersey)return;
+  showJersey=false;
+  document.getElementById('btnJersey')?.classList.remove('on');
+}
 function toggleFoot(){keepMenu(()=>{showFoot=!showFoot;   // 가격 ↔ 주발·약발 전환
+  if(showFoot)disableJerseyToggle();
   document.getElementById('btnFoot').classList.toggle('on',showFoot);});}
 function toggleTrait(){                                      // 미페 시즌과 같은 자리 → 하나만 켜짐
   const next=!showTrait;
   if(next&&!CHEM){toast('특성 데이터(chem.json)가 아직 없어요');}
   keepMenu(()=>{showTrait=next;
+    if(showTrait)disableJerseyToggle();
     if(showTrait&&showFaceSn){ showFaceSn=false; document.getElementById('btnFaceSn').classList.remove('on'); }
     document.getElementById('btnTrait').classList.toggle('on',showTrait);});
 }
 function toggleTrain(){keepMenu(()=>{showTrain=!showTrain;   // OVR에 집중훈련 반영 on/off
+  if(showTrain)disableJerseyToggle();
   document.getElementById('btnTrain').classList.toggle('on',showTrain);});}
 function toggleWr(){keepMenu(()=>{showWr=!showWr;            // 카드 참여도 표시 on/off
+  if(showWr)disableJerseyToggle();
   document.getElementById('btnWr').classList.toggle('on',showWr);});}
 function toggleFaceSn(){keepMenu(()=>{showFaceSn=!showFaceSn;   // 금빛특성과 같은 자리 → 하나만 켜짐
+  if(showFaceSn)disableJerseyToggle();
   if(showFaceSn&&showTrait){ showTrait=false; document.getElementById('btnTrait').classList.remove('on'); }
   document.getElementById('btnFaceSn').classList.toggle('on',showFaceSn);});}
 function toggleJersey(){
@@ -3404,6 +3422,7 @@ function toggleJersey(){
 function clearAutoFaces(){ for(const s of squad){ if(s&&s.img!=null)delete s.img; } }
 function toggleUni(){
   autoUni=!autoUni;
+  if(autoUni)disableJerseyToggle();
   document.getElementById('btnUni').classList.toggle('on',autoUni);
   document.getElementById('uniCtl').style.display=autoUni?'inline-flex':'none';
   if(autoUni) clearAutoFaces();                              // 켤 때 전체 자동 적용
