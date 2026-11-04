@@ -14,6 +14,7 @@
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
+html.searchOpen,html.searchOpen body,html.quickOpen,html.quickOpen body{overflow:hidden;overscroll-behavior:none;}
 body{background:var(--bg);color:var(--text);line-height:1.5;
   font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;}
@@ -26,7 +27,7 @@ button{cursor:pointer;}
 /* ---------- shell ---------- */
 .app{max-width:1040px;margin:0 auto;padding:0 16px 80px;}
 .smHeader{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--line);margin-bottom:14px;}
-.smLogo{font-size:17px;font-weight:800;letter-spacing:-.02em;}
+.smLogo{font-size:17px;font-weight:800;letter-spacing:-.02em;color:var(--text);text-decoration:none;}
 .smLogo b{color:var(--lime);}
 .smHeaderSpacer{flex:1;}
 .btnGhost{background:var(--surface-2);border:1px solid var(--line);color:var(--text-dim);
@@ -177,6 +178,8 @@ button{cursor:pointer;}
 .qsBox{position:absolute;left:50%;top:64px;transform:translateX(-50%);width:min(420px,94vw);
   background:var(--surface);border:1px solid var(--line-2);border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.6);overflow:hidden;}
 .qsHead{display:flex;align-items:center;gap:6px;padding:10px;border-bottom:1px solid var(--line);}
+.qsHome{display:none;color:var(--text);font-size:13px;font-weight:900;letter-spacing:-.03em;text-decoration:none;white-space:nowrap;}
+.qsHome b{color:var(--lime);}
 .qsInput{flex:1;min-width:0;background:var(--surface-2);border:1px solid var(--line-2);border-radius:8px;
   padding:9px 11px;color:var(--text);font-size:13px;font-weight:600;outline:none;}
 .qsInput:focus{border-color:var(--lime);}
@@ -208,6 +211,10 @@ button{cursor:pointer;}
   display:flex;align-items:flex-end;justify-content:center;gap:0;overflow:visible;
   filter:drop-shadow(0 4px 4px rgba(0,0,0,.52));}
 .pcJerseyStage .jPlayer{position:relative;flex:0 0 auto;height:100%;transform-origin:50% 100%;overflow:hidden;container-type:inline-size;}
+.pcJerseyStage .jPlayer::before{content:"";position:absolute;z-index:0;left:18%;right:18%;top:18%;bottom:0;
+  background:linear-gradient(90deg,var(--shade) 0 16%,var(--kit) 34% 66%,var(--shade) 84% 100%);
+  clip-path:polygon(34% 0,66% 0,100% 14%,87% 38%,78% 30%,82% 100%,18% 100%,22% 30%,13% 38%,0 14%);opacity:.9;}
+.pcJerseyStage .jPlayer.withPhoto::before{display:none;}
 .pcJerseyStage .jPlayer.main{z-index:3;order:2;}
 .pcJerseyStage .jPlayer.left{z-index:2;order:1;}
 .pcJerseyStage .jPlayer.right{z-index:2;order:3;}
@@ -217,7 +224,7 @@ button{cursor:pointer;}
 .pcJerseyStage.two .jPlayer.side{width:62%;height:89%;opacity:.96;}
 .pcJerseyStage.three .jPlayer.main{width:55%;height:91%;}
 .pcJerseyStage.three .jPlayer.side{width:52%;height:84%;opacity:.94;}
-.pcJerseyStage .jPhoto{position:absolute;inset:0;width:100%;height:100%;max-width:none;
+.pcJerseyStage .jPhoto{position:absolute;z-index:1;inset:0;width:100%;height:100%;max-width:none;
   object-fit:cover;object-position:center top;}
 .pcJerseyStage .jNoPhoto{position:absolute;z-index:3;left:50%;top:47%;
   color:#173852;font-family:"Arial Narrow","Roboto Condensed","Arial Black",sans-serif;
@@ -356,6 +363,7 @@ button{cursor:pointer;}
 .aiRow img{width:22px;height:22px;object-fit:contain;flex-shrink:0;}
 .aiRow .t{flex:1;font-size:13px;font-weight:700;}
 .aiRow .n{font-size:11px;color:var(--text-dim);}
+.aiAutoName{display:inline-block;margin-top:3px;padding:3px 8px;border-radius:999px;background:var(--lime);color:#0B0F14;font-size:12px;font-weight:900;box-shadow:0 0 16px rgba(196,255,61,.28);}
 .tInput{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;
   padding:10px 12px;font-size:13px;outline:none;}
 .tInput:focus{border-color:var(--line-2);}
@@ -483,6 +491,8 @@ button{cursor:pointer;}
 .popBox{background:var(--surface);border:1px solid var(--line-2);border-radius:16px;
   width:100%;max-width:1180px;height:min(86vh,780px);display:flex;flex-direction:column;overflow:hidden;}
 .popHead{display:flex;align-items:center;gap:12px;padding:15px 18px;border-bottom:1px solid var(--line);}
+.popHome{display:none;align-items:center;color:var(--text);font-size:14px;font-weight:900;letter-spacing:-.03em;text-decoration:none;white-space:nowrap;}
+.popHome b{color:var(--lime);}
 .popTitle{font-size:14.5px;font-weight:800;}
 .popSub{font-size:12px;color:var(--text-dim);}
 .popClose{margin-left:auto;background:none;border:none;color:var(--text-dim);font-size:24px;line-height:1;padding:0 4px;}
@@ -607,6 +617,18 @@ button{cursor:pointer;}
 .favPickRow .favPickInfo{min-width:0;flex:1;}.favPickRow b{display:block;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.favPickRow span{font-size:10px;color:var(--text-dim);}
 .favPickFoot{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line);}.favPickFoot button{flex:1;min-height:39px;}
 
+/* ---------- 기능 도움말 ---------- */
+.utilsHelpBtn{width:30px;height:30px;padding:0;border-radius:50%;border:1px solid var(--line-2);background:var(--surface-2);color:var(--lime);font-size:15px;font-weight:900;cursor:pointer;}
+.utilsHelpBtn:hover{border-color:var(--lime);background:rgba(196,255,61,.10);}
+.featureHelpPopup{z-index:460;}
+.featureHelpBox{width:min(620px,100%);max-height:min(760px,90vh);display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line-2);border-radius:16px;box-shadow:0 24px 70px rgba(0,0,0,.58);overflow:hidden;}
+.featureHelpHead{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid var(--line);}
+.featureHelpHead strong{font-size:16px;}.featureHelpHead span{font-size:11px;color:var(--text-dim);}.featureHelpHead button{margin-left:auto;}
+.featureHelpList{padding:12px;overflow:auto;display:grid;gap:8px;}
+.featureHelpItem{display:grid;grid-template-columns:104px minmax(0,1fr);gap:12px;align-items:start;padding:12px 13px;border:1px solid var(--line);border-radius:11px;background:var(--surface-2);}
+.featureHelpItem b{color:var(--lime);font-size:12.5px;}.featureHelpItem p{margin:0;color:var(--text-dim);font-size:12px;line-height:1.55;}
+@media(max-width:600px){.featureHelpItem{grid-template-columns:1fr;gap:5px}.featureHelpHead span{display:none}}
+
 /* ---------- responsive ---------- */
 @media (max-width:1100px){
   .smMain{grid-template-columns:1fr;}
@@ -622,6 +644,16 @@ button{cursor:pointer;}
 @media (max-width:760px){
   .app{padding:0 10px 90px;}
   input,select,textarea{font-size:16px!important;}
+  .smHeader{min-height:58px;gap:8px;padding-top:max(12px,env(safe-area-inset-top));padding-bottom:10px;position:relative;z-index:30;}
+  .smHeaderSpacer{display:none;}
+  .smLogo{flex:1 1 auto;min-width:128px;font-size:15px;position:relative;z-index:1;}
+  .smHeader>.btnGhost,.smHeader>.btnPrimary{padding:7px 10px;font-size:11.5px;touch-action:manipulation;}
+  .qsOverlay{height:var(--app-vh,100dvh);overflow:hidden;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);}
+  .qsBox{top:max(8px,env(safe-area-inset-top));width:calc(100% - 16px);max-height:calc(var(--app-vh,100dvh) - max(16px,env(safe-area-inset-top)) - env(safe-area-inset-bottom));display:flex;flex-direction:column;}
+  .qsHome{display:block;touch-action:manipulation;}
+  .qsHead{flex:0 0 auto;}
+  .qsList{flex:1;min-height:0;max-height:none;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
+  .qsClose{min-width:38px;min-height:38px;touch-action:manipulation;}
   /* 딸깍 마법사 단계칩: 모바일은 현재 단계와 앞뒤 1개만 (지나간 단계는 숨김) */
   .aiTop{padding:12px 14px;gap:10px;}
   .aiTitle{font-size:15px;white-space:nowrap;}
@@ -691,10 +723,18 @@ button{cursor:pointer;}
   .pcOvr{font-size:13px;} .pcPos{font-size:8px;} .pcPay{font-size:8px;}
   .pcName{font-size:8.5px;} .pcFoot{font-size:7px;} .pcPrice{font-size:7.5px;}
   .pcEn{font-size:8px;} .pcSeason{width:9px;height:9px;}
-  .popup{padding:0;}
-  .popBox{max-width:none;height:100%;border-radius:0;border:none;}
-  .popBody{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);}
-  .filterCol{border-right:none;border-bottom:1px solid var(--line);max-height:38vh;}
+  .popup{padding:0;align-items:flex-start;overflow:hidden;}
+  .popBox{max-width:none;height:var(--app-vh,100dvh);max-height:none;min-height:0;border-radius:0;border:none;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);}
+  .popHead{position:relative;z-index:5;flex:0 0 auto;min-height:54px;padding:10px 12px;background:var(--surface);}
+  .popHome{display:inline-flex;touch-action:manipulation;}
+  .popTitle{font-size:13.5px;}
+  .popSub{font-size:10.5px;}
+  .popClose{min-width:40px;min-height:40px;padding:0 8px;touch-action:manipulation;}
+  .popBody{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);min-height:0;overflow:hidden;}
+  .filterCol{border-right:none;border-bottom:1px solid var(--line);max-height:min(38vh,320px);overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
+  .resultCol{min-height:0;overflow:hidden;}
+  .resHead{position:relative;z-index:2;flex:0 0 auto;background:var(--surface);}
+  .resList{min-height:0;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;}
   .resCount{width:100%;margin-left:0;order:9;}
   .cardPanel{max-height:52vh;}
 }
@@ -747,11 +787,11 @@ button{cursor:pointer;}
 <div class="app">
 
   <header class="smHeader">
-    <div class="smLogo">FC<b>알리미</b> · 스쿼드 메이커</div>
+    <a class="smLogo" href="https://fcalrimi.com/" title="FC알리미 홈으로">FC<b>알리미</b> · 스쿼드 메이커</a>
     <div class="smHeaderSpacer"></div>
     <input type="hidden" id="squadTitle" value="">
-    <button class="btnGhost" onclick="resetSquad()">초기화</button>
     <button class="uToggle squadFavBtn" id="btnSquadFav" onclick="addSquadToRefreshFavorites()" title="선발과 후보의 현재 시즌 카드를 갱신시간 즐겨찾기에 한 번에 추가">★ 갱신시간 즐겨찾기</button>
+    <button class="btnGhost" onclick="resetSquad()">초기화</button>
     <button class="btnPrimary" onclick="loadSquad()">불러오기</button>
   </header>
 
@@ -810,6 +850,7 @@ button{cursor:pointer;}
           <button class="uToggle on" id="uniAuto" onclick="resetUniAuto()" title="스쿼드 대표색으로 자동 통일">자동</button>
         </span>
         <button class="uToggle" id="btnFaceSn" onclick="toggleFaceSn()" title="지금 보이는 얼굴이 어느 시즌 카드인지 표시">미페 시즌</button>
+        <button type="button" class="utilsHelpBtn" onclick="openFeatureHelp()" title="기능 설명" aria-label="기능 설명">?</button>
       </div>
 
       <div class="boardArea">
@@ -879,6 +920,20 @@ button{cursor:pointer;}
   </div>
 </div>
 
+<!-- ===== 상단 기능 도움말 ===== -->
+<div class="popup featureHelpPopup" id="featureHelpPopup" onclick="if(event.target===this)closeFeatureHelp()">
+  <div class="featureHelpBox" role="dialog" aria-modal="true" aria-labelledby="featureHelpTitle">
+    <div class="featureHelpHead"><strong id="featureHelpTitle">스쿼드 기능 사용법</strong><span>버튼을 켠 뒤 선수를 눌러보세요</span><button class="btnGhost" type="button" onclick="closeFeatureHelp()">닫기</button></div>
+    <div class="featureHelpList">
+      <div class="featureHelpItem"><b>금빛 특성</b><p>토글을 활성화한 뒤 선수를 클릭하면 8강 이상 선수에게 금빛 특성을 추가할 수 있어요.</p></div>
+      <div class="featureHelpItem"><b>집중훈련</b><p>선수별 최고 OVR 조합을 추천받고, 집중훈련으로 가능한 최대 오버롤을 적용할 수 있어요.</p></div>
+      <div class="featureHelpItem"><b>등번호</b><p>등번호를 켠 뒤 선수를 클릭하면 ‘너의 등번호는’ 페이지에서 해당 선수의 팀·연도별 등번호 기록을 바로 볼 수 있어요.</p></div>
+      <div class="featureHelpItem"><b>미페 자동맞춤</b><p>스쿼드에서 같은 색이 많은 유니폼으로 자동 보정돼요. 미세한 색 차이는 색상 선택으로 직접 조절할 수 있어요.</p></div>
+      <div class="featureHelpItem"><b>미페 시즌</b><p>현재 미니페이스온 선수가 착용 중인 유니폼의 시즌을 알려줘요.</p></div>
+    </div>
+  </div>
+</div>
+
 <!-- 카드 인라인 조작 -->
 <div class="cardMenu" id="cardMenu"></div>
 <div class="cardPanel" id="cardPanel"></div>
@@ -899,6 +954,7 @@ button{cursor:pointer;}
 <div class="qsOverlay" id="quickSearch">
   <div class="qsBox">
     <div class="qsHead">
+      <a class="qsHome" href="https://fcalrimi.com/" aria-label="FC알리미 홈으로">FC<b>알리미</b></a>
       <div class="inClear" style="flex:1;min-width:0;"><input id="qsName" class="qsInput" placeholder="선수명 (2자 이상)" autocomplete="off"><button type="button" class="inX" onclick="clearInput('qsName')" title="지우기">×</button></div>
       <button class="qsClose" id="qsClose" title="닫기">×</button>
     </div>
@@ -911,6 +967,7 @@ button{cursor:pointer;}
 <div class="popup" id="searchPopup">
   <div class="popBox">
     <div class="popHead">
+      <a class="popHome" href="https://fcalrimi.com/" aria-label="FC알리미 홈으로">FC<b>알리미</b></a>
       <div class="popTitle">선수 검색</div>
       <div class="popSub" id="popSub"></div>
       <button class="popClose" onclick="closeSearch()">×</button>
@@ -1000,7 +1057,7 @@ let tcPrefer=new Set();                          // 시즌특성 시리즈 내 �
 let autoUni=false;            // 미페 자동맞춤 on/off
 let autoUniTarget=null;       // null = auto(스쿼드 대표색), else '#RRGGBB' (유저 지정)
 let UNIQ=null, UNI_LAB={}, UNI_SEASON={}, _uniTarget=null, _uniLoading=null;
-let JERSEY=null, _jerseyLoading=null;             // 로컬 수집 결과 jersey_numbers.json
+let JERSEY=null, _jerseyLoading=null, _jerseyNameIndex=null; // 로컬 수집 결과 jersey_numbers.json
 const UNI_MAXDE=22;           // color-match tolerance (lower = stricter; keeps sky/royal/navy apart)
 function _hex2rgb(h){h=String(h).replace('#','');return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
 function _rgb2lab(rgb){let[r,g,b]=rgb.map(v=>{v/=255;return v>0.04045?Math.pow((v+0.055)/1.055,2.4):v/12.92;});
@@ -1017,7 +1074,7 @@ async function jerseyLoad(){
   _jerseyLoading=(async()=>{
     const urls=['jersey_squad.json','../수집기/output/jersey_squad.json','jersey_numbers.json','../수집기/output/jersey_numbers.json'];
     for(const url of urls){try{const r=await fetch(url,{cache:'no-store'});if(!r.ok)continue;const d=await r.json();
-      if(d&&d.by_korean_name){JERSEY=d;return d;}}catch(e){}}
+      if(d&&d.by_korean_name){JERSEY=d;_jerseyNameIndex=null;return d;}}catch(e){}}
     JERSEY={by_korean_name:{}};return JERSEY;
   })();return _jerseyLoading;
 }
@@ -1489,6 +1546,8 @@ const FORMATIONS={
           [.10,.88],[.37,.90],[.63,.90],[.90,.88],[.5,1]],
  '4-1-4-1':[[.50,.05],[.10,.50],[.38,.52],[.62,.52],[.90,.50],[.50,.72],
           [.10,.88],[.37,.90],[.63,.90],[.90,.88],[.5,1]],
+ '4-5-1':[[.50,.05],[.08,.48],[.30,.54],[.50,.42],[.70,.54],[.92,.48],
+          [.10,.88],[.37,.90],[.63,.90],[.90,.88],[.5,1]],
 };
 /* 드롭 위치 → 포지션 라벨 (공식 존 구성과 동일한 명칭) */
 const ZONES=[
@@ -1732,7 +1791,21 @@ function cardGoldHtml(spid,idx){                   // 원래 금빛특성 또는
   return `<span class="pcGold">${gold.slice(0,3).map(id=>`<img src="${TRAIT_ICON(id)}" onerror="this.style.display='none'">`).join('')}</span>`;
 }
 
-function jTeamNorm(s){return String(s||'').replace(/^\((국가|Nation)\)\s*/i,'').replace(/\s+/g,'').toLowerCase();}
+function jPlayerNameNorm(s){return String(s||'').normalize('NFKC').toLowerCase().replace(/[·.'’`\-_/\s]/g,'');}
+function jerseyPlayerRecord(name){
+  const map=JERSEY&&JERSEY.by_korean_name;if(!map)return null;
+  if(map[name])return map[name];
+  if(!_jerseyNameIndex){
+    _jerseyNameIndex=new Map();
+    for(const [k,v] of Object.entries(map)){const n=jPlayerNameNorm(k),a=_jerseyNameIndex.get(n)||[];a.push(v);_jerseyNameIndex.set(n,a);}
+  }
+  const norm=jPlayerNameNorm(name),direct=_jerseyNameIndex.get(norm);
+  if(direct&&direct.length===1)return direct[0];
+  const matches=[];
+  for(const [k,v] of Object.entries(map)){const n=jPlayerNameNorm(k);if(Math.min(n.length,norm.length)>=3&&(n.endsWith(norm)||norm.endsWith(n)))matches.push(v);}
+  return matches.length===1?matches[0]:null;
+}
+function jTeamNorm(s){return String(s||'').normalize('NFKC').replace(/^\((국가|Nation)\)\s*/i,'').toLowerCase().replace(/[.'’`\-_/\s]/g,'').replace(/^(afc|fc|cf)/,'').replace(/(afc|fc|cf)$/,'');}
 function jerseyTeamRecord(playerRec,teamName){
   const teams=playerRec&&playerRec.teams;if(!teams)return null;
   if(teams[teamName])return teams[teamName];
@@ -1752,13 +1825,13 @@ function jerseyNumberRanks(team){
 function jerseyKit(){return {kit:'#FFFFFF',shade:'#D9DEE3',ink:'#173852',outline:'rgba(255,255,255,.72)'};}
 function jerseyPersonHtml(rank,cls,colors){
   return `<div class="jPlayer ${cls}" style="--kit:${colors.kit};--shade:${colors.shade};--ink:${colors.ink};--outline:${colors.outline}">
-    <img class="jPhoto" src="assets/player_back_white.png" alt="" draggable="false">
+    <img class="jPhoto" src="assets/player_back_white.png" alt="" draggable="false" onload="this.parentElement.classList.add('withPhoto')" onerror="this.style.display='none'">
     <span class="jNoPhoto d${String(rank.number).length}">${rank.number}</span></div>`;
 }
 function jerseyHtml(idx,slotPos){
   if(!showJersey||slotPos==='SUB'||!JERSEY||!TCFULL)return '';
   const s=squad[idx],p=s&&byId(s.spid);if(!p)return '';
-  const playerRec=JERSEY.by_korean_name&&JERSEY.by_korean_name[p[I.name]];
+  const playerRec=jerseyPlayerRecord(p[I.name]);
   if(!playerRec||!playerRec.verified)return '';
   const no=receivedSocNo(s,posOf(idx,p)),tc=no!=null&&TCFULL[no];if(!tc)return '';
   const team=jerseyTeamRecord(playerRec,tc.n),ranks=jerseyNumberRanks(team);if(!ranks.length)return '';
@@ -2075,7 +2148,7 @@ function finishDrag(){
 function onCancel(){if(pd)clearTimeout(pd.holdT);finishDrag();pd=null;}
 function openJerseyHistory(idx){
   const s=squad[idx],p=s&&byId(s.spid); if(!p)return;
-  const rec=JERSEY?.by_korean_name?.[p[I.name]];
+  const rec=jerseyPlayerRecord(p[I.name]);
   if(!rec)return;
   window.open(`/jersey.html?player=${encodeURIComponent(p[I.name])}`,'_blank','noopener');
 }
@@ -2354,8 +2427,17 @@ addEventListener('resize',()=>{if(menuIdx!=null){positionMenu();if(menuMode)rend
 addEventListener('scroll',()=>{if(menuIdx!=null){positionMenu();if(menuMode)renderPanel();}},true);
 
 /* ---------- 검색 ---------- */
+function syncAppViewport(){
+  const h=Math.round(window.visualViewport?.height||window.innerHeight||0);
+  if(h>0)document.documentElement.style.setProperty('--app-vh',`${h}px`);
+}
+syncAppViewport();
+window.addEventListener('resize',syncAppViewport,{passive:true});
+window.visualViewport?.addEventListener('resize',syncAppViewport,{passive:true});
+window.visualViewport?.addEventListener('scroll',syncAppViewport,{passive:true});
 function slotPosOf(idx){return idx>=N_START?'SUB':zoneAt(layout[idx].fx,layout[idx].fy);}
 function openSearch(idx){
+  syncAppViewport();
   activeIdx=idx;
   const label=slotPosOf(idx);
   const pos=label==='SUB'?'SUB':(BASE_POS[label]||label);
@@ -2365,13 +2447,17 @@ function openSearch(idx){
   const res=document.getElementById('resList'); if(res)res.scrollTop=0;
   syncFilterUI(); showN=SHOW_STEP;
   document.getElementById('searchPopup').classList.add('on');
+  document.documentElement.classList.add('searchOpen');
   renderResults();
   setTimeout(()=>document.getElementById('fName').focus(),60);
 }
-function closeSearch(){document.getElementById('searchPopup').classList.remove('on');activeIdx=null;}
+function closeSearch(){document.getElementById('searchPopup').classList.remove('on');document.documentElement.classList.remove('searchOpen');activeIdx=null;}
 document.getElementById('searchPopup').addEventListener('click',e=>{if(e.target.id==='searchPopup')closeSearch();});
+function openFeatureHelp(){document.getElementById('featureHelpPopup')?.classList.add('on');}
+function closeFeatureHelp(){document.getElementById('featureHelpPopup')?.classList.remove('on');}
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape')return;
+  if(document.getElementById('featureHelpPopup')?.classList.contains('on'))return closeFeatureHelp();
   if(menuIdx!=null)return closeMenu();
   if(document.getElementById('quickSearch').classList.contains('on'))return qsClose();
   if(document.getElementById('searchPopup').classList.contains('on'))closeSearch();
@@ -2397,9 +2483,15 @@ const SEASONS=[...new Set(PLAYERS.map(p=>p[I.season]))].sort((a,b)=>{
   const ka=seasonKey(a),kb=seasonKey(b);
   return ka[0]-kb[0]||ka[1]-kb[1]||String(ka[2]).localeCompare(String(kb[2]));
 });
+function seasonSearchMatch(q,season){
+  const query=String(q||'').toUpperCase().replace(/[\s_-]/g,''), hay=String(season||'').toUpperCase().replace(/[\s_-]/g,'');
+  if(!query||hay.includes(query))return true;
+  // 영문 약어는 붙어 있지 않아도 입력한 글자를 모두 포함하면 검색한다. 예: WG → W와 G가 있는 시즌.
+  return /^[A-Z]+$/.test(query)&&query.length>1&&[...new Set(query)].every(ch=>hay.includes(ch));
+}
 function renderSeasonChips(){
   const q=document.getElementById('fSeasonQ').value.trim().toUpperCase();
-  const list=q?SEASONS.filter(s=>s.toUpperCase().includes(q)):SEASONS;
+  const list=q?SEASONS.filter(s=>seasonSearchMatch(q,s)):SEASONS;
   document.getElementById('fSeason').innerHTML=list.map(s=>
     `<button class="chip sChip ${F.season.has(s)?'on':''}" data-season="${s}">
       <img src="${SEASON(s)}" onerror="this.style.display='none'">${s}</button>`).join('');
@@ -2598,15 +2690,19 @@ function pick(spid,isUsed){
 /* ---------- 빠른 검색 (돋보기): 이름만 입력 → 급여·OVR·금빛특성 보고 바로 선택 (필터는 전체화면에서) ---------- */
 let qsIdx=null;
 function quickSearch(idx){
+  syncAppViewport();
   qsIdx=idx; const label=slotPosOf(idx);
   document.getElementById('qsPos').textContent = label==='SUB'?'후보 자리':`${label} 자리`;
   const nm=document.getElementById('qsName'); nm.value=''; nm.parentElement.classList.remove('has');
   document.getElementById('qsList').innerHTML='';
   document.getElementById('quickSearch').classList.add('on');
+  document.documentElement.classList.add('quickOpen');
   // 클릭한 돋보기(빈 슬롯) 위치 근처에 팝업 띄우기
   const slot=document.querySelector(`[data-idx="${idx}"] .eSearch`)||document.querySelector(`[data-idx="${idx}"]`);
   const box=document.querySelector('#quickSearch .qsBox');
-  if(slot&&box){ const r=slot.getBoundingClientRect(), W=Math.min(400,innerWidth-16), gap=8;
+  if(box&&matchMedia('(max-width:760px)').matches){
+    box.removeAttribute('style');
+  }else if(slot&&box){ const r=slot.getBoundingClientRect(), W=Math.min(400,innerWidth-16), gap=8;
     let left=r.right+gap;                              // 돋보기 오른쪽 옆
     if(left+W>innerWidth-8) left=r.left-gap-W;         // 오른쪽 공간 없으면 왼쪽 옆
     if(left<8) left=Math.max(8,Math.min(innerWidth-W-8, r.left));
@@ -2614,7 +2710,7 @@ function quickSearch(idx){
     box.style.cssText=`position:absolute;width:${W}px;left:${left}px;top:${top}px;transform:none;`; }
   setTimeout(()=>nm.focus(),50);
 }
-function qsClose(){ document.getElementById('quickSearch').classList.remove('on'); qsIdx=null; }
+function qsClose(){ document.getElementById('quickSearch').classList.remove('on'); document.documentElement.classList.remove('quickOpen'); qsIdx=null; }
 function qsRender(){
   const box=document.getElementById('qsList'); if(qsIdx==null)return;
   const q=document.getElementById('qsName').value.trim();
@@ -2653,10 +2749,13 @@ document.getElementById('quickSearch').addEventListener('click',e=>{ if(e.target
 function grpOf(label){ const b=BASE_POS[label]||label; return b==='CDM'?'DM':b; }   // 슬롯 라벨 → 픽률 그룹
 // rankmeta 기반 포메이션 자동선택: 팀컬러 최다 포메이션(없으면 모드 인기 포메이션) 중 스쿼드메이커에 있는 것.
 function rankModeKey(mode){ return mode==='official'?'1vs1':'감모'; }
+const MANAGER_FORMATIONS=['4-1-2-3','4-1-4-1','4-2-4','4-5-1'];
+function aiFormKeys(mode){return mode==='manager'?MANAGER_FORMATIONS.filter(f=>FORMATIONS[f]):Object.keys(FORMATIONS);}
 function autoFormFor(mode, tcName){
   const md=RANK&&RANK.modes&&RANK.modes[rankModeKey(mode)];
   if(!md) return null;
-  const pick=list=>{ for(const [f] of (list||[])) if(FORMATIONS[f]) return f; return null; };
+  const allowed=new Set(aiFormKeys(mode));
+  const pick=list=>{ for(const [f] of (list||[])) if(FORMATIONS[f]&&allowed.has(f)) return f; return null; };
   if(tcName){ const byTc=md.formation_by_tc&&md.formation_by_tc[tcName]; const f=pick(byTc); if(f) return f; }
   return pick(md.top_formations);
 }
@@ -2781,7 +2880,7 @@ function renderAiStep(){
       <div class="aiHint">건너뛰면 현재 포메이션(${cur})을 그대로 써요.</div>
       <div class="aiPick">
         <div class="aiCard ${aiState.form==='auto'?'on':''} ${af?'':'aiDim'}" data-form="${af?'auto':''}" style="min-width:150px;padding:16px 20px;">자동<small>${autoSub}</small></div>
-        ${Object.keys(FORMATIONS).map(f=>
+        ${aiFormKeys(aiState.mode).map(f=>
         `<div class="aiCard ${(aiState.form&&aiState.form!=='auto'?aiState.form:cur)===f&&aiState.form!=='auto'?'on':''}" data-form="${f}" style="min-width:120px;padding:16px 20px;">${f}</div>`).join('')}</div>`;
   }
   else if(step.key==='lock'){
@@ -2836,7 +2935,7 @@ function renderAiTcList(){
   box.innerHTML=
     (auto.length?`<div class="aiRow ${aiState.tcAuto?'on':''}" data-tc="auto">
       <span class="t">자동 — 인기 팀컬러<br><small style="color:var(--text-dim);font-weight:700;">상위 ${auto.length}팀 중 무작위 · 11명 전원 같은 팀</small></span>
-      <span class="n">${aiState.tcAuto?esc(aiState.tcName)+' ⟳':'추첨'}${aiState.tcAuto&&liveWrTxt(aiState.mode,aiState.tc)?`<br><small style="color:var(--text-dim);font-weight:700;">${liveWrTxt(aiState.mode,aiState.tc)}</small>`:''}</span></div>`:'')+
+      <span class="n">${aiState.tcAuto?`<b class="aiAutoName">${esc(aiState.tcName)} ⟳</b>`:'추첨'}${aiState.tcAuto&&liveWrTxt(aiState.mode,aiState.tc)?`<br><small style="color:var(--text-dim);font-weight:700;">${liveWrTxt(aiState.mode,aiState.tc)}</small>`:''}</span></div>`:'')+
     `<div class="aiRow ${(!aiState.tcAuto&&aiState.tc==null)?'on':''}" data-tc="none"><span class="t">선택 안 함<br><small style="color:var(--text-dim);font-weight:700;">픽률대로 뽑은 뒤 최다 소속으로 11명 통일</small></span></div>`+
     entries.map(([no,d])=>{const single=SINGLE_TC_NOS.has(String(no))?' 단일':'';return `<div class="aiRow ${String(aiState.tc)===no?'on':''}" data-tc="${no}">
       <img src="${d.img}" onerror="this.style.visibility='hidden'"><span class="t">${esc(d.n)}${single}</span><span class="n">${d.need?d.need+'명':''}</span></div>`;}).join('');
@@ -2932,6 +3031,7 @@ document.getElementById('aiBody').addEventListener('click',e=>{
   const nr=e.target.closest('[data-norare]'); if(nr){ aiState.noRare=!aiState.noRare;
     if(aiState.noRare&&!RARE) toast('희귀매물 목록(rare.json)을 못 찾았어요'); renderAiStep(); return; }
   const mc=e.target.closest('[data-mode]'); if(mc){ aiState.mode=mc.dataset.mode;
+    if(aiState.form&&aiState.form!=='auto'&&!aiFormKeys(aiState.mode).includes(aiState.form))aiState.form=null;
     if(aiState.tcAuto) rollAutoTc();   // 모드마다 인기 팀컬러가 달라서 재추첨
     renderAiStep(); return; }
   const fc=e.target.closest('[data-form]'); if(fc){ aiState.form=fc.dataset.form; renderAiStep(); return; }
