@@ -603,13 +603,15 @@ button{cursor:pointer;}
 .savedSquadTabs{display:flex;padding:12px 16px 0;border-bottom:1px solid var(--line);}
 .savedSquadTab{min-width:170px;padding:10px 18px;border:1px solid var(--line-2);border-bottom-color:var(--surface);border-radius:9px 9px 0 0;background:var(--surface);color:var(--text);font-size:12px;font-weight:900;text-align:center;}
 .savedSquadTools{display:flex;align-items:center;gap:8px;padding:11px 16px;background:var(--surface-2);border-bottom:1px solid var(--line);}
-.savedSquadStatus{display:flex;align-items:center;gap:8px;min-width:0;margin-right:auto;color:var(--text-dim);font-size:11px;}
+.savedSquadStatus{display:flex;align-items:center;gap:8px;min-width:0;flex:1;margin-right:auto;color:var(--text-dim);font-size:11px;}
 .savedSquadStatus b{color:var(--lime);font-size:12px;}.savedSquadSource{padding:3px 7px;border:1px solid var(--line);border-radius:100px;background:var(--surface);white-space:nowrap;}
+.savedSquadSearch{width:min(280px,45vw);height:34px;padding:7px 11px;border:1px solid var(--line-2);border-radius:8px;background:var(--surface);color:var(--text);font-size:11px;outline:none;}.savedSquadSearch:focus{border-color:var(--lime);}
 .savedSquadTools button{min-height:34px;padding:7px 13px;border-radius:8px;font-size:11px;font-weight:900;cursor:pointer;}
 .savedDelete{border:1px solid rgba(255,92,106,.45);background:transparent;color:var(--red);}.savedDelete:disabled{opacity:.35;cursor:not-allowed;}
 .savedLoadSelected{border:1px solid var(--lime);background:var(--lime);color:#0b0f14;}.savedLoadSelected:disabled{opacity:.38;cursor:not-allowed;}
 .savedSquadColumns,.savedSquadRow{display:grid;grid-template-columns:30px minmax(170px,1fr) 100px 150px 125px;align-items:center;gap:10px;}
 .savedSquadColumns{padding:8px 18px;color:var(--text-dim2);border-bottom:1px solid var(--line);font-size:10px;font-weight:800;}
+.savedTitleHead{display:flex;align-items:center;gap:7px}.savedSelectAll{width:15px;height:15px;accent-color:var(--lime);cursor:pointer;}
 .savedSquadList{padding:8px 12px;overflow:auto;display:flex;flex:1;min-height:0;flex-direction:column;gap:6px;}
 .savedSquadRow{width:100%;padding:10px 8px;text-align:left;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;color:var(--text);transition:border-color .15s,background .15s;}
 .savedSquadRow:hover,.savedSquadRow.isSelected{border-color:var(--lime);background:rgba(196,255,61,.06);}
@@ -624,7 +626,7 @@ button{cursor:pointer;}
 .savedPageBtn{min-width:34px;height:32px;padding:0 8px;border:1px solid var(--line);border-radius:7px;background:var(--surface-2);color:var(--text-dim);font-size:11px;font-weight:900;cursor:pointer;}.savedPageBtn.on{border-color:var(--lime);background:var(--lime);color:#0b0f14;}.savedPageBtn:disabled{opacity:.3;cursor:not-allowed;}
 @media(max-width:700px){
   .savedSquadModal{padding:0;align-items:flex-start;}.savedSquadBox{width:100%;height:var(--app-vh,100dvh);max-height:none;border:none;border-radius:0;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);}
-  .savedSquadHead{padding:11px 12px}.savedSquadTabs{padding:8px 10px 0}.savedSquadTab{min-width:130px;padding:8px 12px}.savedSquadTools{padding:8px 10px;flex-wrap:wrap}.savedSquadStatus{width:100%}
+  .savedSquadHead{padding:11px 12px}.savedSquadTabs{padding:8px 10px 0}.savedSquadTab{min-width:130px;padding:8px 12px}.savedSquadTools{padding:8px 10px;flex-wrap:wrap}.savedSquadStatus{width:100%}.savedSquadSearch{width:100%;max-width:none}
   .savedSquadColumns{display:none}.savedSquadList{padding:8px}.savedSquadRow{grid-template-columns:26px minmax(0,1fr) 100px;gap:7px;padding:9px 7px}.savedMode{display:none}.savedPreview{grid-column:2/3;width:100%;max-width:180px}.savedRowActions{grid-column:3;grid-row:1/3;align-self:stretch;align-items:flex-end}.savedOpen{min-width:68px}.savedSquadFoot{min-height:48px}
 }
 
@@ -814,7 +816,7 @@ button{cursor:pointer;}
 <div class="app">
 
   <header class="smHeader">
-    <a class="smLogo" href="https://fcalrimi.com/" title="FC알리미 홈으로">FC<b>알리미</b> · 스쿼드 메이커</a>
+    <a class="smLogo" href="/" title="FC알리미 홈으로">FC<b>알리미</b> · 스쿼드 메이커</a>
     <div class="smHeaderSpacer"></div>
     <input type="hidden" id="squadTitle" value="">
     <button class="uToggle squadFavBtn" id="btnSquadFav" onclick="addSquadToRefreshFavorites()" title="선발과 후보의 현재 시즌 카드를 갱신시간 즐겨찾기에 한 번에 추가">★ 갱신시간 즐겨찾기</button>
@@ -930,11 +932,11 @@ button{cursor:pointer;}
     <div class="savedSquadHead"><strong>스쿼드 불러오기</strong><span>계정에 저장된 스쿼드를 선택하세요</span><button class="btnGhost" onclick="closeSavedSquads()">닫기</button></div>
     <div class="savedSquadTabs"><div class="savedSquadTab">보관함 <span id="savedSquadCount">0/50</span></div></div>
     <div class="savedSquadTools">
-      <div class="savedSquadStatus"><b id="savedSquadSelected">0개 선택</b><span class="savedSquadSource" id="savedSquadSource">확인 중</span></div>
+      <div class="savedSquadStatus"><b id="savedSquadSelected">0개 선택</b><input class="savedSquadSearch" id="savedSquadSearch" type="search" maxlength="30" placeholder="스쿼드 제목 검색" aria-label="스쿼드 제목 검색"></div>
       <button class="savedDelete" id="savedSquadDelete" type="button" onclick="deleteSelectedSquads()" disabled>선택 삭제</button>
       <button class="savedLoadSelected" id="savedSquadLoad" type="button" onclick="loadSelectedSquad()" disabled>스쿼드 불러오기</button>
     </div>
-    <div class="savedSquadColumns"><span></span><span>제목</span><span>포메이션</span><span>미리보기</span><span style="text-align:right">저장일시</span></div>
+    <div class="savedSquadColumns"><span></span><span class="savedTitleHead"><input class="savedSelectAll" id="savedSquadSelectAll" type="checkbox" aria-label="현재 페이지 전체 선택">제목 · 전체선택</span><span>포메이션</span><span>미리보기</span><span style="text-align:right">저장일시</span></div>
     <div class="savedSquadList" id="savedSquadList"></div>
     <div class="savedSquadFoot" id="savedSquadPages"></div>
   </div>
@@ -990,7 +992,7 @@ button{cursor:pointer;}
 <div class="qsOverlay" id="quickSearch">
   <div class="qsBox">
     <div class="qsHead">
-      <a class="qsHome" href="https://fcalrimi.com/" aria-label="FC알리미 홈으로">FC<b>알리미</b></a>
+      <a class="qsHome" href="/" aria-label="FC알리미 홈으로">FC<b>알리미</b></a>
       <div class="inClear" style="flex:1;min-width:0;"><input id="qsName" class="qsInput" placeholder="선수명 (2자 이상)" autocomplete="off"><button type="button" class="inX" onclick="clearInput('qsName')" title="지우기">×</button></div>
       <button class="qsClose" id="qsClose" title="닫기">×</button>
     </div>
@@ -1003,7 +1005,7 @@ button{cursor:pointer;}
 <div class="popup" id="searchPopup">
   <div class="popBox">
     <div class="popHead">
-      <a class="popHome" href="https://fcalrimi.com/" aria-label="FC알리미 홈으로">FC<b>알리미</b></a>
+      <a class="popHome" href="/" aria-label="FC알리미 홈으로">FC<b>알리미</b></a>
       <div class="popTitle">선수 검색</div>
       <div class="popSub" id="popSub"></div>
       <button class="popClose" onclick="closeSearch()">×</button>
@@ -1180,8 +1182,11 @@ function rareLoad(){ if(RARE||_rareLoading)return;
     RARE={ss:new Set(d.seasons||[]), sp:new Set((d.spids||[]).map(Number))}; }).catch(()=>{RARE=null;}); }
 // 희귀매물 여부 (제외 옵션이 꺼져 있으면 항상 false)
 function isRare(spid){ if(!aiState.noRare||!RARE)return false;
+  const r=byId(spid),pos=String(r?.[I.pos]||'').toUpperCase();
+  if(aiState.rareGkFree&&pos==='GK')return false;
+  if(aiState.rareFullbackFree&&['LWB','LB','RB','RWB'].includes(pos))return false;
   if(RARE.sp.has(+spid))return true;
-  const r=byId(spid); return !!(r&&RARE.ss.has(r[I.season])); }
+  return !!(r&&RARE.ss.has(r[I.season])); }
 // 딸깍이 쓸 수 있는 카드인가 — 로컬 DB에 있고, 희귀매물 제외 조건에 안 걸림
 function aiOk(spid){ return !!byId(spid) && !isRare(spid); }
 function tcbLoad(){ if(TCB||_tcbLoading)return;
@@ -2819,7 +2824,7 @@ function rollAutoTc(){   // 자동 선택/재추첨. 성공 시 true
   if(c.length>1){ let g=0; while(p.no===prev && g++<8) p=c[Math.floor(Math.random()*c.length)]; }
   aiState.tcAuto=true; aiState.tc=p.no; aiState.tcName=p.name; return true;
 }
-let aiState={budget:null, mode:'manager', tc:null, tcName:'', tcAuto:true, form:null, grade:'auto', locks:[], gmap:{}, gmapForm:'', noRare:false};
+let aiState={budget:null, mode:'manager', tc:null, tcName:'', tcAuto:true, form:null, grade:'auto', locks:[], gmap:{}, gmapForm:'', noRare:false, rareGkFree:false, rareFullbackFree:false};
 let aiIdx=0;
 let aiOpenG=null;   // 필수선수 강화 picker 열린 행 index
 let aiOpenGm=null;  // 개별강화 11칸 강화 picker 열린 행 index
@@ -2861,7 +2866,7 @@ function pickGrade(spid){
 function aiMode(){
   if(!PICK){ toast('픽률 데이터(pickrate.json)가 아직 없어요'); return; }
   if(!CHEM){ toast('data.json 로딩 후 사용하세요'); return; }
-  aiState={budget:null, mode:'manager', tc:null, tcName:'', tcAuto:true, form:null, grade:'auto', locks:[], gmap:{}, gmapForm:'', noRare:false};
+  aiState={budget:null, mode:'manager', tc:null, tcName:'', tcAuto:true, form:null, grade:'auto', locks:[], gmap:{}, gmapForm:'', noRare:false, rareGkFree:false, rareFullbackFree:false};
   tcbLoad(); rareLoad(); liveLoad();
   aiIdx=0; aiOpenG=null; aiOpenGm=null; document.getElementById('aiWiz').classList.add('on'); renderAiStep();
 }
@@ -2961,8 +2966,14 @@ function renderAiStep(){
         <div class="aiRow"><span class="t">강화</span><span class="n">${grTxt}</span></div>
         <div class="aiRow"><span class="t">예산</span><span class="n">${budTxt}</span></div>
         <div class="aiRow" data-norare="1" style="cursor:pointer;">
-          <span class="t">희귀매물(생성제한) 제외<br><small style="color:var(--text-dim);font-weight:700;">지난 연도 시즌 · 소속팀 없는 카드를 빼고 짭니다</small></span>
+          <span class="t">희귀매물(생성제한) 제외<br><small style="color:var(--text-dim);font-weight:700;">지정 시즌 · 선수명 100% 일치 명단을 제외합니다</small></span>
           <span class="n" style="font-weight:900;color:${aiState.noRare?'var(--lime)':'var(--text-dim)'}">${aiState.noRare?'☑ 제외':'☐ 포함'}</span></div>
+        <div class="aiRow" data-rare-gk="1" style="cursor:${aiState.noRare?'pointer':'not-allowed'};opacity:${aiState.noRare?1:.45};">
+          <span class="t">GK 예외<br><small style="color:var(--text-dim);font-weight:700;">GK는 희귀매물 제한 대상에서도 후보에 포함합니다</small></span>
+          <span class="n" style="font-weight:900;color:${aiState.noRare&&aiState.rareGkFree?'var(--lime)':'var(--text-dim)'}">${aiState.rareGkFree?'☑ 예외':'☐ 제한'}</span></div>
+        <div class="aiRow" data-rare-fullback="1" style="cursor:${aiState.noRare?'pointer':'not-allowed'};opacity:${aiState.noRare?1:.45};">
+          <span class="t">풀백 예외<br><small style="color:var(--text-dim);font-weight:700;">LWB · LB · RB · RWB는 후보에 포함합니다</small></span>
+          <span class="n" style="font-weight:900;color:${aiState.noRare&&aiState.rareFullbackFree?'var(--lime)':'var(--text-dim)'}">${aiState.rareFullbackFree?'☑ 예외':'☐ 제한'}</span></div>
       </div>`;
   }
 }
@@ -3071,6 +3082,10 @@ document.getElementById('aiNext').addEventListener('click',()=>{
 document.getElementById('aiBody').addEventListener('click',e=>{
   const nr=e.target.closest('[data-norare]'); if(nr){ aiState.noRare=!aiState.noRare;
     if(aiState.noRare&&!RARE) toast('희귀매물 목록(rare.json)을 못 찾았어요'); renderAiStep(); return; }
+  const rg=e.target.closest('[data-rare-gk]'); if(rg){ if(!aiState.noRare){toast('희귀매물 제외를 먼저 켜주세요');return;}
+    aiState.rareGkFree=!aiState.rareGkFree;renderAiStep();return; }
+  const rf=e.target.closest('[data-rare-fullback]'); if(rf){ if(!aiState.noRare){toast('희귀매물 제외를 먼저 켜주세요');return;}
+    aiState.rareFullbackFree=!aiState.rareFullbackFree;renderAiStep();return; }
   const mc=e.target.closest('[data-mode]'); if(mc){ aiState.mode=mc.dataset.mode;
     if(aiState.form&&aiState.form!=='auto'&&!aiFormKeys(aiState.mode).includes(aiState.form))aiState.form=null;
     if(aiState.tcAuto) rollAutoTc();   // 모드마다 인기 팀컬러가 달라서 재추첨
@@ -3358,7 +3373,9 @@ function aiBuild(){
   const gi=[...Array(N_START).keys()].find(i=>zoneAt(layout[i].fx,layout[i].fy)==='GK');
   const gkOvr=(gi!=null&&squad[gi])?finalOvr(squad[gi],gi):0;
   let msg=`딸깍 스쿼드 완성! 급여 ${pay}/${PAY_LIMIT} · BP ${won(bp)} · GK OVR ${gkOvr}`;
-  if(aiState.noRare) msg+=' · 희귀매물 제외';
+  if(aiState.noRare){ msg+=' · 희귀매물 제외';
+    if(aiState.rareGkFree)msg+='(GK 예외)';
+    if(aiState.rareFullbackFree)msg+='(풀백 예외)'; }
   if(aiAutoSoc) msg+=` · 소속 ${aiAutoSoc}(자동 통일)`;
   if(aiState.locks.length) msg+=` · 고정 ${aiState.locks.length-lockFail.length}명`;
   if(aiState.budget && bp>aiState.budget*1e8*1.05) msg+=' · 예산+5% 초과(더 못 줄임)';
@@ -3453,8 +3470,9 @@ const SAVED_KEY='fc_squad_v6_saved';
 const SQUAD_LIST_KEY='fc_squad_v6_saved_list';
 const SQUAD_SAVE_TABLE='squad_saves';
 const SQUAD_SAVE_MAX=50;
-const SQUAD_PAGE_SIZE=10;
-let savedSquadState={list:[],selected:new Set(),page:1,source:'local',uid:null,loading:false};
+const SQUAD_PAGE_SIZE=5;
+let savedSquadState={list:[],selected:new Set(),page:1,pageCount:1,total:0,query:'',source:'local',uid:null,client:null,loading:false};
+let savedSquadSearchTimer=0;
 function readSavedSquads(){
   try{const a=JSON.parse(localStorage.getItem(SQUAD_LIST_KEY)||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}
 }
@@ -3551,7 +3569,7 @@ async function saveSquad(){
       if(error)throw error;
       saveLocalSquad(titleEl.value,data,{serverId:row?.id||null}); // 로컬 PC에만 복구용 사본
       localStorage.setItem(SAVED_KEY,JSON.stringify(data));
-      toast(`「${titleEl.value}」 스쿼드를 계정에 저장했어요`);
+      toast(`저장 완료 · 「${titleEl.value}」 스쿼드를 계정에 저장했어요`);
       return;
     }catch(e){
       console.error('Supabase 스쿼드 저장 실패',e);
@@ -3559,7 +3577,7 @@ async function saveSquad(){
         toast('계정 저장 실패 · 로컬 보관함도 50개입니다'); return;
       }
       localStorage.setItem(SAVED_KEY,JSON.stringify(data));
-      toast('서버 저장 실패 · 이 PC에만 임시 저장했어요');
+      toast('저장 완료 · 서버 저장 실패로 이 PC에만 임시 저장했어요');
       return;
     }
   }
@@ -3567,30 +3585,50 @@ async function saveSquad(){
     toast('스쿼드는 최대 50개입니다 · 기존 스쿼드를 삭제해 주세요'); loadSquad(); return;
   }
   localStorage.setItem(SAVED_KEY,JSON.stringify(data));
-  toast(`「${titleEl.value}」 스쿼드를 이 PC에 저장했어요`);
+  toast(`저장 완료 · 「${titleEl.value}」 스쿼드를 이 PC에 저장했어요`);
 }
 async function loadSquad(){
   document.getElementById('savedSquadModal').classList.add('on');
   document.body.style.overflow='hidden';
-  savedSquadState.selected.clear(); savedSquadState.page=1; savedSquadState.loading=true;
+  savedSquadState.selected.clear(); savedSquadState.page=1;savedSquadState.pageCount=1;savedSquadState.total=0;savedSquadState.query='';savedSquadState.loading=true;
+  const search=document.getElementById('savedSquadSearch');if(search)search.value='';
   renderSavedSquads();
   const {client,uid}=await squadSaveSession();
   if(client&&uid){
+    savedSquadState.source='server';savedSquadState.client=client;savedSquadState.uid=uid;
+  }else{
+    savedSquadState.source='local';savedSquadState.client=null;savedSquadState.uid=null;
+  }
+  await fetchSavedSquadPage(1);
+}
+async function fetchSavedSquadPage(page=1){
+  const st=savedSquadState;
+  st.page=Math.max(1,+page||1);st.loading=true;renderSavedSquads();
+  if(st.source==='server'&&st.client&&st.uid){
     try{
-      const {data,error}=await client.from(SQUAD_SAVE_TABLE)
-        .select('id,title,squad_data,created_at,updated_at').eq('user_id',uid)
-        .order('created_at',{ascending:false}).limit(SQUAD_SAVE_MAX);
+      const from=(st.page-1)*SQUAD_PAGE_SIZE,to=from+SQUAD_PAGE_SIZE-1;
+      let q=st.client.from(SQUAD_SAVE_TABLE)
+        .select('id,title,squad_data,created_at,updated_at',{count:'exact'})
+        .eq('user_id',st.uid);
+      if(st.query)q=q.ilike('title',`%${st.query}%`);
+      const {data,error,count}=await q.order('created_at',{ascending:false}).range(from,to);
       if(error)throw error;
-      savedSquadState.list=(data||[]).map(x=>({id:x.id,title:x.title,savedAt:x.created_at||x.updated_at,data:x.squad_data}));
-      savedSquadState.source='server'; savedSquadState.uid=uid;
+      st.total=count||0;st.pageCount=Math.max(1,Math.ceil(st.total/SQUAD_PAGE_SIZE));
+      if(st.page>st.pageCount){st.loading=false;return fetchSavedSquadPage(st.pageCount);}
+      st.list=(data||[]).map(x=>({id:x.id,title:x.title,savedAt:x.created_at||x.updated_at,data:x.squad_data}));
     }catch(e){
       console.error('Supabase 스쿼드 불러오기 실패',e);
-      savedSquadState.list=readSavedSquads(); savedSquadState.source='local-error'; savedSquadState.uid=null;
+      st.source='local-error';st.client=null;st.uid=null;
+      return fetchSavedSquadPage(st.page);
     }
   }else{
-    savedSquadState.list=readSavedSquads(); savedSquadState.source='local'; savedSquadState.uid=null;
+    const q=st.query.toLocaleLowerCase('ko-KR');
+    const all=readSavedSquads().filter(x=>!q||String(x.title||'').toLocaleLowerCase('ko-KR').includes(q));
+    st.total=all.length;st.pageCount=Math.max(1,Math.ceil(st.total/SQUAD_PAGE_SIZE));
+    st.page=Math.min(st.page,st.pageCount);
+    const from=(st.page-1)*SQUAD_PAGE_SIZE;st.list=all.slice(from,from+SQUAD_PAGE_SIZE);
   }
-  savedSquadState.loading=false; renderSavedSquads();
+  st.loading=false;renderSavedSquads();
 }
 function closeSavedSquads(){
   document.getElementById('savedSquadModal').classList.remove('on');
@@ -3608,14 +3646,10 @@ function savedSquadDate(v){
 }
 function renderSavedSquads(){
   const list=savedSquadState.list,selected=savedSquadState.selected;
-  const pageCount=Math.max(1,Math.ceil(list.length/SQUAD_PAGE_SIZE));
+  const pageCount=savedSquadState.pageCount,rows=list;
   savedSquadState.page=Math.min(savedSquadState.page,pageCount);
-  const start=(savedSquadState.page-1)*SQUAD_PAGE_SIZE,rows=list.slice(start,start+SQUAD_PAGE_SIZE);
-  document.getElementById('savedSquadCount').textContent=`${list.length}/${SQUAD_SAVE_MAX}`;
+  document.getElementById('savedSquadCount').textContent=`${savedSquadState.total}/${SQUAD_SAVE_MAX}`;
   document.getElementById('savedSquadSelected').textContent=`${selected.size}개 선택`;
-  const source={server:'Supabase 계정 저장',local:'이 PC 로컬 저장',
-    'local-error':'서버 연결 실패 · 로컬 표시'}[savedSquadState.source]||'확인 중';
-  document.getElementById('savedSquadSource').textContent=savedSquadState.loading?'불러오는 중…':source;
   document.getElementById('savedSquadDelete').disabled=!selected.size||savedSquadState.loading;
   document.getElementById('savedSquadLoad').disabled=selected.size!==1||savedSquadState.loading;
   const box=document.getElementById('savedSquadList');
@@ -3631,6 +3665,8 @@ function renderSavedSquads(){
       <span class="savedRowActions"><span class="savedDate">${savedSquadDate(x.savedAt||x.id)}</span><button class="savedOpen" type="button" data-load-saved="${id}">불러오기</button></span>
     </div>`;
   }).join('');
+  const all=document.getElementById('savedSquadSelectAll'),pageIds=rows.map(x=>String(x.id));
+  if(all){const n=pageIds.filter(id=>selected.has(id)).length;all.checked=!!pageIds.length&&n===pageIds.length;all.indeterminate=n>0&&n<pageIds.length;all.disabled=savedSquadState.loading||!pageIds.length;}
   const pages=document.getElementById('savedSquadPages');
   if(savedSquadState.loading||pageCount<=1){pages.innerHTML='';return;}
   const nums=[];for(let i=1;i<=pageCount;i++)nums.push(`<button class="savedPageBtn ${i===savedSquadState.page?'on':''}" type="button" onclick="setSavedSquadPage(${i})">${i}</button>`);
@@ -3643,9 +3679,11 @@ function applySavedSquad(id){
   closeSavedSquads();closeMenu();load();renderBoard();
   toast(`「${x.title||'스쿼드'}」을 불러왔어요`);
 }
-function setSavedSquadPage(page){
-  const max=Math.max(1,Math.ceil(savedSquadState.list.length/SQUAD_PAGE_SIZE));
-  savedSquadState.page=Math.max(1,Math.min(max,page));renderSavedSquads();
+async function setSavedSquadPage(page){
+  const max=savedSquadState.pageCount;
+  page=Math.max(1,Math.min(max,page));if(page===savedSquadState.page)return;
+  savedSquadState.selected.clear();
+  await fetchSavedSquadPage(page);
 }
 function loadSelectedSquad(){
   if(savedSquadState.selected.size!==1){toast('불러올 스쿼드 하나를 선택해 주세요');return;}
@@ -3664,8 +3702,8 @@ async function deleteSelectedSquads(){
   }else{
     writeSavedSquads(readSavedSquads().filter(x=>!ids.includes(String(x.id))));
   }
-  savedSquadState.list=savedSquadState.list.filter(x=>!ids.includes(String(x.id)));
-  savedSquadState.selected.clear();renderSavedSquads();toast('선택한 스쿼드를 삭제했어요');
+  const nextTotal=Math.max(0,savedSquadState.total-ids.length),nextPage=Math.min(savedSquadState.page,Math.max(1,Math.ceil(nextTotal/SQUAD_PAGE_SIZE)));
+  savedSquadState.selected.clear();await fetchSavedSquadPage(nextPage);toast('선택한 스쿼드를 삭제했어요');
 }
 document.getElementById('savedSquadList').addEventListener('change',e=>{
   const cb=e.target.closest('.savedSquadCheck');if(!cb)return;
@@ -3675,6 +3713,14 @@ document.getElementById('savedSquadList').addEventListener('change',e=>{
 });
 document.getElementById('savedSquadList').addEventListener('click',e=>{
   const btn=e.target.closest('[data-load-saved]');if(btn)applySavedSquad(btn.dataset.loadSaved);
+});
+document.getElementById('savedSquadSelectAll').addEventListener('change',e=>{
+  for(const x of savedSquadState.list){const id=String(x.id);if(e.target.checked)savedSquadState.selected.add(id);else savedSquadState.selected.delete(id);}
+  renderSavedSquads();
+});
+document.getElementById('savedSquadSearch').addEventListener('input',e=>{
+  clearTimeout(savedSquadSearchTimer);const value=e.target.value.trim();
+  savedSquadSearchTimer=setTimeout(()=>{savedSquadState.query=value;savedSquadState.selected.clear();fetchSavedSquadPage(1);},250);
 });
 function resetSquad(){
   if(!confirm('스쿼드를 전부 비울까요?'))return;
