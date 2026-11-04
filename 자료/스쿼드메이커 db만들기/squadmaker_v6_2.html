@@ -589,17 +589,38 @@ button{cursor:pointer;}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
 
 /* ---------- 저장 스쿼드 목록 ---------- */
-.savedSquadModal{position:fixed;inset:0;z-index:420;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(3,6,10,.76);}
+.savedSquadModal{position:fixed;inset:0;z-index:420;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(3,6,10,.80);backdrop-filter:blur(3px);}
 .savedSquadModal.on{display:flex;}
-.savedSquadBox{width:min(520px,100%);max-height:min(680px,88vh);display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line-2);border-radius:15px;box-shadow:0 24px 70px rgba(0,0,0,.55);overflow:hidden;}
-.savedSquadHead{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line);}
-.savedSquadHead strong{font-size:15px;}.savedSquadHead span{color:var(--text-dim);font-size:11px;}.savedSquadHead button{margin-left:auto;}
-.savedSquadList{padding:10px;overflow:auto;display:flex;flex-direction:column;gap:7px;}
-.savedSquadRow{width:100%;display:flex;align-items:center;gap:12px;padding:11px 12px;text-align:left;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;color:var(--text);}
-.savedSquadRow:hover{border-color:var(--lime);background:rgba(196,255,61,.06);}
-.savedSquadRow .savedInfo{display:block;min-width:0;flex:1;}.savedSquadRow .savedTitle{display:block;font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.savedSquadRow .savedDate{display:block;font-size:10px;color:var(--text-dim);margin-top:2px;}.savedSquadRow .savedOpen{font-size:11px;font-weight:800;color:var(--lime);white-space:nowrap;}
-.savedSquadEmpty{padding:38px 15px;text-align:center;color:var(--text-dim);font-size:12px;}
+.savedSquadBox{width:min(940px,100%);height:min(760px,90vh);display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line-2);border-radius:15px;box-shadow:0 24px 70px rgba(0,0,0,.60);overflow:hidden;}
+.savedSquadHead{display:flex;align-items:center;gap:10px;padding:15px 18px;border-bottom:1px solid var(--line);}
+.savedSquadHead strong{font-size:16px;}.savedSquadHead span{color:var(--text-dim);font-size:11px;}.savedSquadHead button{margin-left:auto;}
+.savedSquadTabs{display:flex;padding:12px 16px 0;border-bottom:1px solid var(--line);}
+.savedSquadTab{min-width:170px;padding:10px 18px;border:1px solid var(--line-2);border-bottom-color:var(--surface);border-radius:9px 9px 0 0;background:var(--surface);color:var(--text);font-size:12px;font-weight:900;text-align:center;}
+.savedSquadTools{display:flex;align-items:center;gap:8px;padding:11px 16px;background:var(--surface-2);border-bottom:1px solid var(--line);}
+.savedSquadStatus{display:flex;align-items:center;gap:8px;min-width:0;margin-right:auto;color:var(--text-dim);font-size:11px;}
+.savedSquadStatus b{color:var(--lime);font-size:12px;}.savedSquadSource{padding:3px 7px;border:1px solid var(--line);border-radius:100px;background:var(--surface);white-space:nowrap;}
+.savedSquadTools button{min-height:34px;padding:7px 13px;border-radius:8px;font-size:11px;font-weight:900;cursor:pointer;}
+.savedDelete{border:1px solid rgba(255,92,106,.45);background:transparent;color:var(--red);}.savedDelete:disabled{opacity:.35;cursor:not-allowed;}
+.savedLoadSelected{border:1px solid var(--lime);background:var(--lime);color:#0b0f14;}.savedLoadSelected:disabled{opacity:.38;cursor:not-allowed;}
+.savedSquadColumns,.savedSquadRow{display:grid;grid-template-columns:30px minmax(170px,1fr) 100px 150px 125px;align-items:center;gap:10px;}
+.savedSquadColumns{padding:8px 18px;color:var(--text-dim2);border-bottom:1px solid var(--line);font-size:10px;font-weight:800;}
+.savedSquadList{padding:8px 12px;overflow:auto;display:flex;flex:1;min-height:0;flex-direction:column;gap:6px;}
+.savedSquadRow{width:100%;padding:10px 8px;text-align:left;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;color:var(--text);transition:border-color .15s,background .15s;}
+.savedSquadRow:hover,.savedSquadRow.isSelected{border-color:var(--lime);background:rgba(196,255,61,.06);}
+.savedSquadCheck{width:17px;height:17px;margin:auto;accent-color:var(--lime);cursor:pointer;}
+.savedSquadRow .savedInfo{display:block;min-width:0;}.savedSquadRow .savedTitle{display:block;font-size:13px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.savedSquadRow .savedMeta,.savedSquadRow .savedDate{display:block;font-size:10px;color:var(--text-dim);margin-top:3px;}
+.savedMode{font-size:11px;font-weight:800;color:var(--text-dim);}.savedPreview{display:flex;align-items:flex-end;gap:1px;width:142px;height:44px;padding:2px 4px;overflow:hidden;border:1px solid var(--line);border-radius:7px;background:rgba(5,9,13,.62);}
+.savedPreview img{width:20px;height:38px;object-fit:cover;object-position:center top;flex:0 0 auto;}.savedPreviewMore{margin-left:2px;color:var(--text-dim);font-size:9px;align-self:center;}
+.savedRowActions{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:5px;}.savedOpen{min-height:31px;padding:6px 10px;border:1px solid var(--lime);border-radius:7px;background:transparent;color:var(--lime);font-size:10.5px;font-weight:900;cursor:pointer;}
+.savedSquadEmpty{padding:56px 15px;text-align:center;color:var(--text-dim);font-size:12px;}
+.savedSquadFoot{display:flex;align-items:center;justify-content:center;gap:5px;min-height:52px;padding:9px 14px;border-top:1px solid var(--line);}
+.savedPageBtn{min-width:34px;height:32px;padding:0 8px;border:1px solid var(--line);border-radius:7px;background:var(--surface-2);color:var(--text-dim);font-size:11px;font-weight:900;cursor:pointer;}.savedPageBtn.on{border-color:var(--lime);background:var(--lime);color:#0b0f14;}.savedPageBtn:disabled{opacity:.3;cursor:not-allowed;}
+@media(max-width:700px){
+  .savedSquadModal{padding:0;align-items:flex-start;}.savedSquadBox{width:100%;height:var(--app-vh,100dvh);max-height:none;border:none;border-radius:0;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);}
+  .savedSquadHead{padding:11px 12px}.savedSquadTabs{padding:8px 10px 0}.savedSquadTab{min-width:130px;padding:8px 12px}.savedSquadTools{padding:8px 10px;flex-wrap:wrap}.savedSquadStatus{width:100%}
+  .savedSquadColumns{display:none}.savedSquadList{padding:8px}.savedSquadRow{grid-template-columns:26px minmax(0,1fr) 100px;gap:7px;padding:9px 7px}.savedMode{display:none}.savedPreview{grid-column:2/3;width:100%;max-width:180px}.savedRowActions{grid-column:3;grid-row:1/3;align-self:stretch;align-items:flex-end}.savedOpen{min-width:68px}.savedSquadFoot{min-height:48px}
+}
 
 /* ---------- 갱신시간 즐겨찾기 선택 ---------- */
 .favPickModal{position:fixed;inset:0;z-index:430;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(3,6,10,.78);}
@@ -900,8 +921,16 @@ button{cursor:pointer;}
 
 <div class="savedSquadModal" id="savedSquadModal" onclick="if(event.target===this)closeSavedSquads()">
   <div class="savedSquadBox" role="dialog" aria-modal="true" aria-label="저장된 스쿼드 불러오기">
-    <div class="savedSquadHead"><strong>저장된 스쿼드</strong><span id="savedSquadCount"></span><button class="btnGhost" onclick="closeSavedSquads()">닫기</button></div>
+    <div class="savedSquadHead"><strong>스쿼드 불러오기</strong><span>계정에 저장된 스쿼드를 선택하세요</span><button class="btnGhost" onclick="closeSavedSquads()">닫기</button></div>
+    <div class="savedSquadTabs"><div class="savedSquadTab">보관함 <span id="savedSquadCount">0/50</span></div></div>
+    <div class="savedSquadTools">
+      <div class="savedSquadStatus"><b id="savedSquadSelected">0개 선택</b><span class="savedSquadSource" id="savedSquadSource">확인 중</span></div>
+      <button class="savedDelete" id="savedSquadDelete" type="button" onclick="deleteSelectedSquads()" disabled>선택 삭제</button>
+      <button class="savedLoadSelected" id="savedSquadLoad" type="button" onclick="loadSelectedSquad()" disabled>스쿼드 불러오기</button>
+    </div>
+    <div class="savedSquadColumns"><span></span><span>제목</span><span>포메이션</span><span>미리보기</span><span style="text-align:right">저장일시</span></div>
     <div class="savedSquadList" id="savedSquadList"></div>
+    <div class="savedSquadFoot" id="savedSquadPages"></div>
   </div>
 </div>
 
@@ -925,6 +954,7 @@ button{cursor:pointer;}
   <div class="featureHelpBox" role="dialog" aria-modal="true" aria-labelledby="featureHelpTitle">
     <div class="featureHelpHead"><strong id="featureHelpTitle">스쿼드 기능 사용법</strong><span>버튼을 켠 뒤 선수를 눌러보세요</span><button class="btnGhost" type="button" onclick="closeFeatureHelp()">닫기</button></div>
     <div class="featureHelpList">
+      <div class="featureHelpItem"><b>딸깍 스쿼드</b><p>클릭 몇 번으로 랭커들이 검증한 선수만 골라 스쿼드를 완성시켜드려요.</p></div>
       <div class="featureHelpItem"><b>금빛 특성</b><p>토글을 활성화한 뒤 선수를 클릭하면 8강 이상 선수에게 금빛 특성을 추가할 수 있어요.</p></div>
       <div class="featureHelpItem"><b>집중훈련</b><p>선수별 최고 OVR 조합을 추천받고, 집중훈련으로 가능한 최대 오버롤을 적용할 수 있어요.</p></div>
       <div class="featureHelpItem"><b>등번호</b><p>등번호를 켠 뒤 선수를 클릭하면 ‘너의 등번호는’ 페이지에서 해당 선수의 팀·연도별 등번호 기록을 바로 볼 수 있어요.</p></div>
@@ -2750,6 +2780,8 @@ function grpOf(label){ const b=BASE_POS[label]||label; return b==='CDM'?'DM':b; 
 // rankmeta 기반 포메이션 자동선택: 팀컬러 최다 포메이션(없으면 모드 인기 포메이션) 중 스쿼드메이커에 있는 것.
 function rankModeKey(mode){ return mode==='official'?'1vs1':'감모'; }
 const MANAGER_FORMATIONS=['4-1-2-3','4-1-4-1','4-2-4','4-5-1'];
+const MANAGER_FORM_LABELS={'4-1-2-3':'4-1-2-3-0','4-1-4-1':'4-1-4-1-0','4-2-4':'4-2-4','4-5-1':'4-5-1-0'};
+function aiFormLabel(form,mode=aiState.mode){return mode==='manager'?(MANAGER_FORM_LABELS[form]||form):form;}
 function aiFormKeys(mode){return mode==='manager'?MANAGER_FORMATIONS.filter(f=>FORMATIONS[f]):Object.keys(FORMATIONS);}
 function autoFormFor(mode, tcName){
   const md=RANK&&RANK.modes&&RANK.modes[rankModeKey(mode)];
@@ -2875,13 +2907,13 @@ function renderAiStep(){
   }
   else if(step.key==='form'){
     const cur=curForm, af=autoFormFor(aiState.mode,aiState.tcName);
-    const autoSub=af?(af+(aiState.tcName?' · '+aiState.tcName+' 최다':' · 인기 1위')):'랭킹 데이터 없음';
+    const autoSub=af?(aiFormLabel(af)+(aiState.tcName?' · '+aiState.tcName+' 최다':' · 인기 1위')):'랭킹 데이터 없음';
     body.innerHTML=`<div class="aiQ">포메이션을 고르세요</div>
       <div class="aiHint">건너뛰면 현재 포메이션(${cur})을 그대로 써요.</div>
       <div class="aiPick">
         <div class="aiCard ${aiState.form==='auto'?'on':''} ${af?'':'aiDim'}" data-form="${af?'auto':''}" style="min-width:150px;padding:16px 20px;">자동<small>${autoSub}</small></div>
         ${aiFormKeys(aiState.mode).map(f=>
-        `<div class="aiCard ${(aiState.form&&aiState.form!=='auto'?aiState.form:cur)===f&&aiState.form!=='auto'?'on':''}" data-form="${f}" style="min-width:120px;padding:16px 20px;">${f}</div>`).join('')}</div>`;
+        `<div class="aiCard ${(aiState.form&&aiState.form!=='auto'?aiState.form:cur)===f&&aiState.form!=='auto'?'on':''}" data-form="${f}" style="min-width:120px;padding:16px 20px;"><span>${aiFormLabel(f)}</span>${aiState.mode==='manager'?'<small>(감독모드)</small>':''}</div>`).join('')}</div>`;
   }
   else if(step.key==='lock'){
     body.innerHTML=`<div class="aiQ">필수로 넣을 선수가 있나요?</div>
@@ -2906,7 +2938,8 @@ function renderAiStep(){
   else if(step.key==='build'){
     const tcTxt=aiState.tc?(aiState.tcName+(aiState.tcAuto?' (자동)':'')):'선택 안 함';
     const modeTxt=aiState.mode==='official'?'공식경기 1대1':'감독모드';
-    const formTxt=aiState.form==='auto'?((autoFormFor(aiState.mode,aiState.tcName)||curForm)+' (자동)'):(aiState.form||curForm);
+    const resolvedForm=aiState.form==='auto'?(autoFormFor(aiState.mode,aiState.tcName)||curForm):(aiState.form||curForm);
+    const formTxt=aiFormLabel(resolvedForm)+(aiState.form==='auto'?' (자동)':'')+(aiState.mode==='manager'?'<br><small style="color:var(--text-dim);font-weight:700;">(감독모드)</small>':'');
     const budTxt=aiState.budget?`${aiState.budget}억 BP${budgetBucketLabel(aiState.budget)?` · ${budgetBucketLabel(aiState.budget)} 랭커 기준`:''}`:'제한 없음';
     const grTxt=aiState.grade==='custom'?'개별 설정':((GRADE_PRESETS[aiState.grade]||{}).label||'자동');
     const lockTxt=aiState.locks.length?`${aiState.locks.length}명`:'없음';
@@ -3399,10 +3432,14 @@ function resetUniAuto(){                                      // 스쿼드 대�
 const KEY='fc_squad_v6';
 const SAVED_KEY='fc_squad_v6_saved';
 const SQUAD_LIST_KEY='fc_squad_v6_saved_list';
+const SQUAD_SAVE_TABLE='squad_saves';
+const SQUAD_SAVE_MAX=50;
+const SQUAD_PAGE_SIZE=10;
+let savedSquadState={list:[],selected:new Set(),page:1,source:'local',uid:null,loading:false};
 function readSavedSquads(){
   try{const a=JSON.parse(localStorage.getItem(SQUAD_LIST_KEY)||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}
 }
-function writeSavedSquads(a){try{localStorage.setItem(SQUAD_LIST_KEY,JSON.stringify(a.slice(0,50)));}catch(e){toast('저장 공간이 부족합니다');}}
+function writeSavedSquads(a){try{localStorage.setItem(SQUAD_LIST_KEY,JSON.stringify(a.slice(0,SQUAD_SAVE_MAX)));return true;}catch(e){toast('로컬 저장 공간이 부족합니다');return false;}}
 try{
   if(!readSavedSquads().length){
     const old=localStorage.getItem(SAVED_KEY)||localStorage.getItem(KEY);
@@ -3454,46 +3491,172 @@ function load(){
     if(showJersey)jerseyLoad().then(()=>renderBoard());
   }catch(e){}
 }
-function saveSquad(){
+function squadSnapshot(){
+  save();
+  try{return JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){return null;}
+}
+async function squadSaveSession(){
+  try{
+    const client=await loadFavoriteSupabase();
+    if(!client)return {client:null,uid:null};
+    const {data}=await client.auth.getSession();
+    return {client,uid:data?.session?.user?.id||null};
+  }catch(e){return {client:null,uid:null};}
+}
+function saveLocalSquad(title,data,extra={}){
+  const list=readSavedSquads();
+  if(list.length>=SQUAD_SAVE_MAX)return false;
+  list.unshift({id:Date.now(),title,savedAt:Date.now(),data,...extra});
+  return writeSavedSquads(list);
+}
+async function saveSquad(){
   const titleEl=document.getElementById('squadTitle');
   const title=prompt('스쿼드 제목을 입력하세요',titleEl.value||'');
   if(title===null)return;
   titleEl.value=title.trim().slice(0,30);
   if(!titleEl.value){toast('스쿼드 제목을 입력해주세요');return;}
-  save();
-  try{
-    const data=JSON.parse(localStorage.getItem(KEY)||'null');
-    const list=readSavedSquads();
-    list.unshift({id:Date.now(),title:titleEl.value,savedAt:Date.now(),data});
-    writeSavedSquads(list);
-    localStorage.setItem(SAVED_KEY,JSON.stringify(data));
-  }catch(e){}
-  toast(`「${titleEl.value}」 스쿼드를 저장했어요`);
+  const data=squadSnapshot();
+  if(!data){toast('저장할 스쿼드 정보를 만들지 못했습니다');return;}
+  const {client,uid}=await squadSaveSession();
+  if(client&&uid){
+    try{
+      const countResult=await client.from(SQUAD_SAVE_TABLE).select('id',{count:'exact',head:true}).eq('user_id',uid);
+      if(countResult.error)throw countResult.error;
+      if((countResult.count||0)>=SQUAD_SAVE_MAX){
+        toast('스쿼드는 계정당 최대 50개입니다 · 기존 스쿼드를 삭제해 주세요');
+        loadSquad(); return;
+      }
+      const {data:row,error}=await client.from(SQUAD_SAVE_TABLE)
+        .insert({user_id:uid,title:titleEl.value,squad_data:data})
+        .select('id,created_at').single();
+      if(error)throw error;
+      saveLocalSquad(titleEl.value,data,{serverId:row?.id||null}); // 로컬 PC에만 복구용 사본
+      localStorage.setItem(SAVED_KEY,JSON.stringify(data));
+      toast(`「${titleEl.value}」 스쿼드를 계정에 저장했어요`);
+      return;
+    }catch(e){
+      console.error('Supabase 스쿼드 저장 실패',e);
+      if(!saveLocalSquad(titleEl.value,data)){
+        toast('계정 저장 실패 · 로컬 보관함도 50개입니다'); return;
+      }
+      localStorage.setItem(SAVED_KEY,JSON.stringify(data));
+      toast('서버 저장 실패 · 이 PC에만 임시 저장했어요');
+      return;
+    }
+  }
+  if(!saveLocalSquad(titleEl.value,data)){
+    toast('스쿼드는 최대 50개입니다 · 기존 스쿼드를 삭제해 주세요'); loadSquad(); return;
+  }
+  localStorage.setItem(SAVED_KEY,JSON.stringify(data));
+  toast(`「${titleEl.value}」 스쿼드를 이 PC에 저장했어요`);
 }
-function loadSquad(){
-  renderSavedSquads();
+async function loadSquad(){
   document.getElementById('savedSquadModal').classList.add('on');
   document.body.style.overflow='hidden';
+  savedSquadState.selected.clear(); savedSquadState.page=1; savedSquadState.loading=true;
+  renderSavedSquads();
+  const {client,uid}=await squadSaveSession();
+  if(client&&uid){
+    try{
+      const {data,error}=await client.from(SQUAD_SAVE_TABLE)
+        .select('id,title,squad_data,created_at,updated_at').eq('user_id',uid)
+        .order('created_at',{ascending:false}).limit(SQUAD_SAVE_MAX);
+      if(error)throw error;
+      savedSquadState.list=(data||[]).map(x=>({id:x.id,title:x.title,savedAt:x.created_at||x.updated_at,data:x.squad_data}));
+      savedSquadState.source='server'; savedSquadState.uid=uid;
+    }catch(e){
+      console.error('Supabase 스쿼드 불러오기 실패',e);
+      savedSquadState.list=readSavedSquads(); savedSquadState.source='local-error'; savedSquadState.uid=null;
+    }
+  }else{
+    savedSquadState.list=readSavedSquads(); savedSquadState.source='local'; savedSquadState.uid=null;
+  }
+  savedSquadState.loading=false; renderSavedSquads();
 }
 function closeSavedSquads(){
   document.getElementById('savedSquadModal').classList.remove('on');
   document.body.style.overflow='';
 }
+function savedSquadPreview(data){
+  const cards=(Array.isArray(data?.squad)?data.squad:[]).slice(0,N_START).filter(x=>x&&x.spid);
+  if(!cards.length)return '<span class="savedPreviewMore">선수 없음</span>';
+  const shown=cards.slice(0,6);
+  return shown.map(x=>`<img src="${MINI(Number(x.spid))}" alt="" onerror="this.style.display='none'">`).join('')+
+    (cards.length>shown.length?`<span class="savedPreviewMore">+${cards.length-shown.length}</span>`:'');
+}
+function savedSquadDate(v){
+  const dt=new Date(v);return isNaN(dt)?'':dt.toLocaleString('ko-KR',{year:'2-digit',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
 function renderSavedSquads(){
-  const list=readSavedSquads();
-  document.getElementById('savedSquadCount').textContent=`${list.length}개`;
-  document.getElementById('savedSquadList').innerHTML=list.length?list.map(x=>{
-    const dt=new Date(x.savedAt||x.id),date=isNaN(dt)?'':dt.toLocaleString('ko-KR',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
-    return `<button class="savedSquadRow" onclick="applySavedSquad(${Number(x.id)})"><span class="savedInfo"><span class="savedTitle">${esc(x.title||'제목 없는 스쿼드')}</span><span class="savedDate">${date}</span></span><span class="savedOpen">불러오기</span></button>`;
-  }).join(''):'<div class="savedSquadEmpty">저장된 스쿼드가 없습니다.</div>';
+  const list=savedSquadState.list,selected=savedSquadState.selected;
+  const pageCount=Math.max(1,Math.ceil(list.length/SQUAD_PAGE_SIZE));
+  savedSquadState.page=Math.min(savedSquadState.page,pageCount);
+  const start=(savedSquadState.page-1)*SQUAD_PAGE_SIZE,rows=list.slice(start,start+SQUAD_PAGE_SIZE);
+  document.getElementById('savedSquadCount').textContent=`${list.length}/${SQUAD_SAVE_MAX}`;
+  document.getElementById('savedSquadSelected').textContent=`${selected.size}개 선택`;
+  const source={server:'Supabase 계정 저장',local:'이 PC 로컬 저장',
+    'local-error':'서버 연결 실패 · 로컬 표시'}[savedSquadState.source]||'확인 중';
+  document.getElementById('savedSquadSource').textContent=savedSquadState.loading?'불러오는 중…':source;
+  document.getElementById('savedSquadDelete').disabled=!selected.size||savedSquadState.loading;
+  document.getElementById('savedSquadLoad').disabled=selected.size!==1||savedSquadState.loading;
+  const box=document.getElementById('savedSquadList');
+  if(savedSquadState.loading){box.innerHTML='<div class="savedSquadEmpty">저장된 스쿼드를 불러오는 중입니다…</div>';}
+  else if(!rows.length){box.innerHTML='<div class="savedSquadEmpty">저장된 스쿼드가 없습니다.<br>스쿼드를 만든 뒤 저장 버튼을 눌러보세요.</div>';}
+  else box.innerHTML=rows.map(x=>{
+    const id=esc(String(x.id)),d=x.data||{},cards=(Array.isArray(d.squad)?d.squad:[]).filter(Boolean);
+    return `<div class="savedSquadRow ${selected.has(String(x.id))?'isSelected':''}" data-saved-id="${id}">
+      <input class="savedSquadCheck" type="checkbox" aria-label="${esc(x.title||'제목 없는 스쿼드')} 선택" ${selected.has(String(x.id))?'checked':''}>
+      <span class="savedInfo"><span class="savedTitle">${esc(x.title||'제목 없는 스쿼드')}</span><span class="savedMeta">선발 ${Math.min(cards.length,N_START)}명 · 후보 ${Math.max(0,cards.length-N_START)}명</span></span>
+      <span class="savedMode">${esc(d.form||'포메이션 없음')}</span>
+      <span class="savedPreview">${savedSquadPreview(d)}</span>
+      <span class="savedRowActions"><span class="savedDate">${savedSquadDate(x.savedAt||x.id)}</span><button class="savedOpen" type="button" data-load-saved="${id}">불러오기</button></span>
+    </div>`;
+  }).join('');
+  const pages=document.getElementById('savedSquadPages');
+  if(savedSquadState.loading||pageCount<=1){pages.innerHTML='';return;}
+  const nums=[];for(let i=1;i<=pageCount;i++)nums.push(`<button class="savedPageBtn ${i===savedSquadState.page?'on':''}" type="button" onclick="setSavedSquadPage(${i})">${i}</button>`);
+  pages.innerHTML=`<button class="savedPageBtn" type="button" onclick="setSavedSquadPage(${savedSquadState.page-1})" ${savedSquadState.page===1?'disabled':''}>‹</button>${nums.join('')}<button class="savedPageBtn" type="button" onclick="setSavedSquadPage(${savedSquadState.page+1})" ${savedSquadState.page===pageCount?'disabled':''}>›</button>`;
 }
 function applySavedSquad(id){
-  const x=readSavedSquads().find(v=>Number(v.id)===Number(id));
+  const x=savedSquadState.list.find(v=>String(v.id)===String(id));
   if(!x||!x.data){toast('저장 데이터를 찾지 못했습니다');return;}
   try{localStorage.setItem(KEY,JSON.stringify(x.data));}catch(e){return;}
   closeSavedSquads();closeMenu();load();renderBoard();
   toast(`「${x.title||'스쿼드'}」을 불러왔어요`);
 }
+function setSavedSquadPage(page){
+  const max=Math.max(1,Math.ceil(savedSquadState.list.length/SQUAD_PAGE_SIZE));
+  savedSquadState.page=Math.max(1,Math.min(max,page));renderSavedSquads();
+}
+function loadSelectedSquad(){
+  if(savedSquadState.selected.size!==1){toast('불러올 스쿼드 하나를 선택해 주세요');return;}
+  applySavedSquad([...savedSquadState.selected][0]);
+}
+async function deleteSelectedSquads(){
+  const ids=[...savedSquadState.selected]; if(!ids.length)return;
+  if(!confirm(`선택한 스쿼드 ${ids.length}개를 삭제할까요?`))return;
+  if(savedSquadState.source==='server'){
+    try{
+      const {client,uid}=await squadSaveSession(); if(!client||!uid)throw new Error('로그인 세션 없음');
+      const {error}=await client.from(SQUAD_SAVE_TABLE).delete().eq('user_id',uid).in('id',ids);
+      if(error)throw error;
+      writeSavedSquads(readSavedSquads().filter(x=>!ids.includes(String(x.serverId||''))));
+    }catch(e){console.error('스쿼드 삭제 실패',e);toast('서버에서 삭제하지 못했습니다');return;}
+  }else{
+    writeSavedSquads(readSavedSquads().filter(x=>!ids.includes(String(x.id))));
+  }
+  savedSquadState.list=savedSquadState.list.filter(x=>!ids.includes(String(x.id)));
+  savedSquadState.selected.clear();renderSavedSquads();toast('선택한 스쿼드를 삭제했어요');
+}
+document.getElementById('savedSquadList').addEventListener('change',e=>{
+  const cb=e.target.closest('.savedSquadCheck');if(!cb)return;
+  const row=cb.closest('[data-saved-id]'),id=row?.dataset.savedId;if(!id)return;
+  if(cb.checked)savedSquadState.selected.add(id);else savedSquadState.selected.delete(id);
+  renderSavedSquads();
+});
+document.getElementById('savedSquadList').addEventListener('click',e=>{
+  const btn=e.target.closest('[data-load-saved]');if(btn)applySavedSquad(btn.dataset.loadSaved);
+});
 function resetSquad(){
   if(!confirm('스쿼드를 전부 비울까요?'))return;
   closeMenu(); squad=new Array(N_ALL).fill(null);
