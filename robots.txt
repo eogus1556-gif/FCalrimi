@@ -78,3 +78,4 @@ Disallow: /api/
 Allow: /
 
 Sitemap: https://fcalrimi.com/sitemap.xml
+Sitemap: https://fcalrimi.com/sitemap_refresh.xml
