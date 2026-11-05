@@ -5,8 +5,9 @@
   const SUPABASE_KEY='sb_publishable_-iFLiXQ_y4VVKtbeWliMRA_8-XDNErM';
   const PAGE=(document.currentScript&&document.currentScript.dataset.page)||'';
   const STORE=(()=>{try{return window.localStorage}catch(_){return null}})();
+  const ACK_KEY='fc_refresh_alarm_ack_v1',ACK_TTL=6*60*60*1000;
   let players=new Map(), client=null, profile=null, checking=false;
-  let previous=new Map(), alerted=new Set(), alarmLoop=null, alarmStop=null, queued=[];
+  let previous=new Map(), alerted=new Set(), alarmLoop=null, alarmStop=null, queued=[],currentAlarmIds=[];
 
   function injectUi(){
     if(document.getElementById('fcSharedAlarmOverlay'))return;
@@ -73,16 +74,23 @@
   }
   function label(hj,min){return hj==='홀'?`홀수시 ${String(min).padStart(2,'0')}분`:hj==='짝'?`짝수시 ${String(min).padStart(2,'0')}분`:''}
   function cycleKey(p,hj,min,lead){const d=new Date(),next=nextIn(hj,min),stamp=new Date(d.getTime()+next*60000);return`${p.id}:${stamp.getFullYear()}-${stamp.getMonth()+1}-${stamp.getDate()}-${stamp.getHours()}:${min}:${lead}`}
+  function readAck(){
+    if(!STORE)return{};try{const now=Date.now(),raw=JSON.parse(STORE.getItem(ACK_KEY)||'{}'),clean={};Object.entries(raw||{}).forEach(([k,t])=>{if(now-Number(t)<ACK_TTL)clean[k]=Number(t)});return clean}catch(_){return{}}
+  }
+  function isAcked(key){return !!readAck()[key]}
+  function acknowledge(ids){
+    if(!STORE||!ids||!ids.length)return;const raw=readAck(),now=Date.now();ids.forEach(id=>{if(id)raw[id]=now});try{STORE.setItem(ACK_KEY,JSON.stringify(raw))}catch(_){}
+  }
   async function check(){
     if(checking||!players.size||quiet())return;checking=true;
     try{
       const {fav,custom}=await targets(), pending=[];
       for(const raw of Object.keys(fav||{})){const id=Number(raw),p=players.get(id);if(!p)continue;const eff=p.hj?{hj:p.hj,min:p.min}:custom[id];if(!eff||!eff.hj)continue;const n=nextIn(eff.hj,Number(eff.min));if(n<0)continue;const prev=previous.has(id)?previous.get(id):null;
-        for(const lead of leads()){const key=cycleKey(p,eff.hj,Number(eff.min),lead);if(alerted.has(key))continue;const crossed=prev==null?n===lead:(prev>lead&&n<=lead);if(crossed){alerted.add(key);pending.push({name:p.name,season:p.season,refresh:label(eff.hj,eff.min),n})}}
+        for(const lead of leads()){const key=cycleKey(p,eff.hj,Number(eff.min),lead);if(alerted.has(key)||isAcked(key)){alerted.add(key);continue}const crossed=prev==null?n===lead:(prev>lead&&n<=lead);if(crossed){alerted.add(key);pending.push({name:p.name,season:p.season,refresh:label(eff.hj,eff.min),n,key})}}
         previous.set(id,n);
       }
       const groups={};pending.forEach(x=>(groups[x.n]||(groups[x.n]=[])).push(x));
-      Object.entries(groups).forEach(([n,a])=>show(a.length===1?`${a[0].name} (${a[0].season}) · ${a[0].refresh} 갱신 ${n}분 전`:`${a.map(x=>x.name).join(', ')} 갱신 ${n}분 전`));
+      Object.entries(groups).forEach(([n,a])=>show(a.length===1?`${a[0].name} (${a[0].season}) · ${a[0].refresh} 갱신 ${n}분 전`:`${a.map(x=>x.name).join(', ')} 갱신 ${n}분 전`,a.map(x=>x.key)));
       if(alerted.size>800)alerted=new Set([...alerted].slice(-400));
     }finally{checking=false}
   }
@@ -91,14 +99,15 @@
   let audio=null;
   function sound(){if(!soundOn())return;try{audio=audio||new(window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume();const now=audio.currentTime;[880,1175].forEach((f,i)=>{const o=audio.createOscillator(),g=audio.createGain(),t=now+i*.18;o.frequency.value=f;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.22,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.16);o.connect(g);g.connect(audio.destination);o.start(t);o.stop(t+.18)})}catch(_){}}
   function resetSoundStop(){if(alarmStop)clearTimeout(alarmStop);alarmStop=setTimeout(()=>{if(alarmLoop)clearInterval(alarmLoop);alarmLoop=null},getSoundMax()*1000)}
-  function show(msg){
+  function show(msg,ids=[]){
     const overlay=document.getElementById('fcSharedAlarmOverlay');if(!overlay)return;
-    if(overlay.classList.contains('show')){if(msg&&!queued.includes(msg)){queued.push(msg);const more=document.getElementById('fcSharedAlarmMore');more.style.display='block';more.innerHTML=queued.map(x=>'· '+escapeHtml(x)).join('<br>')}return}
-    queued=[];document.getElementById('fcSharedAlarmMore').style.display='none';document.getElementById('fcSharedAlarmMore').innerHTML='';document.getElementById('fcSharedAlarmMsg').textContent=msg||'';overlay.classList.add('show');sound();if(alarmLoop)clearInterval(alarmLoop);alarmLoop=setInterval(sound,1500);resetSoundStop();
+    if(ids.length&&ids.every(isAcked))return;
+    if(overlay.classList.contains('show')){if(msg&&!queued.some(x=>x.msg===msg)){queued.push({msg,ids});const more=document.getElementById('fcSharedAlarmMore');more.style.display='block';more.innerHTML=queued.map(x=>'· '+escapeHtml(x.msg)).join('<br>')}return}
+    queued=[];currentAlarmIds=[...ids];document.getElementById('fcSharedAlarmMore').style.display='none';document.getElementById('fcSharedAlarmMore').innerHTML='';document.getElementById('fcSharedAlarmMsg').textContent=msg||'';overlay.classList.add('show');sound();if(alarmLoop)clearInterval(alarmLoop);alarmLoop=setInterval(sound,1500);resetSoundStop();
   }
   function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-  function dismiss(){document.getElementById('fcSharedAlarmOverlay')?.classList.remove('show');if(alarmLoop)clearInterval(alarmLoop);if(alarmStop)clearTimeout(alarmStop);alarmLoop=alarmStop=null;queued=[]}
+  function dismiss(mark=true){if(mark)acknowledge([...currentAlarmIds,...queued.flatMap(x=>x.ids||[])]);document.getElementById('fcSharedAlarmOverlay')?.classList.remove('show');if(alarmLoop)clearInterval(alarmLoop);if(alarmStop)clearTimeout(alarmStop);alarmLoop=alarmStop=null;queued=[];currentAlarmIds=[]}
   function goFavorites(){try{if(PAGE==='squadmaker'&&typeof window.save==='function')window.save()}catch(_){}dismiss();location.href='/index.html?view=favorites'}
-  async function init(){injectUi();await Promise.all([loadPlayers(),getClient()]);check();setInterval(check,20000);window.addEventListener('storage',e=>{if(['fc_favs','fc_custom_times','fc_alarm_lead','fc_quiet'].includes(e.key))check()})}
+  async function init(){injectUi();await Promise.all([loadPlayers(),getClient()]);check();setInterval(check,20000);window.addEventListener('storage',e=>{if(['fc_favs','fc_custom_times','fc_alarm_lead','fc_quiet'].includes(e.key))check();if(e.key===ACK_KEY&&currentAlarmIds.length&&currentAlarmIds.every(isAcked))dismiss(false)})}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
