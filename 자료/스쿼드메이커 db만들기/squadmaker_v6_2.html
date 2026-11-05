@@ -32,13 +32,15 @@ button{cursor:pointer;}
 .smLogo{font-size:17px;font-weight:800;letter-spacing:-.02em;color:var(--text);text-decoration:none;}
 .smLogo b{color:var(--lime);}
 .smHeaderSpacer{flex:1;}
+.smHeader #btnSquadFav{width:151px;flex:0 0 151px;}
+.smHeader .squadResetBtn{width:60px;flex:0 0 60px;padding-left:0;padding-right:0;}
 .btnGhost{background:var(--surface-2);border:1px solid var(--line);color:var(--text-dim);
   border-radius:9px;padding:8px 13px;font-size:12.5px;font-weight:700;}
 .btnGhost:hover{border-color:var(--line-2);color:var(--text);}
 .btnPrimary{background:var(--lime);border:none;color:#0B0F14;border-radius:9px;padding:8px 15px;font-size:12.5px;font-weight:800;}
 
 /* ---------- state bar ---------- */
-.smState{display:grid;grid-template-columns:270px 125px 155px minmax(170px,1fr) 132px;gap:8px;margin-bottom:12px;align-items:stretch;}
+.smState{display:grid;grid-template-columns:minmax(340px,1fr) 125px 155px minmax(170px,210px) 132px;gap:8px;margin-bottom:12px;align-items:stretch;}
 .smState>.stCard:not(.tcCard){display:block;}
 .topActions{display:grid;grid-template-columns:1fr;grid-template-rows:1fr 1fr;align-items:stretch;gap:6px;background:transparent;border:0;border-radius:0;padding:0;min-width:0;}
 .topActions .btnPrimary,.topActions .btnDalkak{flex:1;min-width:90px;min-height:36px;white-space:nowrap;padding:8px 9px;font-size:14px;font-weight:900;border-radius:8px;box-shadow:none;}
@@ -49,14 +51,12 @@ button{cursor:pointer;}
 .topActions .btnPrimary:hover{background:rgba(196,255,61,.08);box-shadow:0 0 0 1px rgba(196,255,61,.12);}
 .topActions .btnDalkak{background:linear-gradient(135deg,var(--lime),#8fd93a);color:#0B0F14;border:none;box-shadow:0 3px 12px rgba(196,255,61,.28);}
 .tcCard{padding-right:10px;}
-.tcTop{display:flex;align-items:flex-start;gap:0;min-width:0;overflow:hidden;}
-.tcTop .tcGroup{flex:0 1 auto;min-width:0;padding:0 10px;}
-.tcTop .tcGroup:first-child{padding-left:0;}
-.tcTop .tcGroup + .tcGroup{border-left:1px solid var(--line);}
+.tcTop{display:flex;align-items:flex-start;gap:8px;min-width:0;overflow:hidden;}
+.tcTop .tcGroup{flex:0 1 auto;min-width:0;padding:0;}
 .tcTop .tcLabel{font-size:9.5px;color:var(--text-dim);font-weight:800;margin-bottom:4px;}
-.tcTop .tcSlots{display:flex;flex-wrap:nowrap;gap:3px;}
-.tcTop .tcSlot{width:27px;height:30px;flex:0 0 27px;}
-.tcTop .tcSlot img{width:18px;height:18px;}
+.tcTop .tcSlots{display:flex;flex-wrap:nowrap;gap:clamp(1px,.25vw,3px);min-width:0;}
+.tcTop .tcSlot{width:27px;min-width:18px;height:30px;flex:1 1 27px;}
+.tcTop .tcSlot img{width:clamp(14px,70%,18px);height:clamp(14px,70%,18px);}
 .tcTop .tcSlot .cnt{font-size:8px;left:2px;}
 .stCard{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:9px 12px;min-width:0;min-height:72px;}
 .stTit{font-size:10.5px;color:var(--text-dim);font-weight:700;margin-bottom:4px;white-space:nowrap;}
@@ -669,7 +669,7 @@ button{cursor:pointer;}
 @media (max-width:1100px){
   .smMain{grid-template-columns:1fr;}
   .smSide{position:static;}
-  .smState{grid-template-columns:270px 125px 155px minmax(170px,1fr) 132px;}
+  .smState{grid-template-columns:minmax(340px,1fr) 125px 155px minmax(170px,210px) 132px;}
 }
 @media (min-width:761px) and (max-width:900px){
   .smState{grid-template-columns:repeat(4,1fr);}
@@ -725,8 +725,7 @@ button{cursor:pointer;}
   .tcCard .stTit{font-size:0;margin:0;flex-shrink:0;}
   .tcCard .stTit::before{content:"팀컬러";font-size:11px;font-weight:800;color:var(--text-dim);}
   .tcCard .tcTop{display:flex;flex-direction:row;gap:7px;flex:1;min-width:0;overflow:hidden;align-items:center;}
-  .tcCard .tcGroup{display:flex;flex-direction:row;align-items:center;gap:3px;min-width:0;flex:0 0 auto;margin:0;padding-left:7px;}
-  .tcCard .tcGroup + .tcGroup{border-left:1px solid var(--line);}
+  .tcCard .tcGroup{display:flex;flex-direction:row;align-items:center;gap:3px;min-width:0;flex:0 1 auto;margin:0;padding:0;}
   .tcCard .tcGroup:not(:has(.tcSlot:not(.dim):not(.isEmpty))){display:none;}   /* 발동 없는 구분 숨김 */
   .tcCard .tcLabel{display:inline;font-size:9px;color:var(--text-dim);font-weight:800;margin:0 2px 0 0;white-space:nowrap;}
   .tcCard #tcReset{display:none;}
@@ -832,11 +831,11 @@ button{cursor:pointer;}
 <div class="app">
 
   <header class="smHeader">
-    <a class="smLogo" href="/index.html" target="_self" title="FC알리미 홈으로">FC<b>알리미</b> · 스쿼드 메이커</a>
+    <a class="smLogo" href="https://fcalrimi.com/index.html" target="_self" title="FC알리미 홈으로" onclick="event.preventDefault();event.stopPropagation();window.location.assign('https://fcalrimi.com/index.html');return false;">FC<b>알리미</b> · 스쿼드 메이커</a>
     <div class="smHeaderSpacer"></div>
     <input type="hidden" id="squadTitle" value="">
     <button class="uToggle squadFavBtn" id="btnSquadFav" onclick="addSquadToRefreshFavorites()" title="선발과 후보의 현재 시즌 카드를 갱신시간 즐겨찾기에 한 번에 추가">★ 갱신시간 즐겨찾기</button>
-    <button class="btnGhost" onclick="resetSquad()">초기화</button>
+    <button class="btnGhost squadResetBtn" onclick="resetSquad()">초기화</button>
     <button class="btnPrimary" onclick="loadSquad()">불러오기</button>
     <button type="button" class="smPageMenuBtn" aria-label="메뉴" aria-expanded="false" onclick="toggleSmPageMenu(event)">☰</button>
   </header>
@@ -2568,9 +2567,23 @@ function tcSearchReady(){return !!(TCFULL&&CHEM);}
 const _CHO=['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
 function toCho(str){ let r=''; for(const ch of String(str)){ const c=ch.charCodeAt(0);
   r += (c>=0xAC00&&c<=0xD7A3) ? _CHO[Math.floor((c-0xAC00)/588)] : ch; } return r; }
-function tcMatch(q,name){ if(!q) return true;
-  if(/^[ㄱ-ㅎ]+$/.test(q)) return toCho(name).replace(/\s/g,'').includes(q);   // 초성만 입력 → 초성 검색
-  return name.includes(q); }
+const _TC_STOP_WORDS=new Set(['a','an','the','of','and','or','for','to','in','on','at','by','de','del','la','le','da','do','dos','das','di','du','van','von']);
+function tcLatinWords(v){return String(v||'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().match(/[a-z0-9]+/g)||[];}
+function tcMatch(q,name){
+  const rawQ=String(q||'').trim(),rawName=String(name||''); if(!rawQ)return true;
+  if(/^[ㄱ-ㅎ\s]+$/.test(rawQ)) return toCho(rawName).replace(/\s/g,'').includes(rawQ.replace(/\s/g,''));
+  const qWords=tcLatinWords(rawQ),nameWords=tcLatinWords(rawName);
+  if(qWords.length&&nameWords.length){
+    const compactQ=qWords.join(''),compactName=nameWords.join('');
+    if(compactName.includes(compactQ))return true;
+    const initials=nameWords.filter(w=>!_TC_STOP_WORDS.has(w)).map(w=>w[0]).join('');
+    if(initials.includes(compactQ))return true;
+    let at=0;
+    for(const part of qWords){while(at<nameWords.length&&!nameWords[at].startsWith(part))at++;if(at>=nameWords.length)return false;at++;}
+    return true;
+  }
+  return rawName.toLocaleLowerCase().includes(rawQ.toLocaleLowerCase());
+}
 function renderTcFilter(){                                  // 입력창은 1회만 생성(한글 조합 안 깨짐), 목록은 renderTcList로 갱신
   const wrap=document.getElementById('fTcWrap');
   if(!tcSearchReady()){
@@ -2578,7 +2591,7 @@ function renderTcFilter(){                                  // 입력창은 1회
     document.getElementById('fTcCnt').textContent='';
     return;
   }
-  wrap.innerHTML=`<div class="inClear" style="margin-bottom:7px;"><input class="tInput" id="fTcQ" placeholder="팀컬러 검색 (예: 맨체스터 · ㅁㅊㅅㅌ)"
+  wrap.innerHTML=`<div class="inClear" style="margin-bottom:7px;"><input class="tInput" id="fTcQ" placeholder="팀컬러 검색 (예: 맨체스터 · ㅁㅊㅅㅌ · w g)"
       style="padding:8px 10px;font-size:12px;"><button type="button" class="inX" onclick="clearInput('fTcQ')" title="지우기">×</button></div>
     <div class="scrollBox col" id="fTcList"></div>`;
   const inp=document.getElementById('fTcQ');
@@ -2936,7 +2949,7 @@ function renderAiStep(){
   else if(step.key==='tc'){
     body.innerHTML=`<div class="aiQ">팀컬러를 고를까요?</div>
       <div class="aiHint">고르면 그 소속/특성을 가진 선수 중 픽률 순으로 채워서 팀컬러가 발동돼요. 안 골라도 11명은 항상 같은 소속으로 맞춰집니다(필수선수 제외).</div>
-      <div class="inClear" style="width:min(560px,92vw);margin-bottom:10px;"><input class="tInput" id="aiTcQ" placeholder="팀컬러 검색 (예: 레알 마드리드 · ㄹㅇㅁㄷㄹㄷ)" style="width:100%;padding:10px 12px;"><button type="button" class="inX" onclick="clearInput('aiTcQ')">×</button></div>
+      <div class="inClear" style="width:min(560px,92vw);margin-bottom:10px;"><input class="tInput" id="aiTcQ" placeholder="팀컬러 검색 (예: 레알 마드리드 · ㄹㅇㅁㄷㄹㄷ · w g)" style="width:100%;padding:10px 12px;"><button type="button" class="inX" onclick="clearInput('aiTcQ')">×</button></div>
       <div class="aiWrapList" id="aiTcList"></div>`;
     const inp=document.getElementById('aiTcQ');
     inp.addEventListener('input',()=>{ inp.parentElement.classList.toggle('has',!!inp.value); renderAiTcList(); });
