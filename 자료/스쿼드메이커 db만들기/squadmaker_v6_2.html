@@ -1839,11 +1839,11 @@ function goldIconsHtml(spid){                     // 금빛특성 아이콘 (검
 function wrTag(spid){                             // 참여도 태그
   const c=CHEM&&CHEM[spid], wr=c&&c.wr; return wr?` · 참여 ${wr[0]}·${wr[1]}`:'';
 }
-function faceSnHtml(faceSpid, ownSpid){            // 지금 보이는 얼굴이 어느 시즌 카드인지
+function faceSnHtml(faceSpid, ownSpid, isDefaultFace=false){ // 지금 보이는 얼굴이 어느 시즌 카드인지
   const f=byId(faceSpid); if(!f) return '';
   const same=(+faceSpid===+ownSpid);
   return `<div class="pcFaceSn${same?' same':''}" title="미페 시즌${same?' · 원래 카드':''}">
-    <img src="${SEASON(f[I.season])}" onerror="this.style.display='none'"><span>${esc(f[I.season])}</span></div>`;
+    ${isDefaultFace?'':`<img src="${SEASON(f[I.season])}" onerror="this.style.display='none'">`}<span>${isDefaultFace?'기본 제공 사진':esc(f[I.season])}</span></div>`;
 }
 function cardGoldHtml(spid,idx){                   // 원래 금빛특성 또는 8강 이상 수동 선택 특성
   const c=CHEM&&CHEM[spid]; if(!c||!GOLDIDS) return '';
@@ -1924,10 +1924,11 @@ function cardHtml(idx,slotPos){
     const pickedSeason=pickedFace?String(pickedFace[I.season]||''):'';
     faceVer=(faceSpid===+s.spid||pickedSeason.startsWith('26'))?'auto':'old'; // 26 시즌은 _26 액션샷 우선
   }
+  const isDefaultFace=(s.img==null||s.img==='default26') && +faceSpid===+s.spid && faceVer==='auto';
   const jersey=jerseyHtml(idx,slotPos);
   return `<div class="pcard nobg${jersey?' jerseyOn':''}${showFaceSn?' faceSnOnly':''}${(showFaceSn||showTrait)?' topOverlay':''}">
     ${jersey||faceImg('pcImg '+(mini?'mini':''), faceSpid, mini, '', faceVer)}
-    ${(showFaceSn||showTrait)?`<div class="pcTopStack">${showTrait?cardGoldHtml(s.spid,idx):''}${showFaceSn?faceSnHtml(faceSpid,s.spid):''}</div>`:''}
+    ${(showFaceSn||showTrait)?`<div class="pcTopStack">${showTrait?cardGoldHtml(s.spid,idx):''}${showFaceSn?faceSnHtml(faceSpid,s.spid,isDefaultFace):''}</div>`:''}
     <div class="pcSide">
       <div class="pcOvr">${ovr}${(showTrain&&trainCount(s))?`<span class="pcTrainMark" title="집중훈련 적용">${ICON.train}</span>`:''}</div>
       <div class="pcPos">${slotPos}</div>
@@ -3444,7 +3445,8 @@ function disableOtherFeatureToggles(except){
   if(except!=='wr'){showWr=false;document.getElementById('btnWr')?.classList.remove('on');}
   if(except!=='jersey')disableJerseyToggle();
   if(except!=='faceSn')disableFaceSnToggle();
-  if(except!=='uni'){
+  // 미페 시즌은 현재 자동맞춤 결과를 설명하는 표시이므로 자동맞춤과 동시에 사용할 수 있다.
+  if(except!=='uni'&&except!=='faceSn'){
     autoUni=false;
     document.getElementById('btnUni')?.classList.remove('on');
     const ctl=document.getElementById('uniCtl');
@@ -3486,7 +3488,8 @@ function toggleJersey(){
 // 수동 지정한 미페(s.img) 초기화 → 자동 재적용 대상으로 되돌림 (색변경·자동 재실행 시 호출)
 function clearAutoFaces(){ for(const s of squad){ if(s&&s.img!=null)delete s.img; } }
 function toggleUni(){
-  disableExclusiveDisplayToggles();
+  // 등번호 표시는 끄되, 미페 시즌 표시는 자동맞춤 결과와 함께 유지한다.
+  disableJerseyToggle();
   autoUni=!autoUni;
   document.getElementById('btnUni').classList.toggle('on',autoUni);
   document.getElementById('uniCtl').style.display=autoUni?'inline-flex':'none';
@@ -3563,7 +3566,8 @@ function load(){
     // 이전 저장값에 여러 표시 모드가 함께 켜져 있어도 단독 모드 규칙으로 정리한다.
     if(showFaceSn||showJersey){
       if(showFaceSn)showJersey=false;
-      showFoot=false;showTrait=false;showTrain=false;showWr=false;autoUni=false;
+      showFoot=false;showTrait=false;showTrain=false;showWr=false;
+      if(showJersey)autoUni=false;
     }
     document.getElementById('btnWr').classList.toggle('on',showWr);
     document.getElementById('btnFaceSn').classList.toggle('on',showFaceSn);
