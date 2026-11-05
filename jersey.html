@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>너의 등번호는 · FC알리미</title>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-EFS0QMT6G8"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-EFS0QMT6G8');</script>
 <style>
 :root{--bg:#090e14;--surface:#111923;--surface2:#182330;--line:#283646;--text:#eef4fb;--dim:#8ea0b3;--lime:#baff32;--gold:#ffc84a;--red:#ff5b63;--blue:#5aa7ff}
 *{box-sizing:border-box}html{background:var(--bg);color:var(--text);font-family:Pretendard,"Noto Sans KR",system-ui,sans-serif}body{margin:0;background:radial-gradient(circle at 50% -10%,#173021 0,transparent 34%),var(--bg);min-height:100vh}button,input{font:inherit}button{cursor:pointer}.app{width:min(1120px,100%);margin:auto;padding:0 20px 70px}
@@ -92,12 +94,16 @@ async function load(){try{const [data,j,teams]=await Promise.all([fetch(DATA_URL
   db=(j.players||[]).filter(x=>x.status==='collected'&&x.verified!==false).map(x=>({...x,_key:norm(`${x.korean_name} ${x.english_name} ${x.search_name}`)})).sort((a,b)=>(b.total_picks||0)-(a.total_picks||0));buildTeamKoMap();
   const requested=new URLSearchParams(location.search).get('player')||'';
   if(requested){
-    const match=db.find(x=>norm(x.korean_name)===norm(requested)||norm(x.english_name)===norm(requested));
+    const rq=norm(requested), tokens=rq.split(' ').filter(x=>x.length>=2), tail=tokens[tokens.length-1]||'';
+    const match=db.find(x=>norm(x.korean_name)===rq||norm(x.english_name)===rq||norm(x.search_name)===rq)
+      ||db.find(x=>x._key.includes(rq))
+      ||(tail&&db.find(x=>x._key.includes(tail)))
+      ||tokens.slice(0,-1).sort((a,b)=>b.length-a.length).map(t=>db.find(x=>x._key.includes(t))).find(Boolean);
     if(match){$('#q').value=match.korean_name;$('#clear').classList.add('on');renderResults(match.korean_name);selectPlayer(match.rank_no);}
-    else renderResults('');
-  }else renderResults('');
+    else{$('#q').value=requested;$('#clear').classList.add('on');renderResults(requested)}
+  }else renderResults($('#q').value);
 }catch(e){$('#results').innerHTML=`<div class="empty">데이터를 불러오지 못했습니다.<br><small>${esc(e.message)}</small></div>`}}
-function renderResults(query){const q=norm(query),head=document.querySelector('.resultHead');if(!q){head.style.display='none';$('#results').innerHTML='';$('#detail').classList.remove('on');return}head.style.display='flex';let rows=db.filter(x=>x._key.includes(q)).slice(0,60);$('#resultTitle').textContent='검색 결과';$('#resultCount').textContent=rows.length?`${rows.length}명`:'';
+function renderResults(query){const q=norm(query),head=document.querySelector('.resultHead');if(!q){head.style.display='none';$('#results').innerHTML='';$('#detail').classList.remove('on');return}head.style.display='flex';let rows=db.filter(x=>x._key.includes(q)).slice(0,60);if(!rows.length){const tokens=q.split(' ').filter(x=>x.length>=2),tail=tokens[tokens.length-1]||'';if(tokens.length>1&&tail)rows=db.filter(x=>x._key.includes(tail)).slice(0,60)}$('#resultTitle').textContent='검색 결과';$('#resultCount').textContent=rows.length?`${rows.length}명`:'';
   $('#results').innerHTML=rows.length?rows.map((p,i)=>{const teams=new Set((p.club_history||[]).map(x=>x.team));return `<button class="person${selected===p?' on':''}" data-rank="${p.rank_no}">${resultPhoto(p)}<span class="personText"><span class="ko">${esc(p.korean_name)}</span><span class="en">${esc(p.english_name)}</span></span><span class="personStat"><b>${teams.size}</b><span>소속팀</span></span></button>`}).join(''):`<div class="empty">일치하는 선수가 없습니다.</div>`;
 }
 function mountAd(id,slot,opts={}){const box=document.getElementById(id);if(!box||!slot||box.dataset.mounted)return;if(box.offsetWidth===0){box._tries=(box._tries||0)+1;if(box._tries<15)setTimeout(()=>mountAd(id,slot,opts),250);return}box.dataset.mounted='1';const ins=document.createElement('ins');ins.className='adsbygoogle';ins.style.display=opts.fixed?'inline-block':'block';if(opts.fixed){ins.style.width=opts.fixed.w+'px';ins.style.height=opts.fixed.h+'px'}ins.setAttribute('data-ad-client',ADSENSE_CLIENT);ins.setAttribute('data-ad-slot',slot);if(!opts.fixed){ins.setAttribute('data-ad-format','horizontal');ins.setAttribute('data-full-width-responsive','true')}box.appendChild(ins);const sync=()=>{const status=ins.getAttribute('data-ad-status');box.classList.toggle('adReady',status==='filled');if(status==='filled'||status==='unfilled')observer.disconnect()},observer=new MutationObserver(sync);observer.observe(ins,{attributes:true,attributeFilter:['data-ad-status']});try{(window.adsbygoogle=window.adsbygoogle||[]).push({})}catch(e){box.classList.remove('adReady')}setTimeout(sync,2500)}
@@ -113,5 +119,6 @@ function renderHistory(){const p=selected;if(!p)return;const rows=[];if(kind!=='
 $('#results').addEventListener('click',e=>{const b=e.target.closest('[data-rank]');if(b)selectPlayer(b.dataset.rank)});document.querySelector('.tabs').addEventListener('click',e=>{const b=e.target.closest('[data-kind]');if(!b)return;kind=b.dataset.kind;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));renderHistory()});
 $('#q').addEventListener('input',e=>{$('#clear').classList.toggle('on',!!e.target.value);renderResults(e.target.value)});$('#clear').onclick=()=>{$('#q').value='';$('#clear').classList.remove('on');renderResults('');$('#q').focus()};window.addEventListener('resize',loadMobileBottomAd);if(document.readyState==='complete')loadMobileBottomAd();else window.addEventListener('load',loadMobileBottomAd);load();
 </script>
+<script src="/fc-refresh-alert.js" data-page="jersey" defer></script>
 </body>
 </html>

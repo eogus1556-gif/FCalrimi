@@ -1564,6 +1564,7 @@
         <input type="number" id="soundMaxCustom" min="5" max="600" placeholder="초(5~600)" onchange="onSoundMaxCustomChange(this)" class="free-select" style="display:none; width:110px; margin-left:6px; padding:6px 8px; font-size:13px;">
       </div>
       <button class="auth-submit" onclick="dismissAlarm()">확인</button>
+      <button class="auth-submit" id="alarmFavBtn" onclick="alarmGoFavorites()" style="margin-top:8px; background:transparent; color:var(--lime); border:1px solid var(--lime);">즐겨찾기로 이동</button>
     </div>
   </div>
 
@@ -3143,6 +3144,8 @@
       if(presets.includes(String(cur))){ sel.value = String(cur); if(cust) cust.style.display = 'none'; }
       else { sel.value = 'custom'; if(cust){ cust.value = cur; cust.style.display = ''; } }
     }
+    const favBtn = document.getElementById('alarmFavBtn');
+    if(favBtn) favBtn.style.display = (typeof currentView !== 'undefined' && currentView === 'viewFavorites') ? 'none' : '';
     overlay.classList.add('show');
     playAlarmSound();
     if(_alarmLoop) clearInterval(_alarmLoop);
@@ -3157,6 +3160,10 @@
     if(_alarmLoop){ clearInterval(_alarmLoop); _alarmLoop = null; }
     if(_alarmStopTimer){ clearTimeout(_alarmStopTimer); _alarmStopTimer = null; }
     _alarmQueue = [];
+  }
+  function alarmGoFavorites(){
+    dismissAlarm();
+    try{ showFavorites(); }catch(e){ location.href = '/index.html?view=favorites'; }
   }
   // 알림음 최대 시간 조절 (알림 팝업/테스트에서) — 즉시 저장 + 울리는 중이면 종료시간 갱신
   function _fmtSoundMax(sec){ return sec >= 60 ? (Number.isInteger(sec / 60) ? (sec / 60) + '분' : sec + '초') : sec + '초'; }
