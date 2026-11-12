@@ -805,6 +805,10 @@ button{cursor:pointer;}
 .subAd.adReady{margin-top:12px;height:auto;min-height:100px;opacity:1;pointer-events:auto;}
 .subAd ins{display:block;width:100%;}
 .subAdPh{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--text-dim);font-size:12px;font-weight:700;letter-spacing:.06em;}
+.squadSideAd{display:none;position:fixed;z-index:990;top:120px;width:160px;height:min(600px,calc(100vh - 140px));overflow:hidden;text-align:center;opacity:0;visibility:hidden;pointer-events:none;}
+.squadSideAd.adReady{opacity:1;visibility:visible;pointer-events:auto;}
+.squadSideAd.left{left:20px;}.squadSideAd.right{right:20px;}
+@media(min-width:1440px){.squadSideAd{display:block;}}
 .mobileSquadAction{display:none;}
 .mobileTcBar{display:none;position:absolute;left:50%;bottom:2.5%;transform:translateX(-50%);z-index:22;align-items:center;gap:4px;
   min-height:28px;padding:3px 7px;border:1px solid rgba(255,255,255,.18);border-radius:8px;background:rgba(6,10,15,.68);pointer-events:auto;}
@@ -828,6 +832,8 @@ button{cursor:pointer;}
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8019320351145896" crossorigin="anonymous"></script>
 </head>
 <body>
+<div id="squadLeftAd" class="squadSideAd left" aria-label="좌측 광고"></div>
+<div id="squadRightAd" class="squadSideAd right" aria-label="우측 광고"></div>
 <div class="app">
 
   <header class="smHeader">
@@ -3855,6 +3861,9 @@ Promise.all([_getJson('players.json'),_getJson('prices.json')]).then(([pl,pr])=>
 <script>
 function toggleSmPageMenu(e){e?.stopPropagation();const menu=document.getElementById('smPageMenu'),btn=document.querySelector('.smPageMenuBtn');const open=menu?.classList.toggle('show');btn?.setAttribute('aria-expanded',open?'true':'false')}
 document.addEventListener('click',e=>{const menu=document.getElementById('smPageMenu'),btn=document.querySelector('.smPageMenuBtn');if(menu?.classList.contains('show')&&!menu.contains(e.target)&&!btn?.contains(e.target)){menu.classList.remove('show');btn?.setAttribute('aria-expanded','false')}});
+function mountSquadSideAd(id,slot){const box=document.getElementById(id);if(!box||box.dataset.mounted||!window.matchMedia('(min-width:1440px)').matches)return;box.dataset.mounted='1';const ins=document.createElement('ins');ins.className='adsbygoogle';ins.style.display='inline-block';ins.style.width='160px';ins.style.height='600px';ins.setAttribute('data-ad-client','ca-pub-8019320351145896');ins.setAttribute('data-ad-slot',slot);box.appendChild(ins);const sync=()=>{const status=ins.getAttribute('data-ad-status');box.classList.toggle('adReady',status==='filled');if(status==='filled'||status==='unfilled')watch.disconnect()},watch=new MutationObserver(sync);watch.observe(ins,{attributes:true,attributeFilter:['data-ad-status']});try{(window.adsbygoogle=window.adsbygoogle||[]).push({})}catch(e){box.classList.remove('adReady')}setTimeout(sync,2500)}
+function loadSquadSideAds(){mountSquadSideAd('squadLeftAd','4782493315');mountSquadSideAd('squadRightAd','8648596453')}
+if(document.readyState==='complete')loadSquadSideAds();else window.addEventListener('load',loadSquadSideAds);window.addEventListener('resize',loadSquadSideAds);
 </script>
 <script src="/fc-refresh-alert.js" data-page="squadmaker" defer></script>
 </body>
