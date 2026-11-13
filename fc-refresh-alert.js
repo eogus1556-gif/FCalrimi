@@ -14,9 +14,9 @@
     const style=document.createElement('style');
     style.textContent=`
       .fc-shared-alarm{position:fixed;inset:0;z-index:10020;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(2,6,10,.78)}
-      body.fc-shared-alarm-open .adSlot.adReady,body.fc-shared-alarm-open .squadSideAd.adReady,body.fc-shared-alarm-open .subAd.adReady,body.fc-shared-alarm-open .sideAd.adReady,body.fc-shared-alarm-open .bottomAd.adReady{position:fixed;z-index:10030;filter:none!important;opacity:1!important}
       .fc-shared-alarm.show{display:flex}.fc-shared-alarm-card{width:min(380px,100%);padding:27px 25px 22px;border:1px solid #baff32;border-radius:20px;background:#111923;color:#eef4fb;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.52);font-family:Pretendard,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
       .fc-shared-alarm-card h2{margin:0 0 13px;color:#baff32;font-size:24px}.fc-shared-alarm-msg{margin:0 0 14px;font-size:15px;font-weight:750;line-height:1.55}.fc-shared-alarm-more{display:none;margin:-3px 0 14px;color:#8ea0b3;font-size:12px;line-height:1.55}.fc-shared-alarm-note{display:none;margin:0 0 15px;color:#b8c6d5;font-size:12px}.fc-shared-alarm-sound{margin:0 0 16px;color:#8ea0b3;font-size:12px}.fc-shared-alarm-sound select{margin-left:6px;padding:6px 8px;border:1px solid #2e3b4d;border-radius:7px;background:#182330;color:#eef4fb}.fc-shared-alarm-actions{display:grid;gap:8px}.fc-shared-alarm-actions button{width:100%;min-height:48px;border-radius:10px;font-weight:900}.fc-shared-alarm-ok{border:0;background:#baff32;color:#091018}.fc-shared-alarm-fav{border:1px solid #baff32;background:transparent;color:#baff32}
+      @media(min-width:721px){.fc-shared-alarm{inset:84px auto auto 50%;width:min(390px,calc(100vw - 40px));height:auto;padding:0;transform:translateX(-50%);background:transparent;pointer-events:none}.fc-shared-alarm.show{display:block}.fc-shared-alarm-card{width:100%;padding:24px 22px 20px;pointer-events:auto;box-shadow:0 18px 55px rgba(0,0,0,.58)}}
     `;
     document.head.appendChild(style);
     const node=document.createElement('div');
@@ -104,10 +104,10 @@
     const overlay=document.getElementById('fcSharedAlarmOverlay');if(!overlay)return;
     if(ids.length&&ids.every(isAcked))return;
     if(overlay.classList.contains('show')){if(msg&&!queued.some(x=>x.msg===msg)){queued.push({msg,ids});const more=document.getElementById('fcSharedAlarmMore');more.style.display='block';more.innerHTML=queued.map(x=>'· '+escapeHtml(x.msg)).join('<br>')}return}
-    queued=[];currentAlarmIds=[...ids];document.getElementById('fcSharedAlarmMore').style.display='none';document.getElementById('fcSharedAlarmMore').innerHTML='';document.getElementById('fcSharedAlarmMsg').textContent=msg||'';document.body.classList.add('fc-shared-alarm-open');overlay.classList.add('show');sound();if(alarmLoop)clearInterval(alarmLoop);alarmLoop=setInterval(sound,1500);resetSoundStop();
+    queued=[];currentAlarmIds=[...ids];document.getElementById('fcSharedAlarmMore').style.display='none';document.getElementById('fcSharedAlarmMore').innerHTML='';document.getElementById('fcSharedAlarmMsg').textContent=msg||'';overlay.classList.add('show');sound();if(alarmLoop)clearInterval(alarmLoop);alarmLoop=setInterval(sound,1500);resetSoundStop();
   }
   function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-  function dismiss(mark=true){if(mark)acknowledge([...currentAlarmIds,...queued.flatMap(x=>x.ids||[])]);document.getElementById('fcSharedAlarmOverlay')?.classList.remove('show');document.body.classList.remove('fc-shared-alarm-open');if(alarmLoop)clearInterval(alarmLoop);if(alarmStop)clearTimeout(alarmStop);alarmLoop=alarmStop=null;queued=[];currentAlarmIds=[]}
+  function dismiss(mark=true){if(mark)acknowledge([...currentAlarmIds,...queued.flatMap(x=>x.ids||[])]);document.getElementById('fcSharedAlarmOverlay')?.classList.remove('show');if(alarmLoop)clearInterval(alarmLoop);if(alarmStop)clearTimeout(alarmStop);alarmLoop=alarmStop=null;queued=[];currentAlarmIds=[]}
   function goFavorites(){try{if(PAGE==='squadmaker'&&typeof window.save==='function')window.save()}catch(_){}dismiss();location.href='/index.html?view=favorites'}
   async function init(){injectUi();await Promise.all([loadPlayers(),getClient()]);check();setInterval(check,20000);window.addEventListener('storage',e=>{if(['fc_favs','fc_custom_times','fc_alarm_lead','fc_quiet'].includes(e.key))check();if(e.key===ACK_KEY&&currentAlarmIds.length&&currentAlarmIds.every(isAcked))dismiss(false)})}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
