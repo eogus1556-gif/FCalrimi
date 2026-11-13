@@ -1427,8 +1427,14 @@ function trainPanelHtml(s, full, idx){
 }
 function trainPopupEl(){ return document.getElementById('trainPopup'); }
 function trainPopupOpen(){ return trainPopupEl().classList.contains('on'); }
+function closeTrainPopup(){
+  const pop=trainPopupEl();
+  pop.classList.remove('on');
+  pop.querySelector('.tpInner').innerHTML='';
+  closeMenu();
+}
 function openTrainPopup(){ const s=squad[menuIdx]; if(!s)return; trainShowAll=false; document.getElementById('cardMenu').classList.remove('on'); document.getElementById('cardPanel').classList.remove('on'); trainPopupEl().querySelector('.tpInner').innerHTML=trainPanelHtml(s,true,menuIdx); trainPopupEl().classList.add('on'); }
-function renderTrainPopup(){ if(!trainPopupOpen())return; const s=squad[menuIdx]; if(!s){trainPopupEl().classList.remove('on');return;} trainPopupEl().querySelector('.tpInner').innerHTML=trainPanelHtml(s,true,menuIdx); }
+function renderTrainPopup(){ if(!trainPopupOpen())return; const s=squad[menuIdx]; if(!s){closeTrainPopup();return;} trainPopupEl().querySelector('.tpInner').innerHTML=trainPanelHtml(s,true,menuIdx); }
 function trainAction(b){                        // 추천 적용 / 초기화 / 수동 ± 처리
   if(menuIdx==null) return false;
   const s=squad[menuIdx]; if(!s) return false;
@@ -1454,9 +1460,9 @@ function trainAction(b){                        // 추천 적용 / 초기화 / �
 }
 document.getElementById('trainPopup').addEventListener('click',e=>{
   const pop=trainPopupEl();
-  if(e.target===pop){ pop.classList.remove('on'); return; }   // 배경 클릭 시 닫기
+  if(e.target===pop){ closeTrainPopup(); return; }   // 배경 클릭 시 팝업과 집중훈련 메뉴 상태를 함께 닫기
   const b=e.target.closest('button'); if(!b)return;
-  if(b.dataset.trclose!=null){ pop.classList.remove('on'); return; }
+  if(b.dataset.trclose!=null){ closeTrainPopup(); return; }
   trainAction(b);
 });
 
@@ -3988,6 +3994,6 @@ function mountSquadSideAd(id,slot){const box=document.getElementById(id);if(!box
 function loadSquadSideAds(){mountSquadSideAd('squadLeftAd','4782493315');mountSquadSideAd('squadRightAd','8648596453')}
 if(document.readyState==='complete')loadSquadSideAds();else window.addEventListener('load',loadSquadSideAds);window.addEventListener('resize',loadSquadSideAds);
 </script>
-<script src="/fc-refresh-alert.js" data-page="squadmaker" defer></script>
+<script src="/fc-refresh-alert.js?v=20261114-1" data-page="squadmaker" defer></script>
 </body>
 </html>
