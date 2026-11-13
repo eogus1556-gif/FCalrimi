@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#090e14">
+  <meta name="google-adsense-account" content="ca-pub-8019320351145896">
+  <title>희귀매물 갱신시간 추적기 · FC알리미</title>
+  <meta name="description" content="FC알리미에 축적된 데이터를 기준으로 희귀매물 선수의 빈 갱신시간 범위를 계산해 알려드립니다.">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8019320351145896" crossorigin="anonymous"></script>
+  <style>
+    :root{--bg:#090e14;--surface:#111923;--surface2:#182330;--line:#283646;--text:#eef4fb;--dim:#8ea0b3;--lime:#baff32;--gold:#ffc84a;--red:#ff6672;--blue:#64a9ff}
+    *{box-sizing:border-box}html{background:var(--bg);color:var(--text);font-family:Pretendard,"Noto Sans KR",system-ui,sans-serif}body{margin:0;min-height:100vh;background:radial-gradient(circle at 50% -8%,#173021 0,transparent 34%),var(--bg)}button,input,select{font:inherit}.app{width:min(1080px,100%);margin:auto;padding:0 20px 70px}
+    .top{height:70px;display:flex;align-items:center;border-bottom:1px solid var(--line)}.brand{color:#fff;text-decoration:none;font-size:17px;font-weight:900}.brand b{color:var(--lime)}.tag{margin-left:5px;font-size:17px;font-weight:900}.home{margin-left:auto;color:var(--dim);font-size:12px;font-weight:800;text-decoration:none}.home:hover{color:var(--lime)}
+    .hero{text-align:center;padding:54px 12px 28px}.eyebrow{color:var(--lime);font-size:11px;font-weight:950;letter-spacing:.15em}.hero h1{margin:10px 0 12px;font-size:clamp(34px,6vw,56px);letter-spacing:-.055em}.hero h1 em{color:var(--lime);font-style:normal}.hero p{margin:0 auto;max-width:720px;color:var(--dim);font-size:13px;line-height:1.75}.warning{display:inline-flex;margin-top:15px;padding:7px 11px;border:1px solid rgba(255,200,74,.35);border-radius:999px;color:var(--gold);background:rgba(255,200,74,.07);font-size:10px;font-weight:850}
+    .searchPanel{margin-bottom:28px;padding:15px;border:1px solid var(--line);border-radius:18px;background:rgba(17,25,35,.94);box-shadow:0 18px 50px rgba(0,0,0,.22)}.searchRow{display:grid;grid-template-columns:190px 1fr 108px;gap:9px}.input,.select,.searchBtn{height:52px;border-radius:12px}.input,.select{width:100%;border:1px solid var(--line);background:#0b121a;color:var(--text);outline:0}.input{padding:0 16px;font-size:16px;font-weight:750}.select{padding:0 12px;font-size:13px}.input:focus,.select:focus{border-color:var(--lime)}.searchBtn{border:0;background:var(--lime);color:#0a100b;font-weight:950;cursor:pointer}.searchBtn:hover{filter:brightness(1.05)}.options{display:flex;align-items:center;gap:14px;margin-top:11px;color:var(--dim);font-size:11px}.optionLine{display:flex;align-items:center;gap:7px}.options label{display:flex;align-items:center;gap:6px;cursor:pointer}.options input{accent-color:var(--lime)}.helpBtn{width:23px;height:23px;padding:0;border:1px solid rgba(186,255,50,.5);border-radius:50%;background:rgba(186,255,50,.08);color:var(--lime);font-size:12px;font-weight:950;cursor:pointer}.helpBtn:hover,.helpBtn:focus-visible{background:var(--lime);color:#0a100b;outline:0}.loadState{margin-left:auto}.loadState strong{color:var(--lime)}
+    .resultHead{display:flex;align-items:end;margin:0 0 11px}.resultHead h2{margin:0;font-size:20px}.count{margin-left:7px;color:var(--lime);font-size:12px;font-weight:900}.resultHint{margin-left:auto;color:var(--dim);font-size:10px}.results{display:grid;gap:10px}.empty{padding:54px 15px;border:1px dashed var(--line);border-radius:16px;text-align:center;color:var(--dim);font-size:13px}
+    .card{display:grid;grid-template-columns:minmax(165px,.82fr) minmax(300px,1.28fr) minmax(270px,1.35fr);gap:12px;align-items:center;padding:16px;border:1px solid var(--line);border-radius:15px;background:var(--surface)}.player{min-width:0}.player strong{display:block;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}.chip{padding:4px 7px;border-radius:7px;background:var(--surface2);color:var(--dim);font-size:9px;font-weight:800}.chip.season{color:var(--text)}.estimate{min-width:0}.estimate small{display:block;color:var(--dim);font-size:9px;font-weight:800}.estimateLine{display:flex;align-items:center;gap:10px;min-width:0;margin-top:3px}.range{display:block;min-width:0;color:var(--lime);font-size:20px;font-weight:950;letter-spacing:-.025em;white-space:nowrap}.range.confirmed{color:var(--gold)}.range.excluded,.range.conflict{color:var(--red);font-size:15px}.estimateFav{flex:none;height:34px;padding:0 12px;border:1px solid var(--lime);border-radius:9px;background:rgba(186,255,50,.08);color:var(--lime);font-size:11px;font-weight:950;cursor:pointer}.estimateFav:hover,.estimateFav:focus-visible{background:var(--lime);color:#091008;outline:0}.basis{display:grid;grid-template-columns:1fr 1fr;gap:7px}.anchor{min-width:0;padding:9px 10px;border:1px solid rgba(255,255,255,.07);border-radius:10px;background:#0c131b}.anchor span{display:block;color:var(--dim);font-size:8px;font-weight:800}.anchor strong{display:block;margin-top:3px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.anchor em{display:block;margin-top:2px;color:var(--gold);font-size:10px;font-style:normal}.anchor.none strong,.anchor.none em{color:#647484}
+    .adSlot{position:fixed;z-index:45;overflow:hidden;text-align:center;opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s}.adSlot.adReady{opacity:1;visibility:visible;pointer-events:auto}.sideAd{display:none;top:120px;width:160px;height:600px}.sideAd.left{left:20px}.sideAd.right{right:20px}.bottomAd{left:50%;bottom:0;transform:translateX(-50%);width:min(728px,calc(100% - 24px));height:90px;background:rgba(9,14,20,.96)}
+    .pick{width:100%;display:grid;grid-template-columns:66px minmax(0,1fr) 68px auto;align-items:center;gap:14px;padding:9px 16px;border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--text);text-align:left;cursor:pointer}.pick:hover,.pick:focus-visible{border-color:var(--lime);background:#15211d;outline:0}.pickPhoto{width:66px;height:76px;display:block;object-fit:contain;object-position:center bottom}.pickInfo{min-width:0}.pickInfo strong{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pickInfo .meta{margin-top:6px}.pickOvr{text-align:center}.pickOvr small{display:block;color:var(--dim);font-size:9px;font-weight:850}.pickOvr strong{display:block;margin-top:2px;color:var(--lime);font-size:21px;line-height:1}.pickAction{flex:none;color:var(--lime);font-size:11px;font-weight:950}.options input:disabled{opacity:1;cursor:not-allowed}.options label:has(input:disabled){cursor:default}.modal{position:fixed;inset:0;z-index:1000;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(3,7,11,.76);backdrop-filter:blur(7px)}.modal.open{display:flex}.modalBox{width:min(390px,100%);padding:32px 24px;border:1px solid rgba(186,255,50,.55);border-radius:22px;background:#111923;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.48)}.scanner{width:70px;height:70px;margin:0 auto 20px;border:3px solid rgba(186,255,50,.16);border-top-color:var(--lime);border-radius:50%;animation:scan 1s linear infinite}.modalBox h3{margin:0;font-size:23px}.modalBox p{margin:10px 0 0;color:var(--dim);font-size:12px}.progress{height:5px;margin-top:22px;border-radius:999px;background:#202c38;overflow:hidden}.progress i{display:block;width:0;height:100%;background:var(--lime);animation:progress 15s linear forwards}.estimatePopupRange{margin:18px 0 8px;padding:15px;border:1px solid var(--line);border-radius:12px;background:#0b121a}.estimatePopupRange small{display:block;color:var(--dim);font-size:10px}.estimatePopupRange strong{display:block;margin-top:5px;color:var(--lime);font-size:20px}.estimatePopupNote{line-height:1.65}.modalActions{display:grid;grid-template-columns:1fr 1.55fr;gap:8px;margin-top:20px}.modalAction{height:46px;border:1px solid var(--line);border-radius:11px;background:#182330;color:var(--text);font-weight:900;cursor:pointer}.modalAction.primary{border-color:var(--lime);background:var(--lime);color:#091008}.helpBox{position:relative;width:min(720px,100%);max-height:min(88vh,850px);overflow:auto;padding:28px;text-align:left}.helpClose{position:absolute;top:14px;right:14px;width:34px;height:34px;border:1px solid var(--line);border-radius:10px;background:#0b121a;color:var(--text);font-size:18px;cursor:pointer}.helpBox h3{padding-right:38px}.helpIntro{line-height:1.7}.helpSubtitle{margin-top:8px!important;padding:9px 11px;border-radius:9px;background:rgba(255,200,74,.08);color:var(--gold)!important;line-height:1.6}.ruleTableWrap{margin:18px 0 16px;border:1px solid var(--line);border-radius:12px;overflow:auto}.ruleTable{width:100%;min-width:570px;border-collapse:collapse;background:#0b121a;font-size:10px}.ruleTable th{padding:8px;background:#1c4f7d;color:#fff;text-align:center}.ruleTable td{padding:7px 9px;border-top:1px solid var(--line);color:var(--dim);text-align:center}.ruleTable td:nth-child(2){color:var(--text);text-align:left;font-weight:750}.ruleTable tr.anchorRow td{background:rgba(255,200,74,.08);color:var(--gold)}.ruleTable tr.unknownRow td{background:rgba(186,255,50,.06)}.ruleTable .unknown{color:var(--lime);font-weight:950}.helpRules{display:grid;gap:8px}.helpRule{padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:#0b121a}.helpRule b{display:block;color:var(--lime);font-size:12px}.helpRule span{display:block;margin-top:5px;color:var(--dim);font-size:11px;line-height:1.65}.helpWarning{margin-top:12px;padding:11px 13px;border-left:3px solid var(--gold);background:rgba(255,200,74,.07);color:var(--dim);font-size:10px;line-height:1.65}@keyframes scan{to{transform:rotate(360deg)}}@keyframes progress{to{width:100%}}
+    @media(max-width:760px){.app{padding:0 12px 45px}.top{height:58px}.tag{font-size:14px}.home{display:none}.hero{padding:38px 4px 22px}.hero h1{font-size:38px}.searchRow{grid-template-columns:1fr 110px}.select{grid-column:1/-1}.searchBtn{height:48px}.select{height:48px}.options{align-items:flex-start;flex-wrap:wrap}.loadState{width:100%;margin-left:0}.card{grid-template-columns:1fr}.range{font-size:clamp(14px,4.8vw,20px)}.basis{grid-template-columns:1fr 1fr}.resultHint{display:none}.pick{grid-template-columns:54px minmax(0,1fr) 54px;padding:8px 10px;gap:9px}.pickPhoto{width:54px;height:64px}.pickAction{display:none}.pickOvr strong{font-size:18px}.helpBox{padding:24px 16px 18px}.helpBox h3{font-size:20px}.modal{padding:10px}.bottomAd{width:min(320px,calc(100% - 16px));height:100px}}
+    @media(min-width:1440px){.sideAd{display:block}}
+  </style>
+</head>
+<body>
+<main class="app">
+  <header class="top">
+    <a class="brand" href="/index.html">FC<b>알리미</b></a><span class="tag">· 희귀매물 갱신시간 추적기</span>
+    <a class="home" href="/index.html">홈으로</a>
+  </header>
+
+  <section class="hero">
+    <div class="eyebrow">REFRESH TIME ESTIMATOR</div>
+    <h1>희귀매물 <em>갱신시간 추적기</em></h1>
+    <p>빈 갱신시간을 FC알리미에 축적된 데이터에서 계산해 알려드립니다.</p>
+    <div class="warning">공식 확정값이 아닌 참고용 추정 범위입니다</div>
+  </section>
+
+  <section class="searchPanel" aria-label="선수 검색">
+    <div class="searchRow">
+      <select id="season" class="select" aria-label="시즌 선택"><option value="">전체 시즌</option></select>
+      <input id="query" class="input" type="search" autocomplete="off" placeholder="선수명 검색" aria-label="선수명 검색">
+      <button id="search" class="searchBtn" type="button">검색</button>
+    </div>
+    <div class="options">
+      <span class="optionLine"><label title="이 페이지는 갱신시간이 없는 선수만 조회합니다."><input id="missingOnly" type="checkbox" checked disabled aria-disabled="true"> 갱신시간 없는 선수만</label><button id="helpOpen" class="helpBtn" type="button" aria-label="갱신시간 유추 원리 보기" aria-haspopup="dialog">?</button></span>
+      <span id="loadState" class="loadState">선수 데이터를 불러오는 중...</span>
+    </div>
+  </section>
+
+  <section>
+    <div class="resultHead"><h2>검색 결과</h2><span id="count" class="count"></span><span class="resultHint">최대 100건 표시</span></div>
+    <div id="results" class="results"><div class="empty">선수명을 입력해 주세요.</div></div>
+  </section>
+</main>
+
+<div id="adLeft" class="adSlot sideAd left" aria-label="왼쪽 광고"></div>
+<div id="adRight" class="adSlot sideAd right" aria-label="오른쪽 광고"></div>
+<div id="adBottom" class="adSlot bottomAd" aria-label="하단 광고"></div>
+
+<div id="searchModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="searchModalTitle">
+  <div class="modalBox">
+    <div class="scanner" aria-hidden="true"></div>
+    <h3 id="searchModalTitle">갱신시간 탐색 중</h3>
+    <p><strong id="searchPlayerName"></strong> 선수의 앞뒤 확정 데이터를 확인하고 있습니다.</p>
+    <div class="progress" aria-hidden="true"><i></i></div>
+  </div>
+</div>
+
+<div id="estimateFavModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="estimateFavTitle">
+  <div class="modalBox">
+    <h3 id="estimateFavTitle">즐겨찾기 · 알림 설정</h3>
+    <p><strong id="estimateFavPlayer"></strong></p>
+    <div class="estimatePopupRange"><small>유추 갱신시간</small><strong id="estimateFavRange"></strong></div>
+    <p id="estimateFavNote" class="estimatePopupNote"></p>
+    <div class="modalActions">
+      <button id="estimateFavCancel" class="modalAction" type="button">취소</button>
+      <button id="estimateFavConfirm" class="modalAction primary" type="button">가장 빠른 시간으로 설정</button>
+    </div>
+  </div>
+</div>
+
+<div id="helpModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
+  <div class="modalBox helpBox">
+    <button id="helpClose" class="helpClose" type="button" aria-label="닫기">×</button>
+    <h3 id="helpModalTitle">갱신시간 유추 원리</h3>
+    <p class="helpIntro">같은 시즌의 선수 ID 순서와 이미 확인된 갱신시간을 비교해, 아직 등록되지 않은 선수의 가능한 시간 범위를 계산합니다.</p>
+    <p class="helpSubtitle">갱신시간 데이터가 없는 시즌은 유추할 수 없으며, 확인된 선수가 적으면 예측 범위가 길게 표시될 수 있습니다.</p>
+    <div class="ruleTableWrap" role="region" aria-label="갱신시간 유추 예시 표" tabindex="0">
+      <table class="ruleTable">
+        <thead><tr><th>선수 ID</th><th>선수명</th><th>홀/짝</th><th>분</th><th>포지션</th><th>OVR</th></tr></thead>
+        <tbody>
+          <tr class="anchorRow"><td>815234574</td><td>디오구 달로</td><td>홀수</td><td>27</td><td>RB</td><td>106</td></tr>
+          <tr class="unknownRow"><td>815234577</td><td>디오구 코스타</td><td>홀수</td><td class="unknown">27~29</td><td>GK</td><td>113</td></tr>
+          <tr class="unknownRow"><td>815234678</td><td>요아킴 멜레</td><td>홀수</td><td class="unknown">27~29</td><td>LB</td><td>107</td></tr>
+          <tr class="unknownRow"><td>815234728</td><td>라흐몬 베네스</td><td>홀수</td><td class="unknown">27~29</td><td>CM</td><td>98</td></tr>
+          <tr class="unknownRow"><td>815235243</td><td>마티아스 데리흐트</td><td>홀수</td><td class="unknown">27~29</td><td>CB</td><td>102</td></tr>
+          <tr class="anchorRow"><td>815235790</td><td>카이 하베르츠</td><td>홀수</td><td>29</td><td>CAM</td><td>101</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="helpRules">
+      <div class="helpRule"><b>1. 같은 시즌 안에서만 비교</b><span>선수 ID를 오름차순으로 정렬하며 다른 시즌의 ID와 시간은 계산에 사용하지 않습니다.</span></div>
+      <div class="helpRule"><b>2. 짝수 00~59분 다음 홀수 00~59분</b><span>같은 시즌 안에서는 ID가 높아질수록 앞 선수보다 더 낮은 시간으로 돌아가지 않는 규칙을 이용합니다.</span></div>
+      <div class="helpRule"><b>3. 앞뒤 확정 선수로 범위 계산</b><span>예시처럼 디오구 달로가 홀수 27분, 카이 하베르츠가 홀수 29분이면 그 사이 선수는 홀수 27~29분으로 유추합니다.</span></div>
+      <div class="helpRule"><b>4. ICON · ICON TM 자동 제외</b><span>추가 선수는 ID 순서가 기존 규칙과 일치하지 않을 수 있어 미등록 선수 자동 유추에서 제외합니다. 일부 맞지 않는 시즌이 있다면 제보해 주세요.</span></div>
+    </div>
+    <div class="helpWarning">유추 결과는 공식 확정값이 아닙니다. 신규 선수 추가, 잘못 연결된 ID 또는 시즌 데이터 변경에 따라 실제 갱신시간과 다를 수 있습니다.</div>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const DATA_URL = '/pdb_v3f9k2a7.json';
+  const EXCLUDED = new Set(['ICON', 'ICON TM']);
+  const $ = id => document.getElementById(id);
+  const state = { rows: [], ready: false, timer: null, searchTimer: null, favoriteRow: null };
+
+  const text = value => String(value ?? '').trim();
+  const normalized = value => text(value).toLocaleLowerCase('ko-KR').replace(/\s+/g, '');
+  const minuteText = value => String(value).padStart(2, '0');
+  const parityLabel = value => value === '짝' ? '짝수' : value === '홀' ? '홀수' : '미확인';
+  const hasKnownTime = row => (row.parity === '짝' || row.parity === '홀') && Number.isInteger(row.minute) && row.minute >= 0 && row.minute <= 59;
+  const slotOf = row => hasKnownTime(row) ? (row.parity === '짝' ? row.minute : 60 + row.minute) : null;
+
+  function formatSlotRange(low, high) {
+    const lowParity = low < 60 ? '짝수' : '홀수';
+    const highParity = high < 60 ? '짝수' : '홀수';
+    const lowMinute = low % 60;
+    const highMinute = high % 60;
+    if (lowParity === highParity) return `${lowParity} ${minuteText(lowMinute)}~${minuteText(highMinute)}분`;
+    return `짝수 ${minuteText(lowMinute)}~59분 또는 홀수 00~${minuteText(highMinute)}분`;
+  }
+
+  function anchorInfo(row, direction) {
+    if (!row) return `<div class="anchor none"><span>${direction} 확정 선수</span><strong>없음</strong><em>시즌 경계까지 확장</em></div>`;
+    return `<div class="anchor"><span>${direction} 확정 선수 · ${row.id}</span><strong>${escapeHtml(row.name)}</strong><em>${parityLabel(row.parity)} ${minuteText(row.minute)}분</em></div>`;
+  }
+
+  function escapeHtml(value) {
+    return text(value).replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+  }
+
+  function prepare(raw) {
+    const rows = raw.map((item, sourceIndex) => ({
+      id: Number(item[0]), name: text(item[1]), season: text(item[2]), parity: text(item[3]),
+      minute: item[4] === null || item[4] === '' ? null : Number(item[4]),
+      position: text(item[5]), ovr: Number(item[6]) || 0, sourceIndex,
+      previous: null, next: null, estimateStatus: '', estimateText: '', estimateLowSlot: null, estimateHighSlot: null
+    }));
+    const groups = new Map();
+    for (const row of rows) {
+      if (!groups.has(row.season)) groups.set(row.season, []);
+      groups.get(row.season).push(row);
+    }
+    for (const group of groups.values()) {
+      group.sort((a, b) => a.id - b.id);
+      let previous = null;
+      for (const row of group) {
+        row.previous = previous;
+        if (hasKnownTime(row)) previous = row;
+      }
+      let next = null;
+      for (let i = group.length - 1; i >= 0; i -= 1) {
+        group[i].next = next;
+        if (hasKnownTime(group[i])) next = group[i];
+      }
+      for (const row of group) {
+        if (hasKnownTime(row)) {
+          row.estimateStatus = 'confirmed';
+          row.estimateText = `${parityLabel(row.parity)} ${minuteText(row.minute)}분`;
+          continue;
+        }
+        if (EXCLUDED.has(row.season.toUpperCase())) {
+          row.estimateStatus = 'excluded';
+          row.estimateText = '자동 유추 제외 시즌';
+          continue;
+        }
+        if (!row.previous && !row.next) {
+          row.estimateStatus = 'insufficient';
+          row.estimateText = '확정 기준 선수 없음';
+          continue;
+        }
+        const low = row.previous ? slotOf(row.previous) : 0;
+        const high = row.next ? slotOf(row.next) : 119;
+        if (low > high) {
+          row.estimateStatus = 'conflict';
+          row.estimateText = '앞뒤 데이터 순서 충돌';
+          continue;
+        }
+        row.estimateStatus = 'estimated';
+        row.estimateLowSlot = low;
+        row.estimateHighSlot = high;
+        row.estimateText = formatSlotRange(low, high);
+      }
+    }
+    return rows;
+  }
+
+  function findMatches() {
+    if (!state.ready) return;
+    const query = normalized($('query').value);
+    const season = $('season').value;
+    if (!query) {
+      $('count').textContent = '';
+      $('results').innerHTML = '<div class="empty">선수명을 입력해 주세요.</div>';
+      return [];
+    }
+    const matches = state.rows.filter(row => {
+      if (season && row.season !== season) return false;
+      if (hasKnownTime(row)) return false;
+      return normalized(row.name).includes(query);
+    }).sort((a, b) => {
+      const aExact = normalized(a.name) === query ? 0 : normalized(a.name).startsWith(query) ? 1 : 2;
+      const bExact = normalized(b.name) === query ? 0 : normalized(b.name).startsWith(query) ? 1 : 2;
+      return b.ovr - a.ovr || aExact - bExact || a.season.localeCompare(b.season, 'ko') || a.id - b.id;
+    });
+    $('count').textContent = `${matches.length.toLocaleString()}건`;
+    if (!matches.length) {
+      $('results').innerHTML = '<div class="empty">조건에 맞는 선수가 없습니다. 시즌 선택이나 ‘없는 선수만’을 확인해 주세요.</div>';
+      return [];
+    }
+    $('results').innerHTML = matches.slice(0, 100).map(row => `<button class="pick" type="button" data-source-index="${row.sourceIndex}">
+      <img class="pickPhoto" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersActionHigh/p${row.id}.png" data-fallback="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p${row.id}.png" alt="" loading="lazy">
+      <span class="pickInfo"><strong>${escapeHtml(row.name)}</strong><span class="meta"><span class="chip season">${escapeHtml(row.season)}</span><span class="chip">${escapeHtml(row.position || '포지션 없음')}</span></span></span>
+      <span class="pickOvr"><small>OVR</small><strong>${row.ovr}</strong></span>
+      <span class="pickAction">선택 ›</span>
+    </button>`).join('');
+    return matches;
+  }
+
+  function renderResult(row) {
+    $('count').textContent = '1건';
+    const rangeClass = row.estimateStatus === 'confirmed' ? 'confirmed' : ['excluded','conflict','insufficient'].includes(row.estimateStatus) ? 'excluded' : '';
+    const label = row.estimateStatus === 'confirmed' ? '확정 갱신시간' : row.estimateStatus === 'estimated' ? '유추 갱신시간 범위' : '유추 상태';
+    $('results').innerHTML = (() => {
+      const rangeClass = row.estimateStatus === 'confirmed' ? 'confirmed' : ['excluded','conflict','insufficient'].includes(row.estimateStatus) ? 'excluded' : '';
+      const label = row.estimateStatus === 'confirmed' ? '확정 갱신시간' : row.estimateStatus === 'estimated' ? '유추 갱신시간 범위' : '유추 상태';
+      return `<article class="card">
+        <div class="player"><strong>${escapeHtml(row.name)}</strong><div class="meta"><span class="chip season">${escapeHtml(row.season)}</span><span class="chip">ID ${row.id}</span><span class="chip">${escapeHtml(row.position || '포지션 없음')}</span><span class="chip">OVR ${row.ovr}</span></div></div>
+        <div class="estimate"><small>${label}</small><div class="estimateLine"><span class="range ${rangeClass}">${escapeHtml(row.estimateText)}</span>${row.estimateStatus === 'estimated' ? `<button class="estimateFav" type="button" data-estimate-fav="${row.sourceIndex}">☆ 즐겨찾기</button>` : ''}</div></div>
+        <div class="basis">${anchorInfo(row.previous, '이전')}${anchorInfo(row.next, '다음')}</div>
+      </article>`;
+    })();
+  }
+
+  function openEstimateFavorite(row) {
+    if (!row || row.estimateStatus !== 'estimated' || !Number.isInteger(row.estimateLowSlot)) return;
+    state.favoriteRow = row;
+    const earliestParity = row.estimateLowSlot < 60 ? '짝수' : '홀수';
+    const earliestMinute = minuteText(row.estimateLowSlot % 60);
+    $('estimateFavPlayer').textContent = `${row.season} ${row.name}`;
+    $('estimateFavRange').textContent = row.estimateText;
+    $('estimateFavNote').textContent = `알림 예약은 가능한 시간 중 가장 빠른 ${earliestParity} ${earliestMinute}분으로 저장됩니다.`;
+    $('estimateFavModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeEstimateFavorite() {
+    $('estimateFavModal').classList.remove('open');
+    state.favoriteRow = null;
+    document.body.style.overflow = '';
+  }
+
+  function confirmEstimateFavorite() {
+    const row = state.favoriteRow;
+    if (!row) return;
+    const params = new URLSearchParams({
+      fav: String(row.id),
+      estLow: String(row.estimateLowSlot),
+      estHigh: String(row.estimateHighSlot),
+      estRange: row.estimateText
+    });
+    location.href = `/index.html?${params.toString()}`;
+  }
+
+  function inspectPlayer(row) {
+    clearTimeout(state.searchTimer);
+    $('searchPlayerName').textContent = `${row.name} · ${row.season}`;
+    $('searchModal').classList.remove('open');
+    void $('searchModal').offsetWidth;
+    $('searchModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    state.searchTimer = setTimeout(() => {
+      $('searchModal').classList.remove('open');
+      document.body.style.overflow = '';
+      renderResult(row);
+      document.querySelector('.resultHead').scrollIntoView({behavior:'smooth', block:'start'});
+    }, 15000);
+  }
+
+  async function load() {
+    try {
+      const response = await fetch(DATA_URL, {cache: 'no-cache'});
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const raw = await response.json();
+      state.rows = prepare(raw);
+      state.ready = true;
+      const seasons = [...new Set(state.rows.map(row => row.season).filter(Boolean))].sort((a,b) => a.localeCompare(b,'ko',{numeric:true}));
+      $('season').insertAdjacentHTML('beforeend', seasons.map(value => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join(''));
+      const missing = state.rows.filter(row => !hasKnownTime(row)).length;
+      const inferable = state.rows.filter(row => row.estimateStatus === 'estimated').length;
+      $('loadState').innerHTML = `전체 ${state.rows.length.toLocaleString()}명 · 미등록 ${missing.toLocaleString()}명 · <strong>범위 유추 가능 ${inferable.toLocaleString()}명</strong>`;
+      findMatches();
+    } catch (error) {
+      $('loadState').textContent = `데이터 불러오기 실패: ${error.message}`;
+      $('results').innerHTML = '<div class="empty">pdb_v3f9k2a7.json 파일을 불러오지 못했습니다.</div>';
+    }
+  }
+
+  $('search').addEventListener('click', findMatches);
+  $('query').addEventListener('keydown', event => { if (event.key === 'Enter') findMatches(); });
+  $('query').addEventListener('input', () => { clearTimeout(state.timer); state.timer = setTimeout(findMatches, 220); });
+  $('season').addEventListener('change', findMatches);
+  $('results').addEventListener('error', event => {
+    const image = event.target.closest?.('.pickPhoto');
+    if (!image) return;
+    if (image.dataset.fallback) {
+      const fallback = image.dataset.fallback;
+      delete image.dataset.fallback;
+      image.src = fallback;
+    } else {
+      image.style.visibility = 'hidden';
+    }
+  }, true);
+  $('results').addEventListener('click', event => {
+    const button = event.target.closest('[data-estimate-fav]');
+    if (!button) return;
+    event.stopPropagation();
+    openEstimateFavorite(state.rows[Number(button.dataset.estimateFav)]);
+  });
+  $('estimateFavCancel').addEventListener('click', closeEstimateFavorite);
+  $('estimateFavConfirm').addEventListener('click', confirmEstimateFavorite);
+  $('estimateFavModal').addEventListener('click', event => { if (event.target === $('estimateFavModal')) closeEstimateFavorite(); });
+  const closeHelp = () => {
+    $('helpModal').classList.remove('open');
+    document.body.style.overflow = '';
+    $('helpOpen').focus();
+  };
+  $('helpOpen').addEventListener('click', () => {
+    $('helpModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    $('helpClose').focus();
+  });
+  $('helpClose').addEventListener('click', closeHelp);
+  $('helpModal').addEventListener('click', event => { if (event.target === $('helpModal')) closeHelp(); });
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape') return;
+    if ($('estimateFavModal').classList.contains('open')) closeEstimateFavorite();
+    else if ($('helpModal').classList.contains('open')) closeHelp();
+  });
+  $('results').addEventListener('click', event => {
+    const button = event.target.closest('.pick');
+    if (!button) return;
+    const row = state.rows.find(item => item.sourceIndex === Number(button.dataset.sourceIndex));
+    if (row) inspectPlayer(row);
+  });
+  const ADSENSE_CLIENT = 'ca-pub-8019320351145896';
+  const AD_SLOTS = { adBottom:'5429773263', adLeft:'4782493315', adRight:'8648596453' };
+  function mountAd(id, options = {}) {
+    const box = $(id), slot = AD_SLOTS[id];
+    if (!box || !slot || box.dataset.mounted) return;
+    if (options.side && window.innerWidth < 1440) return;
+    box.dataset.mounted = '1';
+    const ins = document.createElement('ins');
+    ins.className = 'adsbygoogle';
+    ins.style.display = 'inline-block';
+    ins.style.width = `${options.width}px`;
+    ins.style.height = `${options.height}px`;
+    ins.setAttribute('data-ad-client', ADSENSE_CLIENT);
+    ins.setAttribute('data-ad-slot', slot);
+    box.appendChild(ins);
+    const sync = () => {
+      const status = ins.getAttribute('data-ad-status');
+      box.classList.toggle('adReady', status === 'filled');
+      if (status === 'filled' || status === 'unfilled') observer.disconnect();
+    };
+    const observer = new MutationObserver(sync);
+    observer.observe(ins, { attributes:true, attributeFilter:['data-ad-status'] });
+    try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (_) { box.classList.remove('adReady'); }
+    setTimeout(sync, 3000);
+  }
+  const mobileAd = window.matchMedia('(max-width:760px)').matches;
+  mountAd('adBottom', mobileAd ? { width:320, height:100 } : { width:728, height:90 });
+  mountAd('adLeft', { side:true, width:160, height:600 });
+  mountAd('adRight', { side:true, width:160, height:600 });
+  load();
+})();
+</script>
+</body>
+</html>

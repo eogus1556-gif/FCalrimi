@@ -1197,7 +1197,7 @@
   </noscript>
 
   <style>
-    /* PC 상단 메뉴: '이용 방법'에 마우스 올리면 '갱신시간 개념' 하위 메뉴 */
+    /* PC 상단 메뉴: '이용 방법'에 마우스 올리면 '강화 등급별 배율' 하위 메뉴 */
     .nav-dd{ position:relative; display:inline-block; }
     .nav-dd-menu{ display:none; position:absolute; top:100%; left:0; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:6px; min-width:150px; z-index:200; box-shadow:0 8px 24px rgba(0,0,0,.35); }
     .nav-dd:hover .nav-dd-menu, .nav-dd:focus-within .nav-dd-menu{ display:block; }
@@ -1235,12 +1235,13 @@
         <a href="#" onclick="showGuide(); return false;">이용 방법 ▾</a>
         <div class="nav-dd-menu">
           <a href="#" onclick="showGuide(); return false;">이용 방법</a>
-          <a href="#" onclick="showRefresh(); return false;">갱신시간 개념</a>
+          <a href="#" onclick="showRefresh(); return false;">강화 등급별 배율</a>
           <a href="#" onclick="showRefreshBattle(); return false;">갱신싸움 팁</a>
           <a href="#" onclick="showAchievement(); return false;">시즌별 달성률</a>
           <a href="#" onclick="openInstallGuide(); return false;">앱으로 설치</a>
         </div>
       </div>
+      <a href="/refresh-estimate.html">희귀매물 갱신시간 추적기</a>
       <a href="/jersey.html">너의 등번호는</a>
       <a href="/자료/스쿼드메이커%20db만들기/squadmaker_v6_2.html">스쿼드메이커</a>
       <a href="#" onclick="showBoardHub(); return false;">커뮤니티</a>
@@ -1270,11 +1271,12 @@
   <!-- 모바일 메뉴 (720px 이하에서 ☰ 버튼으로 열림) -->
   <div id="mobileMenu" class="mobile-menu">
     <a onclick="mmNav('guide')">이용 방법</a>
+    <a href="/refresh-estimate.html" onclick="closeMobileMenu()">희귀매물 갱신시간 추적기</a>
     <a href="/jersey.html" onclick="closeMobileMenu()">너의 등번호는</a>
     <a href="/자료/스쿼드메이커%20db만들기/squadmaker_v6_2.html" onclick="closeMobileMenu()">스쿼드메이커</a>
     <a onclick="mmNav('board')">커뮤니티</a>
     <a onclick="mmNav('fav')">즐겨찾기</a>
-    <a onclick="mmNav('refresh')">갱신시간 개념</a>
+    <a onclick="mmNav('refresh')">강화 등급별 배율</a>
     <a onclick="mmNav('ach')">시즌별 달성률</a>
     <a onclick="closeMobileMenu(); openInstallGuide();">📱 앱 설치</a>
     <div id="mmUserSec" style="display:none; border-top:1px solid var(--line); margin-top:6px; padding-top:6px;">
@@ -1487,7 +1489,7 @@
     <div class="modal-overlay" id="noticeOverlay" onclick="if(event.target===this) closeNotice()">
     <div class="modal" style="text-align:center;">
       <button class="modal-close" onclick="closeNotice()">&times;</button>
-      <h2 style="margin-bottom:10px;">갱신시간 업데이트</h2>
+      <h2 style="margin-bottom:10px;">갱신시간 기능 업데이트</h2>
       <div style="display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:14px; margin:10px 0 14px;">
         <img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/26UP.png" onerror="this.style.display='none'" alt="26UP">
         <img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/LKI.png" onerror="this.style.display='none'" alt="LKI">
@@ -1496,6 +1498,11 @@
         <img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/EVO_EP.png" onerror="this.style.display='none'" alt="EVO EP">
       </div>
       <p class="modal-sub" style="line-height:1.7;"><b style="color:var(--lime);">26UP · LKI · ICON · EVO</b> 시즌<br>갱신시간이 업데이트되었습니다!</p>
+      <div style="margin:14px 0 4px; padding:14px 15px; border:1px solid rgba(196,255,61,.35); border-radius:12px; background:rgba(196,255,61,.06); text-align:left;">
+        <b style="display:block; color:var(--lime); margin-bottom:6px;">희귀매물 갱신시간 추적기</b>
+        <p style="margin:0; color:var(--text); font-size:13px; line-height:1.65;">갱신시간이 아직 등록되지 않은 선수도 FC알리미에 쌓인 같은 시즌 데이터를 바탕으로 예상 범위를 확인할 수 있습니다.</p>
+        <a href="/refresh-estimate.html" onclick="noticeGoTracker()" style="display:inline-block; margin-top:9px; color:var(--lime); font-size:13px; font-weight:800; text-decoration:underline; text-underline-offset:3px;">추적기 바로가기 →</a>
+      </div>
       <button class="auth-submit" onclick="closeNotice()">닫기</button>
       <p style="margin-top:14px; font-size:12px; color:var(--text-dim); line-height:1.6;">
         최근 시스템 오류 사항은 <a href="#" onclick="noticeGoBoard(); return false;" style="color:var(--lime); text-decoration:underline; cursor:pointer;">공지사항</a>을 확인해주세요.
@@ -1952,6 +1959,46 @@
         <li><b>드문 예외</b>: 아주 드물게 거래가 있어도 안 바뀔 수 있어요(상한·하한 거래가 정확히 상쇄되거나 배율이 딱 맞아떨어질 때). 극히 드문 경우라 참고만 하세요.</li>
         <li><b>생성제한 매물</b>: 생성에 제한이 걸린 선수는 <b>거래량이 있어도 갱신이 되지 않을 수 있어요.</b></li>
       </ul>
+      <div style="margin-top:20px;">
+        <div style="font-weight:800; font-size:16px; margin-bottom:8px;">강화등급별 기준가 배율</div>
+        <p style="color:var(--text-dim); font-size:13px; line-height:1.65; margin:0 0 14px;">각 배율은 동일 클래스 선수의 <b style="color:var(--text);">바로 아래 강화등급 기준가</b>와 비교한 값입니다.</p>
+
+        <div style="font-weight:700; font-size:14px; color:var(--lime); margin:0 0 8px;">최소 배율</div>
+        <div style="overflow-x:auto; border:1px solid var(--line); border-radius:12px; margin-bottom:10px;">
+          <table style="width:100%; min-width:520px; border-collapse:collapse; text-align:center; font-size:13.5px;">
+            <thead><tr style="background:rgba(255,255,255,.045);"><th style="padding:10px 12px; border-bottom:1px solid var(--line);">강화등급</th><th style="padding:10px 12px; border-bottom:1px solid var(--line);">최소 배율</th></tr></thead>
+            <tbody>
+              <tr><td style="padding:9px 12px; border-bottom:1px solid var(--line);">6강</td><td style="border-bottom:1px solid var(--line);">2배</td></tr>
+              <tr><td style="padding:9px 12px; border-bottom:1px solid var(--line);">7강</td><td style="border-bottom:1px solid var(--line);">2.15배</td></tr>
+              <tr><td style="padding:9px 12px; border-bottom:1px solid var(--line);">8강</td><td style="border-bottom:1px solid var(--line);">1.7배</td></tr>
+              <tr><td style="padding:9px 12px; border-bottom:1px solid var(--line);">9강</td><td style="border-bottom:1px solid var(--line);">1.2배</td></tr>
+              <tr><td style="padding:9px 12px; border-bottom:1px solid var(--line);">10강</td><td style="border-bottom:1px solid var(--line);">1.45배</td></tr>
+              <tr><td style="padding:9px 12px; border-bottom:1px solid var(--line);">11강</td><td style="border-bottom:1px solid var(--line);">1.55배</td></tr>
+              <tr><td style="padding:9px 12px; border-bottom:1px solid var(--line);">12강</td><td style="border-bottom:1px solid var(--line);">1.55배</td></tr>
+              <tr><td style="padding:9px 12px;">13강</td><td>3.21배</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="color:var(--report); font-size:12.5px; line-height:1.6; margin:0 0 18px;">※ 변경된 배율은 적용 이후 기준가 갱신부터 반영됩니다.</p>
+
+        <div style="font-weight:700; font-size:14px; color:var(--lime); margin:0 0 8px;">최대 배율</div>
+        <div style="overflow-x:auto; border:1px solid var(--line); border-radius:12px; margin-bottom:10px;">
+          <table style="width:100%; min-width:520px; border-collapse:collapse; text-align:center; font-size:13.5px;">
+            <thead><tr style="background:rgba(255,255,255,.045);"><th style="padding:10px 12px; border-bottom:1px solid var(--line);">강화등급</th><th style="padding:10px 12px; border-bottom:1px solid var(--line);">최대 배율</th></tr></thead>
+            <tbody>
+              <tr><td style="padding:9px 12px; border-bottom:1px solid var(--line);">6강</td><td style="border-bottom:1px solid var(--line);">20배</td></tr>
+              <tr><td style="padding:9px 12px; border-bottom:1px solid var(--line);">7강</td><td style="border-bottom:1px solid var(--line);">25배</td></tr>
+              <tr><td style="padding:9px 12px; border-bottom:1px solid var(--line);">8강</td><td style="border-bottom:1px solid var(--line);">40배</td></tr>
+              <tr><td style="padding:9px 12px; border-bottom:1px solid var(--line);">9강</td><td style="border-bottom:1px solid var(--line);">30배</td></tr>
+              <tr><td style="padding:9px 12px; border-bottom:1px solid var(--line);">10강</td><td style="border-bottom:1px solid var(--line);">35배</td></tr>
+              <tr><td style="padding:9px 12px; border-bottom:1px solid var(--line);">11강</td><td style="border-bottom:1px solid var(--line);">35배</td></tr>
+              <tr><td style="padding:9px 12px; border-bottom:1px solid var(--line);">12강</td><td style="border-bottom:1px solid var(--line);">35배</td></tr>
+              <tr><td style="padding:9px 12px;">13강</td><td>35배</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="color:var(--report); font-size:12.5px; line-height:1.6; margin:0;">※ 변경된 배율은 적용 이후 기준가 갱신부터 반영됩니다.</p>
+      </div>
       <p style="color:var(--text-dim); font-size:13px; margin-top:14px; line-height:1.6;"><b style="color:var(--text);">갱신싸움 순서</b> — ① 2시간 거래량 확인 → ② 0회면 낮은 강화단계 상하한가 변동 확인</p>
     </div>
 
@@ -2500,6 +2547,23 @@
     try{ const f = new URLSearchParams(location.search).get('fav'); const n = f ? parseInt(f, 10) : NaN; return (n && !isNaN(n)) ? n : null; }
     catch(_){ return null; }
   }
+  function estimatedFavFromUrl(){
+    try{
+      const q = new URLSearchParams(location.search);
+      const low = Number(q.get('estLow')), high = Number(q.get('estHigh'));
+      if(!Number.isInteger(low) || !Number.isInteger(high) || low < 0 || high > 119 || low > high) return null;
+      return { low, high, range: q.get('estRange') || '' };
+    }catch(_){ return null; }
+  }
+  function estimatedTimeStore(){
+    try{ return JSON.parse(localStorage.getItem('fc_estimated_times') || '{}'); }catch(_){ return {}; }
+  }
+  function setEstimatedTimeMeta(spid, meta){
+    try{ const all = estimatedTimeStore(); all[spid] = meta; localStorage.setItem('fc_estimated_times', JSON.stringify(all)); }catch(_){}
+  }
+  function removeEstimatedTimeMeta(spid){
+    try{ const all = estimatedTimeStore(); delete all[spid]; localStorage.setItem('fc_estimated_times', JSON.stringify(all)); }catch(_){}
+  }
   function maybeRunFavDeepLink(){
     if(_favDone) return;
     const spid = favSpidFromUrl();
@@ -2508,10 +2572,20 @@
     _favDone = true;
     (async () => {
       try{ await favApi.add(spid); }catch(_){}
+      const estimated = estimatedFavFromUrl();
+      if(estimated){
+        const hj = estimated.low < 60 ? '짝' : '홀';
+        const min = estimated.low % 60;
+        try{
+          const saved = await customTimeApi.set(spid, hj, min);
+          if(saved) setEstimatedTimeMeta(spid, estimated);
+        }catch(_){}
+      }
       try{ ensureNotifyPermission(); }catch(_){}
       try{ checkAlarms(); }catch(_){}
       try{ if(typeof showFavorites === 'function') showFavorites(); }catch(_){}
-      try{ if(typeof showToast === 'function') showToast('즐겨찾기에 추가했어요.'); }catch(_){}
+      try{ if(typeof showToast === 'function') showToast(estimated ? '즐겨찾기와 유추시간 알림을 설정했어요.' : '즐겨찾기에 추가했어요.'); }catch(_){}
+      try{ history.replaceState(history.state, '', location.pathname); }catch(_){}
     })();
   }
 
@@ -3432,8 +3506,8 @@
 
   // ── 업데이트 안내 1회성 팝업 ──
   // 규칙: (1) 닫기를 누르면 그 기기(브라우저)에서 다시 안 뜸  (2) 공지 만료일이 지나면 아무에게도 안 뜸
-  const NOTICE_ID = 'fc_notice_26up_lki_icon_evo_v1';       // 새 공지를 낼 땐 이 값만 바꾸면 됩니다
-  const NOTICE_EXPIRE = new Date('2026-11-13T23:59:59+09:00').getTime();  // 이 시각 이후엔 표시 안 함
+  const NOTICE_ID = 'fc_notice_rare_refresh_tracker_v1';       // 새 공지를 낼 땐 이 값만 바꾸면 됩니다
+  const NOTICE_EXPIRE = new Date('2026-11-20T23:59:59+09:00').getTime();  // 이 시각 이후엔 표시 안 함
   function maybeShowNotice(){
     try{
       if(Date.now() > NOTICE_EXPIRE) return;                 // 공지 기간 종료
@@ -3454,6 +3528,9 @@
     try{ localStorage.setItem(NOTICE_ID, '1'); }catch(e){}
     var ov = document.getElementById('noticeOverlay'); if(ov) ov.classList.remove('show');
     try{ showFreeBoard(); setTimeout(function(){ try{ setFreeCat('공지사항'); }catch(e){} }, 350); }catch(e){}
+  }
+  function noticeGoTracker(){
+    try{ localStorage.setItem(NOTICE_ID, '1'); }catch(e){}
   }
 
   // ── 스쿼드메이커 출시 안내 ──
@@ -4087,12 +4164,13 @@
     await loadServerBoards();   // 제보 집계(유저 제보 N건 표시)에 필요
     const favs = (await favApi.list()) || {};
 
-    // 시즌 중복 제거
+    // 동일 데이터 행만 제거한다. 같은 이름·같은 시즌이어도 선수 ID가 다르면
+    // 동명이인(예: 24 UCL 에데르송 GK/CM)이므로 각각 표시해야 한다.
     const cards = [];
     const seen = new Set();
     for(const p of source){
-      if(seen.has(p.season)) continue;
-      seen.add(p.season);
+      if(seen.has(p.id)) continue;
+      seen.add(p.id);
       const rep = (!p.hj) ? publicReport(p.id) : null;
       cards.push({
         id: p.id,
@@ -4205,17 +4283,17 @@
     detachCardsScroll();
     await loadServerBoards();   // 제보 집계(유저 제보 N건 표시)에 필요
     const favs = (await favApi.list()) || {};
-    // 일치 선수 전원의 카드 수집 (선수별 시즌 중복 제거)
+    // 일치 선수 전원의 카드 수집. 동명이인은 같은 시즌이어도 선수 ID로 구분한다.
     const cards = [];
     const qIsCho = q ? isChosungQuery(q) : false;
-    const seenBy = new Map();   // name -> Set(season)
+    const seenIds = new Set();
+    const seenPlayerIds = new Set();
     for(const p of allPlayers){
       if(season && p.season !== season) continue;
       if(q && !nameMatches(p.name, q, qIsCho)) continue;
-      let s = seenBy.get(p.name);
-      if(!s){ s = new Set(); seenBy.set(p.name, s); }
-      if(s.has(p.season)) continue;
-      s.add(p.season);
+      if(seenIds.has(p.id)) continue;
+      seenIds.add(p.id);
+      seenPlayerIds.add(p.id % 1000000);
       const rep = (!p.hj) ? publicReport(p.id) : null;
       cards.push({
         id: p.id, name: p.name, season: p.season, seasonId: Math.floor(p.id / 1000000),
@@ -4229,7 +4307,7 @@
     titleEl.textContent = q ? `"${q}" 검색 결과` : `${season} 갱신시간`;
     titleEl.style.cursor = ''; titleEl.title = ''; titleEl.onclick = null;
     document.getElementById('playerSub').textContent =
-      `일치 선수 ${seenBy.size.toLocaleString()}명 · 카드 ${cards.length.toLocaleString()}장`
+      `일치 선수 ${seenPlayerIds.size.toLocaleString()}명 · 카드 ${cards.length.toLocaleString()}장`
       + (q && season ? ` · ${season} 카드만 표시` : '') + (_cardSort === 'time' ? ' · 빠른 시간순' : ' · OVR 높은 순')
       + (cards.length > 60 ? ' · 아래로 스크롤하면 계속 표시됩니다' : '');
 
@@ -4691,6 +4769,7 @@
     try{ await loadHomeSummary(); }catch(_){}   // 유저 제보 대표시간 캐시 확보 (3분 캐시라 egress 미미)
     const favs = await favApi.list();
     _customTimes = (await customTimeApi.list()) || {};
+    const estimatedTimes = estimatedTimeStore();
     const spids = Object.keys(favs || {}).map(Number);
     if(spids.length === 0){
       subEl.textContent = '자주 확인하는 카드를 모아두고 갱신 시간을 한눈에 확인하세요.';
@@ -4708,7 +4787,7 @@
       return {
         id: p.id, name: p.name, season: p.season,
         seasonId: Math.floor(p.id / 1000000),
-        confirmed, custom: !!ct, report: !!rep, repFlags: rep ? (rep.flags || 0) : 0,
+        confirmed, custom: !!ct, estimated: (!confirmed && !!ct && estimatedTimes[spid]) ? estimatedTimes[spid] : null, report: !!rep, repFlags: rep ? (rep.flags || 0) : 0,
         hj, min,
         refresh: refreshLabel(hj, hj ? min : null),
         nextIn: nextInMin(hj, min),
@@ -4724,6 +4803,15 @@
       let rightHtml;
       if(r.confirmed){
         rightHtml = `${timerChip(r.hj, r.min, 'f-timer')}<span class="f-refresh">${r.refresh}</span>`;
+      }else if(r.custom && r.estimated){
+        const range = r.estimated.range || (() => {
+          const low = Number(r.estimated.low), high = Number(r.estimated.high);
+          const lp = low < 60 ? '짝수' : '홀수', hp = high < 60 ? '짝수' : '홀수';
+          return lp === hp ? `${lp} ${String(low % 60).padStart(2,'0')}~${String(high % 60).padStart(2,'0')}분` : `짝수 ${String(low % 60).padStart(2,'0')}~59분 또는 홀수 00~${String(high % 60).padStart(2,'0')}분`;
+        })();
+        rightHtml = `${timerChip(r.hj, r.min, 'f-timer')}`
+          + `<span class="f-refresh" title="유추 범위의 가장 빠른 시간으로 알림 예약"><b style="color:var(--lime);">유추시간</b> ${esc(range)}<br><span style="color:var(--text-dim); font-size:11px;">알림예약 ${r.refresh}</span></span>`
+          + `<button class="fav-remove" onclick="event.stopPropagation(); openCustomTime(${r.id})">수정</button>`;
       }else if(r.custom){
         // 유저가 직접 설정한 커스텀 시간: 시계 표시 + 내 설정 표기 + 수정/삭제
         rightHtml = `${timerChip(r.hj, r.min, 'f-timer')}`
@@ -4780,6 +4868,7 @@
     const ok = await customTimeApi.set(_ctTarget, hj, min);
     if(!ok){ errEl.textContent = '저장에 실패했어요. 잠시 후 다시 시도해주세요.'; return; }
     _customTimes[_ctTarget] = { hj, min };
+    removeEstimatedTimeMeta(_ctTarget);
     closeCustomTime();
     showToast(currentUser() ? '갱신시간을 설정했어요. 앱을 꺼도 이 시간 기준으로 알림이 와요.' : '갱신시간을 설정했어요. (로그인하면 앱을 꺼도 알림을 받아요)');
     await renderFavorites();
@@ -4789,6 +4878,7 @@
     if(_ctTarget == null) return;
     await customTimeApi.remove(_ctTarget);
     delete _customTimes[_ctTarget];
+    removeEstimatedTimeMeta(_ctTarget);
     closeCustomTime();
     await renderFavorites();
   }
