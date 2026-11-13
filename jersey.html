@@ -119,6 +119,6 @@ function renderHistory(){const p=selected;if(!p)return;const rows=[];if(kind!=='
 $('#results').addEventListener('click',e=>{const b=e.target.closest('[data-rank]');if(b)selectPlayer(b.dataset.rank)});document.querySelector('.tabs').addEventListener('click',e=>{const b=e.target.closest('[data-kind]');if(!b)return;kind=b.dataset.kind;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));renderHistory()});
 $('#q').addEventListener('input',e=>{$('#clear').classList.toggle('on',!!e.target.value);renderResults(e.target.value)});$('#clear').onclick=()=>{$('#q').value='';$('#clear').classList.remove('on');renderResults('');$('#q').focus()};window.addEventListener('resize',loadFixedAds);if(document.readyState==='complete')loadFixedAds();else window.addEventListener('load',loadFixedAds);load();
 </script>
-<script src="/fc-refresh-alert.js" data-page="jersey" defer></script>
+<script src="/fc-refresh-alert.js?v=20261114-1" data-page="jersey" defer></script>
 </body>
 </html>
