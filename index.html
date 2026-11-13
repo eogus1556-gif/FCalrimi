@@ -214,6 +214,24 @@
     font-family: var(--font-body);
   }
   .user-chip .logout-btn:hover{ color: var(--text); }
+  .user-menu-wrap{ position:relative; }
+  .user-menu-trigger{ display:inline-flex; align-items:center; gap:6px; }
+  .user-menu-trigger::after{ content:'▾'; font-size:10px; transition:transform .16s; }
+  .user-menu-wrap.open .user-menu-trigger::after{ transform:rotate(180deg); }
+  .user-menu-panel{
+    position:absolute; top:calc(100% + 9px); right:0; z-index:220;
+    width:210px; padding:8px; display:none;
+    border:1px solid var(--line); border-radius:14px;
+    background:var(--surface); box-shadow:0 18px 45px rgba(0,0,0,.4);
+  }
+  .user-menu-wrap.open .user-menu-panel{ display:grid; gap:4px; }
+  .user-menu-panel button{
+    width:100%; padding:10px 11px; border:0; border-radius:9px;
+    background:transparent; color:var(--text); text-align:left; cursor:pointer;
+    font-family:var(--font-body); font-size:12px; font-weight:700;
+  }
+  .user-menu-panel button:hover{ background:var(--surface-2); color:var(--lime); }
+  .user-menu-panel .alarm-select{ width:100%; max-width:none; border-radius:9px; }
   .alarm-select{
     background: var(--surface-2);
     border: 1px solid var(--line);
@@ -1085,7 +1103,7 @@
       min-height:78px;
       padding:5px;
       display:grid;
-      grid-template-columns:repeat(4,minmax(0,1fr));
+      grid-template-columns:repeat(5,minmax(0,1fr));
       gap:3px;
       border:1px solid rgba(124,139,156,.28);
       border-radius:28px;
@@ -1251,17 +1269,22 @@
       <a href="#" class="nav-cta" id="loginBtn" onclick="openAuth(); return false;">로그인</a>
       <div class="user-chip" id="userChip">
         <span class="nick" id="userNick"></span>
-        <select id="alarmLead" class="alarm-select mm-hide" onchange="onAlarmLeadChange(this)" title="갱신 몇 분 전에 알림">
-          <option value="3">3분 전 알림</option>
-          <option value="5">5분 전 알림</option>
-          <option value="10">10분 전 알림</option>
-          <option value="1+10">10분 전 + 1분 전 알림</option>
-          <option value="custom">사용자 설정…</option>
-        </select>
-        <button class="sound-btn mm-hide" onclick="openQuietMode()" title="취침시간 설정 (지정 시간엔 알림 끔)">🌙</button>
-        <button class="logout-btn mm-hide" onclick="openProfile()" title="닉네임·비밀번호 변경">내 정보</button>
+        <div class="user-menu-wrap mm-hide" id="userMenuWrap">
+          <button class="logout-btn user-menu-trigger" type="button" onclick="toggleUserMenu(event)">내 정보</button>
+          <div class="user-menu-panel" onclick="event.stopPropagation()">
+            <button type="button" onclick="closeUserMenu(); openProfile();">👤 내 정보 수정</button>
+            <select id="alarmLead" class="alarm-select" onchange="onAlarmLeadChange(this)" title="갱신 몇 분 전에 알림">
+              <option value="3">3분 전 알림</option>
+              <option value="5">5분 전 알림</option>
+              <option value="10">10분 전 알림</option>
+              <option value="1+10">10분 전 + 1분 전 알림</option>
+              <option value="custom">사용자 설정…</option>
+            </select>
+            <button type="button" onclick="closeUserMenu(); openQuietMode();">🌙 취침시간 설정</button>
+            <button type="button" onclick="closeUserMenu(); testAlarm();">🔎 알림 테스트</button>
+          </div>
+        </div>
         <button class="logout-btn" onclick="logout()">로그아웃</button>
-        <button class="logout-btn mm-hide" onclick="testAlarm()" title="알림이 뜨는지 확인">알림 테스트</button>
       </div>
       <button id="soundToggle" class="sound-btn" onclick="toggleSound()" title="알림 소리 켜기/끄기">🔔</button>
       <button id="menuBtn" class="menu-btn" onclick="toggleMobileMenu(event)" title="메뉴">☰</button>
@@ -1271,11 +1294,7 @@
   <!-- 모바일 메뉴 (720px 이하에서 ☰ 버튼으로 열림) -->
   <div id="mobileMenu" class="mobile-menu">
     <a onclick="mmNav('guide')">이용 방법</a>
-    <a href="/refresh-estimate.html" onclick="closeMobileMenu()">희귀매물 갱신시간 추적기</a>
-    <a href="/jersey.html" onclick="closeMobileMenu()">너의 등번호는</a>
-    <a href="/자료/스쿼드메이커%20db만들기/squadmaker_v6_2.html" onclick="closeMobileMenu()">스쿼드메이커</a>
     <a onclick="mmNav('board')">커뮤니티</a>
-    <a onclick="mmNav('fav')">즐겨찾기</a>
     <a onclick="mmNav('refresh')">강화 등급별 배율</a>
     <a onclick="mmNav('ach')">시즌별 달성률</a>
     <a onclick="closeMobileMenu(); openInstallGuide();">📱 앱 설치</a>
@@ -1293,6 +1312,10 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V21h13V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
       <span>홈</span>
     </button>
+    <a class="fc-mobile-nav-item" data-mobile-nav="tracker" href="/refresh-estimate.html">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/><path d="M10.5 7v4l2.5 1.5"/></svg>
+      <span>추적기</span>
+    </a>
     <a class="fc-mobile-nav-item" data-mobile-nav="jersey" href="/jersey.html">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 4 4-2 4 2 4 3-3 4v10H7V11L4 7l4-3Z"/><path d="M9.5 9.5h5M12 8v8"/></svg>
       <span>등번호</span>
@@ -1489,18 +1512,11 @@
     <div class="modal-overlay" id="noticeOverlay" onclick="if(event.target===this) closeNotice()">
     <div class="modal" style="text-align:center;">
       <button class="modal-close" onclick="closeNotice()">&times;</button>
-      <h2 style="margin-bottom:10px;">갱신시간 기능 업데이트</h2>
-      <div style="display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:14px; margin:10px 0 14px;">
-        <img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/26UP.png" onerror="this.style.display='none'" alt="26UP">
-        <img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/LKI.png" onerror="this.style.display='none'" alt="LKI">
-        <img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/ICON.png" onerror="this.style.display='none'" alt="ICON">
-        <img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/EVO_CU.png" onerror="this.style.display='none'" alt="EVO CU">
-        <img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/EVO_EP.png" onerror="this.style.display='none'" alt="EVO EP">
-      </div>
-      <p class="modal-sub" style="line-height:1.7;"><b style="color:var(--lime);">26UP · LKI · ICON · EVO</b> 시즌<br>갱신시간이 업데이트되었습니다!</p>
+      <h2 style="margin-bottom:10px;">희귀매물 갱신시간 추적기</h2>
+      <p class="modal-sub" style="line-height:1.7;">갱신시간이 비어 있는 희귀매물도<br>FC알리미 데이터로 예상 범위를 확인해 보세요.</p>
       <div style="margin:14px 0 4px; padding:14px 15px; border:1px solid rgba(196,255,61,.35); border-radius:12px; background:rgba(196,255,61,.06); text-align:left;">
-        <b style="display:block; color:var(--lime); margin-bottom:6px;">희귀매물 갱신시간 추적기</b>
-        <p style="margin:0; color:var(--text); font-size:13px; line-height:1.65;">갱신시간이 아직 등록되지 않은 선수도 FC알리미에 쌓인 같은 시즌 데이터를 바탕으로 예상 범위를 확인할 수 있습니다.</p>
+        <b style="display:block; color:var(--lime); margin-bottom:6px;">빈 갱신시간 자동 계산</b>
+        <p style="margin:0; color:var(--text); font-size:13px; line-height:1.65;">같은 시즌의 앞뒤 확정 데이터를 기준으로 예상 갱신시간 범위를 계산하고, 가장 빠른 시간으로 알림도 예약할 수 있습니다.</p>
         <a href="/refresh-estimate.html" onclick="noticeGoTracker()" style="display:inline-block; margin-top:9px; color:var(--lime); font-size:13px; font-weight:800; text-decoration:underline; text-underline-offset:3px;">추적기 바로가기 →</a>
       </div>
       <button class="auth-submit" onclick="closeNotice()">닫기</button>
@@ -2558,6 +2574,16 @@
   function estimatedTimeStore(){
     try{ return JSON.parse(localStorage.getItem('fc_estimated_times') || '{}'); }catch(_){ return {}; }
   }
+  function toggleUserMenu(event){
+    if(event) event.stopPropagation();
+    const wrap = document.getElementById('userMenuWrap');
+    if(wrap) wrap.classList.toggle('open');
+  }
+  function closeUserMenu(){
+    const wrap = document.getElementById('userMenuWrap');
+    if(wrap) wrap.classList.remove('open');
+  }
+  document.addEventListener('click', closeUserMenu);
   function setEstimatedTimeMeta(spid, meta){
     try{ const all = estimatedTimeStore(); all[spid] = meta; localStorage.setItem('fc_estimated_times', JSON.stringify(all)); }catch(_){}
   }
@@ -4804,13 +4830,13 @@
       if(r.confirmed){
         rightHtml = `${timerChip(r.hj, r.min, 'f-timer')}<span class="f-refresh">${r.refresh}</span>`;
       }else if(r.custom && r.estimated){
-        const range = r.estimated.range || (() => {
+        const range = (() => {
           const low = Number(r.estimated.low), high = Number(r.estimated.high);
           const lp = low < 60 ? '짝수' : '홀수', hp = high < 60 ? '짝수' : '홀수';
+          if(low === high) return `${lp} ${String(low % 60).padStart(2,'0')}분`;
           return lp === hp ? `${lp} ${String(low % 60).padStart(2,'0')}~${String(high % 60).padStart(2,'0')}분` : `짝수 ${String(low % 60).padStart(2,'0')}~59분 또는 홀수 00~${String(high % 60).padStart(2,'0')}분`;
         })();
-        rightHtml = `${timerChip(r.hj, r.min, 'f-timer')}`
-          + `<span class="f-refresh" title="유추 범위의 가장 빠른 시간으로 알림 예약"><b style="color:var(--lime);">유추시간</b> ${esc(range)}<br><span style="color:var(--text-dim); font-size:11px;">알림예약 ${r.refresh}</span></span>`
+        rightHtml = `<span class="f-refresh" title="유추 범위의 가장 빠른 시간으로 알림 예약">${esc(range)}<br><span style="color:var(--text-dim); font-size:11px;">${timerChip(r.hj, r.min, 'f-timer')} 알림예약 ${r.refresh}</span></span>`
           + `<button class="fav-remove" onclick="event.stopPropagation(); openCustomTime(${r.id})">수정</button>`;
       }else if(r.custom){
         // 유저가 직접 설정한 커스텀 시간: 시계 표시 + 내 설정 표기 + 수정/삭제
