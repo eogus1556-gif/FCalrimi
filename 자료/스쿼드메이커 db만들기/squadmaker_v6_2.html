@@ -1125,6 +1125,7 @@ let autoUniTarget=null;       // null = auto(스쿼드 대표색), else '#RRGGBB
 let UNIQ=null, UNI_LAB={}, UNI_SEASON={}, _uniTarget=null, _uniLoading=null;
 let JERSEY=null, _jerseyLoading=null, _jerseyNameIndex=null; // 로컬 수집 결과 jersey_numbers.json
 let ABILITY_JERSEY=null, _abilityJerseyLoading=null;          // 세부 정보용 전체 시즌별 클럽 경력
+let PLAYER_TEAMCOLORS=null, _playerTeamcolorsLoading=null;    // FC온라인 선수별 실제 팀 경력(career/applied 분리)
 const UNI_MAXDE=22;           // color-match tolerance (lower = stricter; keeps sky/royal/navy apart)
 function _hex2rgb(h){h=String(h).replace('#','');return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
 function _rgb2lab(rgb){let[r,g,b]=rgb.map(v=>{v/=255;return v>0.04045?Math.pow((v+0.055)/1.055,2.4):v/12.92;});
@@ -1149,6 +1150,13 @@ async function abilityJerseyLoad(){
   if(ABILITY_JERSEY)return ABILITY_JERSEY;if(_abilityJerseyLoading)return _abilityJerseyLoading;
   _abilityJerseyLoading=(async()=>{for(const url of ['jersey_numbers.json','../수집기/output/jersey_numbers.json']){try{const r=await fetch(url,{cache:'no-store'});if(!r.ok)continue;const d=await r.json();if(d&&d.by_korean_name){ABILITY_JERSEY=d;_careerTeamIndex=null;return d;}}catch(e){}}
     ABILITY_JERSEY={by_korean_name:{}};return ABILITY_JERSEY;})();return _abilityJerseyLoading;
+}
+async function playerTeamcolorsLoad(){
+  if(PLAYER_TEAMCOLORS)return PLAYER_TEAMCOLORS;if(_playerTeamcolorsLoading)return _playerTeamcolorsLoading;
+  _playerTeamcolorsLoading=fetch('player_teamcolors.json',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject())
+    .then(d=>{PLAYER_TEAMCOLORS=d&&d.players?d:{players:{}};return PLAYER_TEAMCOLORS;})
+    .catch(()=>{PLAYER_TEAMCOLORS={players:{}};return PLAYER_TEAMCOLORS;});
+  return _playerTeamcolorsLoading;
 }
 const UNI_PURW=26;   // 순도 가중치: 목표색이 '더 큰 비율'인 시즌 우선 (흰90+빨10 뮌헨 < 흰99 잉글랜드)
 function uniPick(spid,target,useNearest=false,preferAlternate=false){const own=String(spid);
@@ -1947,12 +1955,21 @@ function careerSingleTeam(){
   const d=careerTeamIndex().byNorm.get(norm);return {no:`career:${norm}`,norm,name:`${d?d.name:norm} 단일`,img:'',lv:1,have:N_START,eff:[['전체 능력치',4]]};
 }
 function statTone(v){v=+v||0;return v>=170?'stat170':v>=160?'stat160':v>=150?'stat150':v>=140?'stat140':v>=130?'stat130':v>=120?'stat120':v>=100?'stat100':v>=80?'stat80':'statLow';}
-function abilityCareerRows(name,c){
-  const rec=abilityJerseyRecord(name),rows=[];
-  if(rec&&rec.teams)for(const [ko,t] of Object.entries(rec.teams)){if(t.kind==='nation')continue;const hist=Array.isArray(t.history)?t.history:[];
+function isBaseClubCareer(entry){
+  if(!entry||!entry.name)return false;const tc=TCFULL&&TCFULL[entry.no];
+  return !!(tc&&tc.need===11&&/\/crests\//i.test(String(tc.img||'')));
+}
+function abilityCareerRows(p){
+  const name=p&&p[I.name],rec=abilityJerseyRecord(name),rows=[],seenTeams=new Set();
+  if(rec&&rec.teams)for(const [ko,t] of Object.entries(rec.teams)){if(t.kind==='nation')continue;const teamNorm=jTeamNorm(ko),hist=Array.isArray(t.history)?t.history:[];
+    if(teamNorm)seenTeams.add(teamNorm);
     if(hist.length)hist.forEach(h=>rows.push({season:h.season||'-',team:ko||h.team||'-',loan:/loan|임대/i.test(String(h.team||''))?'임대':'-'}));
     else rows.push({season:'-',team:ko,loan:'-'});}
-  if(!rows.length&&c&&Array.isArray(c.tc)&&TCFULL){const seen=new Set();for(const no of c.tc){const n=TCFULL[no]&&TCFULL[no].n;if(n&&!seen.has(n)){seen.add(n);rows.push({season:'-',team:n,loan:'-'});}}}
+  // 등번호 원문에 없는 클럽만 FC온라인의 career 목록으로 보완한다.
+  // applied(특수/관계 팀컬러)와 국가대·시즌단일은 절대 클럽 경력에 넣지 않는다.
+  const tcRec=p&&PLAYER_TEAMCOLORS&&PLAYER_TEAMCOLORS.players&&PLAYER_TEAMCOLORS.players[String(p[I.spid])];
+  for(const entry of (tcRec&&Array.isArray(tcRec.career)?tcRec.career:[])){if(!isBaseClubCareer(entry))continue;
+    const norm=jTeamNorm(entry.name);if(!norm||seenTeams.has(norm))continue;seenTeams.add(norm);rows.push({season:'-',team:entry.name,loan:'-'});}
   const key=r=>{const m=String(r.season).match(/\d{2}/);return m?+m[0]:-1;};rows.sort((a,b)=>key(b)-key(a));return rows;
 }
 function jerseyTeamRecord(playerRec,teamName){
@@ -2499,7 +2516,7 @@ function renderPanel(){
       panel.className='cardPanel abilityPanel on';
       const traitIds=[...(c.tr||[])];if(s.g>=8&&s.goldTrait!=null&&!traitIds.some(x=>String(x)===String(s.goldTrait)))traitIds.push(s.goldTrait);
       const summary=groups.slice(0,6).map(([title,ids])=>[title,Math.round(ids.reduce((a,i)=>a+(+vals[i]||0),0)/ids.length)]);
-      const careers=abilityCareerRows(p[I.name],c),foot=c.foot==='L'?'왼발':'오른발';
+      const careers=abilityCareerRows(p),foot=c.foot==='L'?'왼발':'오른발';
       const physical=[c.birth||'',c.h?`${c.h}cm`:'',c.w?`${c.w}kg`:'',c.body||'',foot].filter(Boolean);
       panel.innerHTML=`<div class="abilityLayout"><section class="abilityMain">
         <div class="abilityProfile">${faceImg('abilityPortrait',s.spid,false,'','auto')}<div class="abilityIdentity">
@@ -2511,7 +2528,8 @@ function renderPanel(){
         <div class="abilityGroups">${groups.map(([title,ids])=>`<div class="abilityGroup"><div class="abilityGroupTitle">${title}</div><div class="abilityGrid">${ids.map(i=>{const tv=+assignedTrain[i]||0;return `<div class="abilityItem" title="${esc(DAB[i])}${tv?` · 집중훈련 +${tv}`:''}"><span class="abilityName">${esc(DAB[i])}</span><span class="abilityValue"><b class="${statTone(vals[i])}">${vals[i]}</b>${tv?`<em class="${showTrain?'':'off'}">+${tv}</em>`:''}</span></div>`;}).join('')}</div></div>`).join('')}</div>
         <div class="panelHint">강화 · 팀컬러 · 집중훈련이 반영된 현재 수치</div></section>
         <aside class="abilityCareer"><h3>클럽 경력</h3>${careers.length?`<table class="careerTable"><thead><tr><th>연도</th><th>클럽</th><th>임대 여부</th></tr></thead><tbody>${careers.slice(0,18).map(r=>`<tr><td>${esc(r.season)}</td><td>${esc(r.team)}</td><td>${r.loan}</td></tr>`).join('')}</tbody></table>`:'<div class="careerEmpty">등록된 클럽 경력 정보가 없습니다.<br>팀 경력 데이터가 추가되면 자동으로 표시됩니다.</div>'}</aside></div>`;
-      if(!ABILITY_JERSEY&&!_abilityJerseyLoading)abilityJerseyLoad().then(()=>{if(menuMode==='ability'&&menuIdx!=null)renderPanel();});
+      if((!ABILITY_JERSEY&&!_abilityJerseyLoading)||(!PLAYER_TEAMCOLORS&&!_playerTeamcolorsLoading))
+        Promise.all([abilityJerseyLoad(),playerTeamcolorsLoad()]).then(()=>{if(menuMode==='ability'&&menuIdx!=null)renderPanel();});
     }
   }else if(menuMode==='season'){
     const cards=BY_PID.get(PID(s.spid))||[p];
@@ -3994,6 +4012,6 @@ function mountSquadSideAd(id,slot){const box=document.getElementById(id);if(!box
 function loadSquadSideAds(){mountSquadSideAd('squadLeftAd','4782493315');mountSquadSideAd('squadRightAd','8648596453')}
 if(document.readyState==='complete')loadSquadSideAds();else window.addEventListener('load',loadSquadSideAds);window.addEventListener('resize',loadSquadSideAds);
 </script>
-<script src="/fc-refresh-alert.js?v=20261114-1" data-page="squadmaker" defer></script>
+<script src="/fc-refresh-alert.js?v=20261114-2" data-page="squadmaker" defer></script>
 </body>
 </html>
