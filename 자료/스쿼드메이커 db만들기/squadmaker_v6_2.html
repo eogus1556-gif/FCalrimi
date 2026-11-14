@@ -376,6 +376,7 @@ button{cursor:pointer;}
 .aiGoldPitch:before{content:"";position:absolute;left:25%;right:25%;top:0;height:17%;border:1px solid rgba(255,255,255,.18);border-top:0;}.aiGoldPitch:after{content:"";position:absolute;left:35%;right:35%;bottom:0;height:14%;border:1px solid rgba(255,255,255,.18);border-bottom:0;}
 .aiGoldSlot{position:absolute;transform:translate(-50%,-50%);width:72px;min-height:48px;padding:5px;border:1px solid rgba(255,255,255,.22);border-radius:9px;background:rgba(8,17,14,.88);color:#fff;cursor:pointer;text-align:center;box-shadow:0 3px 12px rgba(0,0,0,.3);}
 .aiGoldSlot:hover,.aiGoldSlot.on{border-color:var(--gold);}.aiGoldSlot b{display:block;font-size:11px;}.aiGoldSlot small{display:block;margin-top:3px;color:var(--text-dim);font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.aiGoldSlot.on small{color:var(--gold);}
+.aiGoldSlot.active{box-shadow:0 0 0 2px var(--lime);}.aiGoldSlotEditor{width:min(520px,92vw);margin:10px auto 0;padding:10px;border:1px solid var(--line);border-radius:11px;background:var(--surface-2);}.aiGoldSlotEditor:empty{display:none}.aiGoldSlotEditor h4{margin:0 0 8px;font-size:12px}.aiGoldChoice{display:grid;grid-template-columns:minmax(0,1fr) 68px 68px;gap:5px;align-items:center;padding:5px 0;border-top:1px solid var(--line)}.aiGoldChoice:first-of-type{border-top:0}.aiGoldChoice span{display:flex;align-items:center;gap:6px;min-width:0;font-size:10px;font-weight:800}.aiGoldChoice img{width:20px;height:20px;object-fit:contain}.aiGoldChoice button{padding:6px 3px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--text-dim);font-size:9px;font-weight:900;cursor:pointer}.aiGoldChoice button.on{border-color:var(--gold);background:rgba(255,198,77,.13);color:var(--gold)}.aiGoldChoiceClear{width:100%;margin-top:7px;padding:7px;border:1px dashed var(--line-2);border-radius:7px;background:transparent;color:var(--text-dim);cursor:pointer;font-size:10px;font-weight:800}
 .aiGoldPosHint{margin:10px 0 0;color:var(--text-dim);font-size:10px;line-height:1.55;text-align:center;}
 @media(max-width:760px){.aiGoldPosBox{padding:13px}.aiGoldPosHead{align-items:flex-start;flex-wrap:wrap}.aiGoldPosHead span{order:3;flex-basis:100%}.aiGoldSlot{width:58px;min-height:43px;padding:4px 2px}.aiGoldSlot b{font-size:10px}.aiGoldSlot small{font-size:7px}}
 .aiBuildTitle{font-size:30px;}
@@ -1003,7 +1004,8 @@ button{cursor:pointer;}
     <div class="aiGoldPosHead"><strong id="aiGoldPosTitle">포지션별 금빛특성</strong><span id="aiGoldPosForm"></span><button type="button" onclick="closeAiGoldPositions()">완료</button></div>
     <div class="aiGoldLegend" id="aiGoldLegend"></div>
     <div class="aiGoldPitch" id="aiGoldPitch"></div>
-    <p class="aiGoldPosHint">포지션을 누르면 자동 → 1순위 → 2순위 → 3순위 → 4순위 순으로 바뀝니다. 같은 특성은 한 포지션에만 지정되며, 지정하지 않은 특성은 자동 배치됩니다.</p>
+    <div class="aiGoldSlotEditor" id="aiGoldSlotEditor"></div>
+    <p class="aiGoldPosHint">포지션을 누른 뒤 해당 자리의 1순위와 2순위 특성을 선택하세요. 지정하지 않은 포지션은 자동 배치됩니다.</p>
   </div>
 </div>
 
@@ -1013,7 +1015,7 @@ button{cursor:pointer;}
     <div class="featureHelpHead"><strong id="featureHelpTitle">스쿼드 기능 사용법</strong><span>버튼을 켠 뒤 선수를 눌러보세요</span><button class="btnGhost" type="button" onclick="closeFeatureHelp()">닫기</button></div>
     <div class="featureHelpList">
       <div class="featureHelpItem"><b>딸깍 스쿼드</b><p>클릭 몇 번으로 랭커들이 검증한 선수만 골라 스쿼드를 완성시켜드려요.</p></div>
-      <div class="featureHelpItem"><b>금빛 특성</b><p>토글을 활성화한 뒤 선수를 클릭하면 8강 이상 선수에게 금빛 특성을 추가할 수 있어요.</p></div>
+      <div class="featureHelpItem"><b>금빛 특성</b><p>토글을 활성화한 뒤 선수를 클릭하면 8강 이상 선수에게 금빛 특성을 추가할 수 있어요. 8강 미만은 시즌이 기본 보유한 금빛특성만 적용됩니다.</p></div>
       <div class="featureHelpItem"><b>집중훈련</b><p>선수를 클릭한 뒤 계산기 아이콘을 누르면 최고 OVR 조합을 추천받고, 집중훈련으로 가능한 최대 오버롤을 적용할 수 있어요.</p></div>
       <div class="featureHelpItem"><b>등번호</b><p>등번호를 켠 뒤 선수를 클릭하면 ‘너의 등번호는’ 페이지에서 해당 선수의 팀·연도별 등번호 기록을 바로 볼 수 있어요.</p></div>
       <div class="featureHelpItem"><b>미페 자동맞춤</b><p>스쿼드에서 같은 색이 많은 유니폼으로 자동 보정돼요. 미세한 색 차이는 색상 선택으로 직접 조절할 수 있어요.</p></div>
@@ -1901,11 +1903,15 @@ function faceSnHtml(faceSpid, ownSpid, isDefaultFace=false){ // 지금 보이는
   return `<div class="pcFaceSn${same?' same':''}" title="미페 시즌${same?' · 원래 카드':''}">
     ${isDefaultFace?'':`<img src="${SEASON(f[I.season])}" onerror="this.style.display='none'">`}<span>${isDefaultFace?'기본 제공 사진':esc(f[I.season])}</span></div>`;
 }
-function cardGoldHtml(spid,idx){                   // 원래 금빛특성 또는 8강 이상 수동 선택 특성
+function baseGoldTraits(spid){const c=CHEM&&CHEM[spid];return c&&GOLDIDS?(c.tr||[]).filter(id=>GOLDIDS.has(String(id))):[];}
+function hasBaseGoldTrait(spid,traitId){return baseGoldTraits(spid).some(id=>String(id)===String(traitId));}
+function canAddGoldTrait(s){return !!(s&&s.g>=8);}
+function canUseGoldTrait(s,traitId){return !!(s&&(canAddGoldTrait(s)||hasBaseGoldTrait(s.spid,traitId)));}
+function cardGoldHtml(spid,idx){                   // 원래 금빛특성 또는 추가 선택 특성
   const c=CHEM&&CHEM[spid]; if(!c||!GOLDIDS) return '';
   const s=idx!=null?squad[idx]:null;
-  const selected=s&&s.g>=8&&s.goldTrait!=null?String(s.goldTrait):null;
-  const existing=(c.tr||[]).filter(id=>GOLDIDS.has(String(id)));
+  const selected=canAddGoldTrait(s)&&s.goldTrait!=null?String(s.goldTrait):null;
+  const existing=baseGoldTraits(spid);
   const gold=selected?[...existing.filter(id=>String(id)!==selected),+selected]:existing;
   if(!gold.length) return '';
   return `<span class="pcGold">${gold.slice(0,3).map(id=>`<img src="${TRAIT_ICON(id)}" onerror="this.style.display='none'">`).join('')}</span>`;
@@ -2525,10 +2531,10 @@ function renderPanel(){
    if(menuMode==='gold'){
      const defs=TRAITS||{};
      const gold=Object.keys(defs).filter(id=>defs[id]&&defs[id].g).sort((a,b)=>+a-+b);
-     const current=(s.g>=8&&s.goldTrait!=null)?String(s.goldTrait):'';
+     const goldEligible=canAddGoldTrait(s),current=(goldEligible&&s.goldTrait!=null)?String(s.goldTrait):'';
      panel.className='cardPanel goldTraitPanel on';
-     panel.innerHTML=`<div class="goldTraitHead"><span>금빛특성 선택</span><small>${s.g>=8?'8강 이상 · 1개 추가':'8강부터 선택 가능'}</small></div>
-       <div class="goldTraitGrid">${s.g>=8?`<button class="goldTraitClear" data-gold="clear">추가 특성 해제</button>`:''}${gold.map(id=>`<button class="goldTraitPick ${current===String(id)?'on':''}" data-gold="${id}"><img src="${TRAIT_ICON(id)}" onerror="this.style.visibility='hidden'"><span>${esc(defs[id].n||('특성 '+id))}</span></button>`).join('')}</div>
+     panel.innerHTML=`<div class="goldTraitHead"><span>금빛특성 선택</span><small>${goldEligible?'8강 이상 · 1개 추가':'8강부터 추가 가능'}</small></div>
+       <div class="goldTraitGrid">${goldEligible?`<button class="goldTraitClear" data-gold="clear">추가 특성 해제</button>`:''}${gold.map(id=>`<button class="goldTraitPick ${current===String(id)?'on':''}" data-gold="${id}"><img src="${TRAIT_ICON(id)}" onerror="this.style.visibility='hidden'"><span>${esc(defs[id].n||('특성 '+id))}</span></button>`).join('')}</div>
        <div class="panelHint">기존 금빛특성이 있으면 기존 특성과 함께 표시됩니다.</div>`;
      panel.classList.add('on');
      const r=anchorRect(); if(!r)return;
@@ -2554,7 +2560,7 @@ function renderPanel(){
         ['골키퍼',[29,30,31,32,33]]
       ];
       panel.className='cardPanel abilityPanel on';
-      const traitIds=[...(c.tr||[])];if(s.g>=8&&s.goldTrait!=null&&!traitIds.some(x=>String(x)===String(s.goldTrait)))traitIds.push(s.goldTrait);
+      const traitIds=[...(c.tr||[])];if(canAddGoldTrait(s)&&s.goldTrait!=null&&!traitIds.some(x=>String(x)===String(s.goldTrait)))traitIds.push(s.goldTrait);
       const summary=groups.slice(0,6).map(([title,ids])=>[title,Math.round(ids.reduce((a,i)=>a+(+vals[i]||0),0)/ids.length)]);
       const careers=abilityCareerRows(p),foot=c.foot==='L'?'왼발':'오른발';
       const physical=[c.birth||'',c.h?`${c.h}cm`:'',c.w?`${c.w}kg`:'',c.body||'',foot].filter(Boolean);
@@ -2624,7 +2630,7 @@ document.getElementById('cardPanel').addEventListener('click',e=>{
   const b=e.target.closest('button'); if(!b||menuIdx==null)return;
   const s=squad[menuIdx];
   if(b.dataset.gold!=null){
-    if(s.g<8){toast('금빛특성은 8강 이상부터 추가할 수 있어요');return;}
+    if(!canAddGoldTrait(s)){toast('금빛특성 추가는 8강 이상부터 가능해요');return;}
     if(b.dataset.gold==='clear') delete s.goldTrait;
     else s.goldTrait=+b.dataset.gold;
     save(); closeMenu(); renderBoard(); return;
@@ -2632,8 +2638,8 @@ document.getElementById('cardPanel').addEventListener('click',e=>{
   if(b.dataset.trfull!=null){ openTrainPopup(); return; }
   if(trainAction(b)) return;
   // 강화·시즌·페이스온 모두 선택 즉시 적용 + 메뉴 닫기
-   if(b.dataset.en!=null){ s.g=+b.dataset.en; if(s.g<8)delete s.goldTrait; }
-  else if(b.dataset.season){ s.spid=+b.dataset.season; if(s.img!=='mini')delete s.img; }
+   if(b.dataset.en!=null){ s.g=+b.dataset.en; if(!canAddGoldTrait(s))delete s.goldTrait; }
+  else if(b.dataset.season){ s.spid=+b.dataset.season; if(!canAddGoldTrait(s))delete s.goldTrait;if(s.img!=='mini')delete s.img; }
   else if(b.dataset.face!=null){
     const v=b.dataset.face;
     if(v==='default26')s.img='default26';
@@ -3025,6 +3031,7 @@ let aiState={budget:null, mode:'manager', tc:null, tcName:'', tcAuto:true, form:
 let aiIdx=0;
 let aiOpenG=null;   // 필수선수 강화 picker 열린 행 index
 let aiOpenGm=null;  // 개별강화 11칸 강화 picker 열린 행 index
+let aiGoldActiveSlot=null; // 포지션별 금빛특성 편집 중인 포메이션 슬롯
 let aiAutoSoc='';   // '선택 안 함'일 때 자동으로 통일된 소속 팀컬러 이름
 const AI_STEPS=[
   {key:'budget', title:'예산'},
@@ -3066,7 +3073,7 @@ function aiMode(){
   if(!CHEM){ toast('data.json 로딩 후 사용하세요'); return; }
   aiState={budget:null, mode:'manager', tc:null, tcName:'', tcAuto:true, form:null, grade:'auto', goldTraits:[], goldSlots:{}, goldSlotsForm:'', locks:[], gmap:{}, gmapForm:'', noRare:false, rareGkFree:false, rareFullbackFree:false};
   tcbLoad(); rareLoad(); liveLoad();
-  aiIdx=0; aiOpenG=null; aiOpenGm=null; document.getElementById('aiWiz').classList.add('on'); renderAiStep();
+  aiIdx=0; aiOpenG=null; aiOpenGm=null;aiGoldActiveSlot=null; document.getElementById('aiWiz').classList.add('on'); renderAiStep();
 }
 function closeAiWiz(){ closeAiGoldPositions();document.getElementById('aiWiz').classList.remove('on'); }
 function aiSaveCurrentStep(){
@@ -3152,7 +3159,7 @@ function renderAiStep(){
       .sort((a,b)=>(TRAITS[a].n||'').localeCompare(TRAITS[b].n||'','ko'));
     const selected=aiState.goldTraits||[];
     body.innerHTML=`<div class="aiQ">금빛특성 우선순위를 고르세요</div>
-      <div class="aiHint">최대 4개를 순서대로 선택하세요. 선택한 포메이션의 포지션에 맞춰 서로 다른 8강 이상 선수에게 자동 배치하며, 이미 해당 특성을 가진 선수를 우선합니다. 선택하지 않아도 됩니다.</div>
+      <div class="aiHint">최대 4개를 순서대로 선택하세요. 선택한 포메이션의 포지션에 맞춰 서로 다른 8강 이상 또는 기본 금빛특성이 있는 시즌 선수에게 자동 배치하며, 이미 해당 특성을 가진 선수를 우선합니다. 선택하지 않아도 됩니다.</div>
       <div class="aiWrapList" style="max-height:48vh;">
         <div class="aiRow ${selected.length?'':'on'}" data-ai-gold=""><span class="t">선택 안 함</span><span class="n">전체 해제</span></div>
         ${gold.map(id=>{const rank=selected.findIndex(x=>String(x)===String(id));return `<div class="aiRow ${rank>=0?'on':''}" data-ai-gold="${id}">
@@ -3167,8 +3174,8 @@ function renderAiStep(){
     const formTxt=aiFormLabel(resolvedForm)+(aiState.form==='auto'?' (자동)':'')+(aiState.mode==='manager'?'<br><small style="color:var(--text-dim);font-weight:700;">(감독모드)</small>':'');
     const budTxt=aiState.budget?`${aiState.budget}억 BP${budgetBucketLabel(aiState.budget)?` · ${budgetBucketLabel(aiState.budget)} 랭커 기준`:''}`:'제한 없음';
     const grTxt=aiState.grade==='custom'?'개별 설정':((GRADE_PRESETS[aiState.grade]||{}).label||'자동');
-    aiGoldEnsureForm();const goldSlotByTrait={};for(const [slot,id] of Object.entries(aiState.goldSlots||{}))goldSlotByTrait[String(id)]=zoneAt((FORMATIONS[aiState.goldSlotsForm]||[])[+slot]?.[0]??.5,(FORMATIONS[aiState.goldSlotsForm]||[])[+slot]?.[1]??.5);
-    const goldTxt=(aiState.goldTraits||[]).length?aiState.goldTraits.map((id,i)=>`${i+1}. ${(TRAITS[id]||{}).n||('특성 '+id)}${goldSlotByTrait[String(id)]?' · '+goldSlotByTrait[String(id)]+' 지정':' · 자동'}`).join('<br>'):'선택 안 함';
+    aiGoldEnsureForm();const goldSlotByTrait={};for(const [slot,raw] of Object.entries(aiState.goldSlots||{})){const L=(FORMATIONS[aiState.goldSlotsForm]||[])[+slot]||[.5,.5],pos=zoneAt(L[0],L[1]);(Array.isArray(raw)?raw:[raw]).forEach((id,r)=>{if(id!=null)(goldSlotByTrait[String(id)]||(goldSlotByTrait[String(id)]=[])).push(`${pos} ${r+1}순위`);});}
+    const goldTxt=(aiState.goldTraits||[]).length?aiState.goldTraits.map((id,i)=>`${i+1}. ${(TRAITS[id]||{}).n||('특성 '+id)}${goldSlotByTrait[String(id)]?' · '+goldSlotByTrait[String(id)].join(', '):' · 자동'}`).join('<br>'):'선택 안 함';
     const lockTxt=aiState.locks.length?`${aiState.locks.length}명`:'없음';
     body.innerHTML=`<div class="aiQ aiBuildTitle">이대로 만들까요?</div>
       <div class="aiHint aiBuildHint">아래 설정으로 포지션별 픽률 1위부터 채우고, 강화 적용 후 급여 315·예산에 맞춰요.</div>
@@ -3212,26 +3219,33 @@ function renderAiTcList(){
 }
 // 빌드에 쓸 최종 포메이션(자동 해석 포함)
 function aiResolvedForm(){ let f=aiState.form==='auto'?autoFormFor(aiState.mode,aiState.tcName):aiState.form; return (f&&FORMATIONS[f])?f:curForm; }
-function aiGoldEnsureForm(){const form=aiResolvedForm();if(aiState.goldSlotsForm!==form){aiState.goldSlots={};aiState.goldSlotsForm=form;}return form;}
+function aiGoldEnsureForm(){const form=aiResolvedForm();if(aiState.goldSlotsForm!==form){aiState.goldSlots={};aiState.goldSlotsForm=form;aiGoldActiveSlot=null;}return form;}
 function openAiGoldPositions(){
   if(!(aiState.goldTraits||[]).length){toast('먼저 금빛특성을 1개 이상 선택하세요');return;}
-  aiGoldEnsureForm();renderAiGoldPositions();document.getElementById('aiGoldPosModal').classList.add('on');
+  aiGoldEnsureForm();aiGoldActiveSlot=null;renderAiGoldPositions();document.getElementById('aiGoldPosModal').classList.add('on');
 }
 function closeAiGoldPositions(){document.getElementById('aiGoldPosModal').classList.remove('on');}
 function renderAiGoldPositions(){
   const form=aiGoldEnsureForm(),coords=FORMATIONS[form]||[],selected=aiState.goldTraits||[];
   document.getElementById('aiGoldPosForm').textContent=`${aiFormLabel(form)} · 포지션을 눌러 특성을 지정하세요`;
   document.getElementById('aiGoldLegend').innerHTML=selected.map((id,i)=>`<span><img src="${TRAIT_ICON(id)}" onerror="this.style.display='none'"><b>${i+1}순위</b> ${esc((TRAITS[id]||{}).n||('특성 '+id))}</span>`).join('');
-  document.getElementById('aiGoldPitch').innerHTML=coords.map((L,i)=>{const pos=zoneAt(L[0],L[1]),id=aiState.goldSlots[i],rank=selected.findIndex(x=>String(x)===String(id)),name=rank>=0?((TRAITS[id]||{}).n||('특성 '+id)):'자동';
-    const left=4+L[0]*92,top=4+Math.min(1,L[1])*.91*100;return `<button type="button" class="aiGoldSlot ${rank>=0?'on':''}" style="left:${left}%;top:${top}%;" onclick="aiCycleGoldSlot(${i})"><b>${pos}</b><small>${rank>=0?(rank+1)+'순위 · ':''}${esc(name)}</small></button>`;}).join('');
+  document.getElementById('aiGoldPitch').innerHTML=coords.map((L,i)=>{const pos=zoneAt(L[0],L[1]),raw=aiState.goldSlots[i],choices=(Array.isArray(raw)?raw:(raw!=null?[raw]:[])).filter(v=>v!=null),names=choices.map((id,r)=>`${r+1}. ${(TRAITS[id]||{}).n||('특성 '+id)}`);
+    const left=4+L[0]*92,top=4+Math.min(1,L[1])*.91*100;return `<button type="button" class="aiGoldSlot ${choices.length?'on':''} ${aiGoldActiveSlot===i?'active':''}" style="left:${left}%;top:${top}%;" onclick="aiSelectGoldSlot(${i})"><b>${pos}</b><small>${names.length?esc(names.join(' / ')):'자동'}</small></button>`;}).join('');
+  renderAiGoldSlotEditor();
 }
-function aiCycleGoldSlot(index){
-  const selected=aiState.goldTraits||[];if(!selected.length)return;
-  const current=aiState.goldSlots[index],at=selected.findIndex(x=>String(x)===String(current)),next=at+1<selected.length?selected[at+1]:null;
-  if(next==null)delete aiState.goldSlots[index];
-  else {for(const k of Object.keys(aiState.goldSlots))if(String(aiState.goldSlots[k])===String(next))delete aiState.goldSlots[k];aiState.goldSlots[index]=next;}
+function aiSelectGoldSlot(index){aiGoldActiveSlot=index;renderAiGoldPositions();}
+function renderAiGoldSlotEditor(){
+  const box=document.getElementById('aiGoldSlotEditor');if(!box)return;if(aiGoldActiveSlot==null){box.innerHTML='';return;}
+  const coords=FORMATIONS[aiState.goldSlotsForm]||[],L=coords[aiGoldActiveSlot]||[.5,.5],pos=zoneAt(L[0],L[1]),selected=aiState.goldTraits||[],raw=aiState.goldSlots[aiGoldActiveSlot],choices=Array.isArray(raw)?raw:[raw,null];
+  box.innerHTML=`<h4>${pos} 포지션 우선순위</h4>${selected.map(id=>`<div class="aiGoldChoice"><span><img src="${TRAIT_ICON(id)}" onerror="this.style.display='none'">${esc((TRAITS[id]||{}).n||('특성 '+id))}</span><button type="button" class="${String(choices[0])===String(id)?'on':''}" onclick="aiSetGoldSlotChoice(0,${+id})">1순위</button><button type="button" class="${String(choices[1])===String(id)?'on':''}" onclick="aiSetGoldSlotChoice(1,${+id})">2순위</button></div>`).join('')}<button type="button" class="aiGoldChoiceClear" onclick="aiClearGoldSlot()">이 포지션 자동 배치</button>`;
+}
+function aiSetGoldSlotChoice(rank,traitId){
+  if(aiGoldActiveSlot==null)return;const raw=aiState.goldSlots[aiGoldActiveSlot],choices=Array.isArray(raw)?[...raw]:[raw??null,null];
+  if(String(choices[rank])===String(traitId))choices[rank]=null;else {const other=rank===0?1:0;if(String(choices[other])===String(traitId))choices[other]=null;choices[rank]=traitId;}
+  if(choices.some(v=>v!=null))aiState.goldSlots[aiGoldActiveSlot]=choices;else delete aiState.goldSlots[aiGoldActiveSlot];
   renderAiGoldPositions();
 }
+function aiClearGoldSlot(){if(aiGoldActiveSlot==null)return;delete aiState.goldSlots[aiGoldActiveSlot];renderAiGoldPositions();}
 // 선택한 강화 기준으로 필수선수 기본 강화 (추가 시 시드값 · 이후 개별 수정 가능)
 function gradeDefaultForPin(){
   const g=aiState.grade;
@@ -3335,7 +3349,7 @@ document.getElementById('aiBody').addEventListener('click',e=>{
   const ag=e.target.closest('[data-ai-gold]'); if(ag){ const v=ag.dataset.aiGold;
     if(v===''){aiState.goldTraits=[];aiState.goldSlots={};}
     else {const id=+v,list=aiState.goldTraits||(aiState.goldTraits=[]),ix=list.findIndex(x=>String(x)===String(id));
-      if(ix>=0){list.splice(ix,1);for(const k of Object.keys(aiState.goldSlots||{}))if(String(aiState.goldSlots[k])===String(id))delete aiState.goldSlots[k];}
+      if(ix>=0){list.splice(ix,1);for(const k of Object.keys(aiState.goldSlots||{})){const raw=aiState.goldSlots[k],arr=(Array.isArray(raw)?raw:[raw]).map(v=>String(v)===String(id)?null:v);if(arr.some(v=>v!=null))aiState.goldSlots[k]=arr;else delete aiState.goldSlots[k];}}
       else if(list.length<4)list.push(id);else toast('금빛특성은 4순위까지 선택할 수 있어요');}
     renderAiStep(); return; }
   const tc=e.target.closest('[data-tc]'); if(tc){ const v=tc.dataset.tc;
@@ -3487,16 +3501,15 @@ const GOLD_TRAIT_POS_PREF={
 function aiApplyRequiredGold(){
   const wanted=(aiState.goldTraits||[]).slice(0,4);if(!wanted.length)return [];
   aiGoldEnsureForm();const used=new Set(),assigned=[],manualTraits=new Set();
-  for(const [rawIndex,rawTrait] of Object.entries(aiState.goldSlots||{})){const index=+rawIndex,traitId=+rawTrait;if(!wanted.some(x=>String(x)===String(traitId)))continue;
-    manualTraits.add(String(traitId));const target=squad[index];
-    if(index<N_START&&target&&target.g>=8&&!used.has(index)){target.goldTrait=traitId;used.add(index);assigned.push({traitId,target,index,manual:true});}
-    else assigned.push({traitId,target:null,index,manual:true});
+  for(const [rawIndex,rawChoices] of Object.entries(aiState.goldSlots||{})){const index=+rawIndex,target=squad[index],choices=(Array.isArray(rawChoices)?rawChoices:[rawChoices]).filter(id=>id!=null&&wanted.some(x=>String(x)===String(id))).slice(0,2);if(!choices.length)continue;
+    const traitId=target?choices.find(id=>canUseGoldTrait(target,id)):null;
+    if(traitId!=null&&index<N_START&&!used.has(index)){if(canAddGoldTrait(target))target.goldTrait=+traitId;used.add(index);manualTraits.add(String(traitId));assigned.push({traitId:+traitId,target,index,manual:true});}
   }
   for(const traitId of wanted){
     if(manualTraits.has(String(traitId)))continue;
     const pref=GOLD_TRAIT_POS_PREF[traitId]||[];
     const cands=[];
-    for(let i=0;i<N_START;i++){const s=squad[i];if(!s||s.g<8||used.has(i))continue;
+    for(let i=0;i<N_START;i++){const s=squad[i];if(!canUseGoldTrait(s,traitId)||used.has(i))continue;
       const pos=BASE_POS[zoneAt(layout[i].fx,layout[i].fy)]||zoneAt(layout[i].fx,layout[i].fy);
       const own=((CHEM&&CHEM[s.spid]&&CHEM[s.spid].tr)||[]).some(x=>String(x)===String(traitId));
       const pi=pref.indexOf(pos),fit=pi<0?0:(1000-pi*40),score=(own?10000:0)+fit+(AI_PRIO[pos]||0)*5+finalOvr(s,i)/100;
@@ -3504,7 +3517,7 @@ function aiApplyRequiredGold(){
     }
     cands.sort((a,b)=>b.score-a.score);
     if(!cands.length){assigned.push({traitId,target:null});continue;}
-    const target=cands[0];target.s.goldTrait=+traitId;used.add(target.i);assigned.push({traitId,target:target.s,index:target.i});
+    const target=cands[0];if(canAddGoldTrait(target.s))target.s.goldTrait=+traitId;used.add(target.i);assigned.push({traitId,target:target.s,index:target.i});
   }
   return assigned;
 }
@@ -3659,7 +3672,7 @@ function aiBuild(){
   if(aiAutoSoc) msg+=` · 소속 ${aiAutoSoc}(자동 통일)`;
   if(aiState.locks.length) msg+=` · 고정 ${aiState.locks.length-lockFail.length}명`;
   if((aiState.goldTraits||[]).length){const ok=goldAssignments.filter(x=>x.target),fail=goldAssignments.filter(x=>!x.target);
-    msg+=ok.length?` · 금빛특성 ${ok.length}개 자동배치`:'';if(fail.length)msg+=` · ${fail.length}개 적용 실패(8강 이상 자리 부족)`; }
+    msg+=ok.length?` · 금빛특성 ${ok.length}개 자동배치`:'';if(fail.length)msg+=` · ${fail.length}개 적용 실패(8강/기본 금빛특성 자리 부족)`; }
   if(aiState.budget && bp>aiState.budget*1e8*1.05) msg+=' · 예산+5% 초과(더 못 줄임)';
   if(empty) msg+=` · ${empty}자리 빔`;
   if(lockFail.length) msg+=` · 고정배치실패: ${lockFail.join(', ')}`;
