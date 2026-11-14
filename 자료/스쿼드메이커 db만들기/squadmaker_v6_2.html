@@ -1125,7 +1125,7 @@ let autoUniTarget=null;       // null = auto(스쿼드 대표색), else '#RRGGBB
 let UNIQ=null, UNI_LAB={}, UNI_SEASON={}, _uniTarget=null, _uniLoading=null;
 let JERSEY=null, _jerseyLoading=null, _jerseyNameIndex=null; // 로컬 수집 결과 jersey_numbers.json
 let ABILITY_JERSEY=null, _abilityJerseyLoading=null;          // 세부 정보용 전체 시즌별 클럽 경력
-let PLAYER_TEAMCOLORS=null, _playerTeamcolorsLoading=null;    // FC온라인 선수별 실제 팀 경력(career/applied 분리)
+let PLAYER_TEAMCOLORS=null, _playerTeamcolorsLoading=null, _playerTeamcolorsByPid=null; // FC온라인 선수별 실제 팀 경력(career/applied 분리)
 const UNI_MAXDE=22;           // color-match tolerance (lower = stricter; keeps sky/royal/navy apart)
 function _hex2rgb(h){h=String(h).replace('#','');return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
 function _rgb2lab(rgb){let[r,g,b]=rgb.map(v=>{v/=255;return v>0.04045?Math.pow((v+0.055)/1.055,2.4):v/12.92;});
@@ -1154,7 +1154,7 @@ async function abilityJerseyLoad(){
 async function playerTeamcolorsLoad(){
   if(PLAYER_TEAMCOLORS)return PLAYER_TEAMCOLORS;if(_playerTeamcolorsLoading)return _playerTeamcolorsLoading;
   _playerTeamcolorsLoading=fetch('player_teamcolors.json',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject())
-    .then(d=>{PLAYER_TEAMCOLORS=d&&d.players?d:{players:{}};return PLAYER_TEAMCOLORS;})
+    .then(d=>{PLAYER_TEAMCOLORS=d&&d.players?d:{players:{}};_playerTeamcolorsByPid=null;return PLAYER_TEAMCOLORS;})
     .catch(()=>{PLAYER_TEAMCOLORS={players:{}};return PLAYER_TEAMCOLORS;});
   return _playerTeamcolorsLoading;
 }
@@ -1959,6 +1959,21 @@ function isBaseClubCareer(entry){
   if(!entry||!entry.name)return false;const tc=TCFULL&&TCFULL[entry.no];
   return !!(tc&&tc.need===11&&/\/crests\//i.test(String(tc.img||'')));
 }
+function playerTeamcolorCareer(spid){
+  const players=PLAYER_TEAMCOLORS&&PLAYER_TEAMCOLORS.players;if(!players)return [];
+  if(!_playerTeamcolorsByPid){_playerTeamcolorsByPid=new Map();
+    for(const [id,rec] of Object.entries(players)){const pid=(+id)%1000000;if(!_playerTeamcolorsByPid.has(pid))_playerTeamcolorsByPid.set(pid,[]);_playerTeamcolorsByPid.get(pid).push(rec);}}
+  const direct=players[String(spid)],samePlayer=_playerTeamcolorsByPid.get((+spid)%1000000)||[];
+  return [direct,...samePlayer].filter(Boolean).flatMap(rec=>Array.isArray(rec.career)?rec.career:[]);
+}
+function currentCareerClubs(spid){
+  const pid=(+spid)%1000000,out=[];
+  for(const [id,c] of Object.entries(CHEM||{})){if((+id)%1000000!==pid||!c||!c.team)continue;const team=String(c.team).trim();if(team&&!out.includes(team))out.push(team);}
+  return out;
+}
+const CAREER_CLUB_OVERRIDES={
+  190043:[{season:'1956 ~ 1974',team:'산투스 FC'},{season:'1975 ~ 1977',team:'뉴욕 코스모스'}]
+};
 function abilityCareerRows(p){
   const name=p&&p[I.name],rec=abilityJerseyRecord(name),rows=[],seenTeams=new Set();
   if(rec&&rec.teams)for(const [ko,t] of Object.entries(rec.teams)){if(t.kind==='nation')continue;const teamNorm=jTeamNorm(ko),hist=Array.isArray(t.history)?t.history:[];
@@ -1967,10 +1982,13 @@ function abilityCareerRows(p){
     else rows.push({season:'-',team:ko,loan:'-'});}
   // 등번호 원문에 없는 클럽만 FC온라인의 career 목록으로 보완한다.
   // applied(특수/관계 팀컬러)와 국가대·시즌단일은 절대 클럽 경력에 넣지 않는다.
-  const tcRec=p&&PLAYER_TEAMCOLORS&&PLAYER_TEAMCOLORS.players&&PLAYER_TEAMCOLORS.players[String(p[I.spid])];
-  for(const entry of (tcRec&&Array.isArray(tcRec.career)?tcRec.career:[])){if(!isBaseClubCareer(entry))continue;
+  for(const entry of playerTeamcolorCareer(p&&p[I.spid])){if(!isBaseClubCareer(entry))continue;
     const norm=jTeamNorm(entry.name);if(!norm||seenTeams.has(norm))continue;seenTeams.add(norm);rows.push({season:'-',team:entry.name,loan:'-'});}
-  const key=r=>{const m=String(r.season).match(/\d{2}/);return m?+m[0]:-1;};rows.sort((a,b)=>key(b)-key(a));return rows;
+  for(const entry of (CAREER_CLUB_OVERRIDES[(+(p&&p[I.spid]))%1000000]||[])){const norm=jTeamNorm(entry.team);if(!norm||seenTeams.has(norm))continue;
+    seenTeams.add(norm);rows.push({season:entry.season||'-',team:entry.team,loan:entry.loan||'-'});}
+  // 원본 프로필 상단의 현재 소속팀은 소속 팀컬러 목록에 없을 수 있다(예: 브렌트퍼드).
+  for(const team of currentCareerClubs(p&&p[I.spid])){const norm=jTeamNorm(team);if(!norm||seenTeams.has(norm))continue;seenTeams.add(norm);rows.push({season:'현재',team,loan:'-'});}
+  const key=r=>r.season==='현재'?999:(String(r.season).match(/\d{2}/)?.[0]||-1);rows.sort((a,b)=>key(b)-key(a));return rows;
 }
 function jerseyTeamRecord(playerRec,teamName){
   const teams=playerRec&&playerRec.teams;if(!teams)return null;
@@ -2981,7 +2999,7 @@ function rollAutoTc(){   // 자동 선택/재추첨. 성공 시 true
   if(c.length>1){ let g=0; while(p.no===prev && g++<8) p=c[Math.floor(Math.random()*c.length)]; }
   aiState.tcAuto=true; aiState.tc=p.no; aiState.tcName=p.name; return true;
 }
-let aiState={budget:null, mode:'manager', tc:null, tcName:'', tcAuto:true, form:null, grade:'auto', goldTrait:null, locks:[], gmap:{}, gmapForm:'', noRare:false, rareGkFree:false, rareFullbackFree:false};
+let aiState={budget:null, mode:'manager', tc:null, tcName:'', tcAuto:true, form:null, grade:'auto', goldTraits:[], locks:[], gmap:{}, gmapForm:'', noRare:false, rareGkFree:false, rareFullbackFree:false};
 let aiIdx=0;
 let aiOpenG=null;   // 필수선수 강화 picker 열린 행 index
 let aiOpenGm=null;  // 개별강화 11칸 강화 picker 열린 행 index
@@ -3024,7 +3042,7 @@ function pickGrade(spid){
 function aiMode(){
   if(!PICK){ toast('픽률 데이터(pickrate.json)가 아직 없어요'); return; }
   if(!CHEM){ toast('data.json 로딩 후 사용하세요'); return; }
-  aiState={budget:null, mode:'manager', tc:null, tcName:'', tcAuto:true, form:null, grade:'auto', goldTrait:null, locks:[], gmap:{}, gmapForm:'', noRare:false, rareGkFree:false, rareFullbackFree:false};
+  aiState={budget:null, mode:'manager', tc:null, tcName:'', tcAuto:true, form:null, grade:'auto', goldTraits:[], locks:[], gmap:{}, gmapForm:'', noRare:false, rareGkFree:false, rareFullbackFree:false};
   tcbLoad(); rareLoad(); liveLoad();
   aiIdx=0; aiOpenG=null; aiOpenGm=null; document.getElementById('aiWiz').classList.add('on'); renderAiStep();
 }
@@ -3110,12 +3128,13 @@ function renderAiStep(){
   else if(step.key==='gold'){
     const gold=Object.keys(TRAITS||{}).filter(id=>TRAITS[id]&&TRAITS[id].g)
       .sort((a,b)=>(TRAITS[a].n||'').localeCompare(TRAITS[b].n||'','ko'));
-    body.innerHTML=`<div class="aiQ">필수 금빛특성을 고르세요</div>
-      <div class="aiHint">선택한 특성을 최종 스쿼드의 8강 이상 선수 한 명에게 추가합니다. 적용 가능한 선수가 없으면 생성 결과에서 알려드려요.</div>
+    const selected=aiState.goldTraits||[];
+    body.innerHTML=`<div class="aiQ">금빛특성 우선순위를 고르세요</div>
+      <div class="aiHint">최대 4개를 순서대로 선택하세요. 선택한 포메이션의 포지션에 맞춰 서로 다른 8강 이상 선수에게 자동 배치하며, 이미 해당 특성을 가진 선수를 우선합니다. 선택하지 않아도 됩니다.</div>
       <div class="aiWrapList" style="max-height:48vh;">
-        <div class="aiRow ${aiState.goldTrait==null?'on':''}" data-ai-gold=""><span class="t">선택 안 함</span></div>
-        ${gold.map(id=>`<div class="aiRow ${String(aiState.goldTrait)===String(id)?'on':''}" data-ai-gold="${id}">
-          <img src="${TRAIT_ICON(id)}" onerror="this.style.visibility='hidden'"><span class="t">${esc(TRAITS[id].n||('특성 '+id))}</span></div>`).join('')}
+        <div class="aiRow ${selected.length?'':'on'}" data-ai-gold=""><span class="t">선택 안 함</span><span class="n">전체 해제</span></div>
+        ${gold.map(id=>{const rank=selected.findIndex(x=>String(x)===String(id));return `<div class="aiRow ${rank>=0?'on':''}" data-ai-gold="${id}">
+          <img src="${TRAIT_ICON(id)}" onerror="this.style.visibility='hidden'"><span class="t">${esc(TRAITS[id].n||('특성 '+id))}</span><span class="n">${rank>=0?`${rank+1}순위`:'선택'}</span></div>`;}).join('')}
       </div>`;
   }
   else if(step.key==='build'){
@@ -3125,7 +3144,7 @@ function renderAiStep(){
     const formTxt=aiFormLabel(resolvedForm)+(aiState.form==='auto'?' (자동)':'')+(aiState.mode==='manager'?'<br><small style="color:var(--text-dim);font-weight:700;">(감독모드)</small>':'');
     const budTxt=aiState.budget?`${aiState.budget}억 BP${budgetBucketLabel(aiState.budget)?` · ${budgetBucketLabel(aiState.budget)} 랭커 기준`:''}`:'제한 없음';
     const grTxt=aiState.grade==='custom'?'개별 설정':((GRADE_PRESETS[aiState.grade]||{}).label||'자동');
-    const goldTxt=aiState.goldTrait!=null?((TRAITS[aiState.goldTrait]||{}).n||('특성 '+aiState.goldTrait)):'선택 안 함';
+    const goldTxt=(aiState.goldTraits||[]).length?aiState.goldTraits.map((id,i)=>`${i+1}. ${(TRAITS[id]||{}).n||('특성 '+id)}`).join('<br>'):'선택 안 함';
     const lockTxt=aiState.locks.length?`${aiState.locks.length}명`:'없음';
     body.innerHTML=`<div class="aiQ aiBuildTitle">이대로 만들까요?</div>
       <div class="aiHint aiBuildHint">아래 설정으로 포지션별 픽률 1위부터 채우고, 강화 적용 후 급여 315·예산에 맞춰요.</div>
@@ -3135,7 +3154,7 @@ function renderAiStep(){
         <div class="aiRow"><span class="t">포메이션</span><span class="n">${formTxt}</span></div>
         <div class="aiRow"><span class="t">필수선수</span><span class="n">${lockTxt}</span></div>
         <div class="aiRow"><span class="t">강화</span><span class="n">${grTxt}</span></div>
-        <div class="aiRow"><span class="t">필수 금빛특성</span><span class="n">${esc(goldTxt)}</span></div>
+        <div class="aiRow"><span class="t">금빛특성 우선순위</span><span class="n">${goldTxt}</span></div>
         <div class="aiRow"><span class="t">예산</span><span class="n">${budTxt}</span></div>
         <div class="aiRow" data-norare="1" style="cursor:pointer;">
           <span class="t">희귀매물(생성제한) 제외<br><small style="color:var(--text-dim);font-weight:700;">지정 시즌 · 선수명 100% 일치 명단을 제외합니다</small></span>
@@ -3246,7 +3265,7 @@ document.getElementById('aiSkip').addEventListener('click',()=>{
   if(k==='tc'){ aiState.tcAuto=false; aiState.tc=null; aiState.tcName=''; }
   if(k==='form') aiState.form=null;
   if(k==='grade') aiState.grade='auto';
-  if(k==='gold') aiState.goldTrait=null;
+  if(k==='gold') aiState.goldTraits=[];
   aiGoto(aiIdx+1,false);
 });
 document.getElementById('aiNext').addEventListener('click',()=>{
@@ -3268,7 +3287,11 @@ document.getElementById('aiBody').addEventListener('click',e=>{
     renderAiStep(); return; }
   const fc=e.target.closest('[data-form]'); if(fc){ aiState.form=fc.dataset.form; renderAiStep(); return; }
   const gc=e.target.closest('[data-grade]'); if(gc){ aiState.grade=gc.dataset.grade; renderAiStep(); return; }
-  const ag=e.target.closest('[data-ai-gold]'); if(ag){ aiState.goldTrait=ag.dataset.aiGold===''?null:+ag.dataset.aiGold; renderAiStep(); return; }
+  const ag=e.target.closest('[data-ai-gold]'); if(ag){ const v=ag.dataset.aiGold;
+    if(v==='')aiState.goldTraits=[];
+    else {const id=+v,list=aiState.goldTraits||(aiState.goldTraits=[]),ix=list.findIndex(x=>String(x)===String(id));
+      if(ix>=0)list.splice(ix,1);else if(list.length<4)list.push(id);else toast('금빛특성은 4순위까지 선택할 수 있어요');}
+    renderAiStep(); return; }
   const tc=e.target.closest('[data-tc]'); if(tc){ const v=tc.dataset.tc;
     if(v==='auto'){ if(!rollAutoTc()) toast('랭킹 데이터(rankmeta.json)가 아직 없어요'); }
     else if(v==='none'){ aiState.tcAuto=false; aiState.tc=null; aiState.tcName=''; }
@@ -3407,13 +3430,31 @@ function aiApplyGrade(){
     if(pa!==pb) return pb-pa; return ovrAt(byId(squad[b].spid),8)-ovrAt(byId(squad[a].spid),8); });
   filled.forEach((idx,rank)=> squad[idx].g = rank<pr.top ? pr.hi : pr.lo);
 }
+const GOLD_TRAIT_POS_PREF={
+  50:['ST','CF','LW','RW'],51:['ST','CF','LW','RW'],52:['ST','CF','LW','RW'],
+  53:['CB','LB','RB','LWB','RWB','CDM'],54:['CB','LB','RB','LWB','RWB','CDM'],
+  55:['CM','CDM','CAM','LM','RM'],56:['CB','CDM','CM','LB','RB'],
+  57:['GK'],59:['CB','CDM','LB','RB'],60:['GK'],62:['CB','LB','RB','LWB','RWB','CDM'],
+  63:['LW','RW','LM','RM','ST','CF'],64:['CB','ST','CF','CDM'],65:['CAM','LW','RW','LM','RM'],
+  66:['ST','CF','CAM','LW','RW'],67:['ST','CF','LW','RW'],68:['GK']
+};
 function aiApplyRequiredGold(){
-  if(aiState.goldTrait==null)return null;
-  let target=squad.slice(0,N_START).find(s=>s&&s.g>=8&&((CHEM&&CHEM[s.spid]&&CHEM[s.spid].tr)||[]).some(x=>String(x)===String(aiState.goldTrait)));
-  if(!target)target=squad.slice(0,N_START).find(s=>s&&s.g>=8);
-  if(!target)return null;
-  target.goldTrait=+aiState.goldTrait;
-  return target;
+  const wanted=(aiState.goldTraits||[]).slice(0,4);if(!wanted.length)return [];
+  const used=new Set(),assigned=[];
+  for(const traitId of wanted){
+    const pref=GOLD_TRAIT_POS_PREF[traitId]||[];
+    const cands=[];
+    for(let i=0;i<N_START;i++){const s=squad[i];if(!s||s.g<8||used.has(i))continue;
+      const pos=BASE_POS[zoneAt(layout[i].fx,layout[i].fy)]||zoneAt(layout[i].fx,layout[i].fy);
+      const own=((CHEM&&CHEM[s.spid]&&CHEM[s.spid].tr)||[]).some(x=>String(x)===String(traitId));
+      const pi=pref.indexOf(pos),fit=pi<0?0:(1000-pi*40),score=(own?10000:0)+fit+(AI_PRIO[pos]||0)*5+finalOvr(s,i)/100;
+      cands.push({i,s,score});
+    }
+    cands.sort((a,b)=>b.score-a.score);
+    if(!cands.length){assigned.push({traitId,target:null});continue;}
+    const target=cands[0];target.s.goldTrait=+traitId;used.add(target.i);assigned.push({traitId,target:target.s,index:target.i});
+  }
+  return assigned;
 }
 function aiSwapCheaperPlayer(i){                        // 그 자리를 더 싼 다음 픽률 선수로
   const lb=zoneAt(layout[i].fx,layout[i].fy), grp=grpOf(lb), g=squad[i].g;
@@ -3553,7 +3594,7 @@ function aiBuild(){
   aiEnsureFloors();       // GK OVR≥130 · 풀백 OVR≥140 (풀케미)
   aiEnforceSalary();      // GK·풀백 지키며 급여 310 맞춤
   aiEnsureFloors();       // 급여 조정 후 최소 OVR 재보장
-  const goldTarget=aiApplyRequiredGold();
+  const goldAssignments=aiApplyRequiredGold();
   save(); closeAiWiz(); renderBoard();
   const pay=aiPayTotal(), bp=aiTotalBP();
   const empty=squad.slice(0,N_START).filter(s=>!s).length;
@@ -3565,8 +3606,8 @@ function aiBuild(){
     if(aiState.rareFullbackFree)msg+='(풀백 예외)'; }
   if(aiAutoSoc) msg+=` · 소속 ${aiAutoSoc}(자동 통일)`;
   if(aiState.locks.length) msg+=` · 고정 ${aiState.locks.length-lockFail.length}명`;
-  if(aiState.goldTrait!=null){ const gn=(TRAITS[aiState.goldTrait]||{}).n||('특성 '+aiState.goldTrait);
-    msg+=goldTarget?` · 금빛특성 ${gn}`:' · 금빛특성 적용 실패(8강 이상 없음)'; }
+  if((aiState.goldTraits||[]).length){const ok=goldAssignments.filter(x=>x.target),fail=goldAssignments.filter(x=>!x.target);
+    msg+=ok.length?` · 금빛특성 ${ok.length}개 자동배치`:'';if(fail.length)msg+=` · ${fail.length}개 적용 실패(8강 이상 자리 부족)`; }
   if(aiState.budget && bp>aiState.budget*1e8*1.05) msg+=' · 예산+5% 초과(더 못 줄임)';
   if(empty) msg+=` · ${empty}자리 빔`;
   if(lockFail.length) msg+=` · 고정배치실패: ${lockFail.join(', ')}`;
