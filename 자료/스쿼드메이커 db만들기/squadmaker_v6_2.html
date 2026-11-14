@@ -377,9 +377,10 @@ button{cursor:pointer;}
 .aiGoldSlot{position:absolute;transform:translate(-50%,-50%);width:72px;min-height:48px;padding:5px;border:1px solid rgba(255,255,255,.22);border-radius:9px;background:rgba(8,17,14,.88);color:#fff;cursor:pointer;text-align:center;box-shadow:0 3px 12px rgba(0,0,0,.3);}
 .aiGoldSlot:hover,.aiGoldSlot.on{border-color:var(--gold);}.aiGoldSlot b{display:block;font-size:11px;}.aiGoldSlot small{display:block;margin-top:3px;color:var(--text-dim);font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.aiGoldSlot.on small{color:var(--gold);}
 .aiGoldSlotPicks{position:absolute;left:50%;bottom:calc(100% + 3px);transform:translateX(-50%);display:flex;gap:3px;white-space:nowrap;pointer-events:none}.aiGoldSlotPick{display:flex;align-items:center;gap:2px;max-width:92px;padding:2px 4px;border:1px solid var(--gold);border-radius:6px;background:#111923;color:var(--gold);font-size:7px;font-weight:900;box-shadow:0 2px 7px rgba(0,0,0,.5)}.aiGoldSlotPick img{width:13px;height:13px;object-fit:contain}.aiGoldSlotPick em{max-width:58px;overflow:hidden;text-overflow:ellipsis;font-style:normal}
+.aiGoldDropdown{position:absolute;z-index:12;width:220px;max-height:250px;overflow:auto;padding:7px;border:1px solid var(--gold);border-radius:10px;background:#111923;box-shadow:0 14px 35px rgba(0,0,0,.7);transform:translateX(-50%);text-align:left}.aiGoldDropdownTitle{padding:4px 5px 7px;color:var(--gold);font-size:10px;font-weight:900}.aiGoldDropdown button{width:100%;display:flex;align-items:center;gap:6px;padding:6px;border:0;border-radius:7px;background:transparent;color:var(--text);cursor:pointer;text-align:left;font-size:9px;font-weight:800}.aiGoldDropdown button:hover,.aiGoldDropdown button.on{background:rgba(255,198,77,.13)}.aiGoldDropdown button img{width:20px;height:20px;object-fit:contain;flex:none}.aiGoldDropdown button span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.aiGoldDropdown button b{color:var(--gold);font-size:9px}.aiGoldDropdown .clear{justify-content:center;margin-top:4px;border:1px dashed var(--line-2);color:var(--text-dim)}
 .aiGoldSlot.active{box-shadow:0 0 0 2px var(--lime);}.aiGoldSlotEditor{width:min(520px,92vw);margin:10px auto 0;padding:10px;border:1px solid var(--line);border-radius:11px;background:var(--surface-2);}.aiGoldSlotEditor:empty{display:none}.aiGoldSlotEditor h4{margin:0 0 8px;font-size:12px}.aiGoldChoice{display:grid;grid-template-columns:minmax(0,1fr) 68px 68px;gap:5px;align-items:center;padding:5px 0;border-top:1px solid var(--line)}.aiGoldChoice:first-of-type{border-top:0}.aiGoldChoice span{display:flex;align-items:center;gap:6px;min-width:0;font-size:10px;font-weight:800}.aiGoldChoice img{width:20px;height:20px;object-fit:contain}.aiGoldChoice button{padding:6px 3px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--text-dim);font-size:9px;font-weight:900;cursor:pointer}.aiGoldChoice button.on{border-color:var(--gold);background:rgba(255,198,77,.13);color:var(--gold)}.aiGoldChoiceClear{width:100%;margin-top:7px;padding:7px;border:1px dashed var(--line-2);border-radius:7px;background:transparent;color:var(--text-dim);cursor:pointer;font-size:10px;font-weight:800}
 .aiGoldPosHint{margin:10px 0 0;color:var(--text-dim);font-size:10px;line-height:1.55;text-align:center;}
-@media(max-width:760px){.aiGoldPosBox{padding:13px}.aiGoldPosHead{align-items:flex-start;flex-wrap:wrap}.aiGoldPosHead span{order:3;flex-basis:100%}.aiGoldSlot{width:58px;min-height:43px;padding:4px 2px}.aiGoldSlot b{font-size:10px}.aiGoldSlot small{font-size:7px}}
+@media(max-width:760px){.aiGoldPosBox{padding:13px}.aiGoldPosHead{align-items:flex-start;flex-wrap:wrap}.aiGoldPosHead span{order:3;flex-basis:100%}.aiGoldSlot{width:58px;min-height:43px;padding:4px 2px}.aiGoldSlot b{font-size:10px}.aiGoldSlot small{font-size:7px}.aiGoldDropdown{width:190px;max-height:210px}}
 .aiBuildTitle{font-size:30px;}
 .aiBuildHint{font-size:15px;max-width:680px;}
 .aiBuildSummary{width:min(640px,94vw);}
@@ -1005,8 +1006,7 @@ button{cursor:pointer;}
     <div class="aiGoldPosHead"><strong id="aiGoldPosTitle">포지션별 금빛특성</strong><span id="aiGoldPosForm"></span><button type="button" onclick="closeAiGoldPositions()">완료</button></div>
     <div class="aiGoldLegend" id="aiGoldLegend"></div>
     <div class="aiGoldPitch" id="aiGoldPitch"></div>
-    <div class="aiGoldSlotEditor" id="aiGoldSlotEditor"></div>
-    <p class="aiGoldPosHint">포지션을 누른 뒤 해당 자리의 1순위와 2순위 특성을 선택하세요. 지정하지 않은 포지션은 자동 배치됩니다.</p>
+    <p class="aiGoldPosHint">포지션을 누르면 바로 아래에 특성 목록이 열립니다. 처음 누른 특성은 1순위, 다음 특성은 2순위로 자동 등록됩니다.</p>
   </div>
 </div>
 
@@ -3230,20 +3230,19 @@ function renderAiGoldPositions(){
   const form=aiGoldEnsureForm(),coords=FORMATIONS[form]||[];
   document.getElementById('aiGoldPosForm').textContent=`${aiFormLabel(form)} · 포지션을 눌러 특성을 지정하세요`;
   document.getElementById('aiGoldLegend').innerHTML='<span><b>개별 설정</b> 앞에서 고른 자동 우선순위와 별도로 적용됩니다.</span>';
-  document.getElementById('aiGoldPitch').innerHTML=coords.map((L,i)=>{const pos=zoneAt(L[0],L[1]),raw=aiState.goldSlots[i],choices=(Array.isArray(raw)?raw:(raw!=null?[raw]:[])).filter(v=>v!=null),names=choices.map((id,r)=>`${r+1}. ${(TRAITS[id]||{}).n||('특성 '+id)}`),picks=choices.map((id,r)=>{const name=(TRAITS[id]||{}).n||('특성 '+id);return `<span class="aiGoldSlotPick" title="${r+1}순위 ${esc(name)}"><img src="${TRAIT_ICON(id)}" onerror="this.style.display='none'"><b>${r+1}</b><em>${esc(name)}</em></span>`;}).join('');
+  const slots=coords.map((L,i)=>{const pos=zoneAt(L[0],L[1]),raw=aiState.goldSlots[i],choices=(Array.isArray(raw)?raw:(raw!=null?[raw]:[])).filter(v=>v!=null),names=choices.map((id,r)=>`${r+1}. ${(TRAITS[id]||{}).n||('특성 '+id)}`),picks=choices.map((id,r)=>{const name=(TRAITS[id]||{}).n||('특성 '+id);return `<span class="aiGoldSlotPick" title="${r+1}순위 ${esc(name)}"><img src="${TRAIT_ICON(id)}" onerror="this.style.display='none'"><b>${r+1}</b><em>${esc(name)}</em></span>`;}).join('');
     const left=4+L[0]*92,top=9+Math.min(1,L[1])*84;return `<button type="button" class="aiGoldSlot ${choices.length?'on':''} ${aiGoldActiveSlot===i?'active':''}" style="left:${left}%;top:${top}%;" onclick="aiSelectGoldSlot(${i})">${picks?`<span class="aiGoldSlotPicks">${picks}</span>`:''}<b>${pos}</b><small>${names.length?esc(names.join(' / ')):'개별 선택'}</small></button>`;}).join('');
-  renderAiGoldSlotEditor();
+  document.getElementById('aiGoldPitch').innerHTML=slots+(aiGoldActiveSlot==null?'':aiGoldDropdownHtml(coords));
 }
-function aiSelectGoldSlot(index){aiGoldActiveSlot=index;renderAiGoldPositions();}
-function renderAiGoldSlotEditor(){
-  const box=document.getElementById('aiGoldSlotEditor');if(!box)return;if(aiGoldActiveSlot==null){box.innerHTML='';return;}
-  const coords=FORMATIONS[aiState.goldSlotsForm]||[],L=coords[aiGoldActiveSlot]||[.5,.5],pos=zoneAt(L[0],L[1]),gold=Object.keys(TRAITS||{}).filter(id=>TRAITS[id]&&TRAITS[id].g).sort((a,b)=>(TRAITS[a].n||'').localeCompare(TRAITS[b].n||'','ko')),raw=aiState.goldSlots[aiGoldActiveSlot],choices=Array.isArray(raw)?raw:[raw,null];
-  box.innerHTML=`<h4>${pos} 포지션 개별 우선순위</h4>${gold.map(id=>`<div class="aiGoldChoice"><span><img src="${TRAIT_ICON(id)}" onerror="this.style.display='none'">${esc((TRAITS[id]||{}).n||('특성 '+id))}</span><button type="button" class="${String(choices[0])===String(id)?'on':''}" onclick="aiSetGoldSlotChoice(0,${+id})">1순위</button><button type="button" class="${String(choices[1])===String(id)?'on':''}" onclick="aiSetGoldSlotChoice(1,${+id})">2순위</button></div>`).join('')}<button type="button" class="aiGoldChoiceClear" onclick="aiClearGoldSlot()">이 포지션 개별 설정 해제</button>`;
+function aiGoldDropdownHtml(coords){
+  const L=coords[aiGoldActiveSlot]||[.5,.5],pos=zoneAt(L[0],L[1]),left=Math.max(22,Math.min(78,4+L[0]*92)),top=9+Math.min(1,L[1])*84,raw=aiState.goldSlots[aiGoldActiveSlot],choices=(Array.isArray(raw)?raw:[raw]).filter(v=>v!=null),gold=Object.keys(TRAITS||{}).filter(id=>TRAITS[id]&&TRAITS[id].g).sort((a,b)=>(TRAITS[a].n||'').localeCompare(TRAITS[b].n||'','ko'));
+  return `<div class="aiGoldDropdown" style="left:${left}%;top:calc(${top}% + 28px)" onclick="event.stopPropagation()"><div class="aiGoldDropdownTitle">${pos} · 특성을 누른 순서대로 1·2순위</div>${gold.map(id=>{const rank=choices.findIndex(x=>String(x)===String(id));return `<button type="button" class="${rank>=0?'on':''}" onclick="aiPickGoldSlotTrait(${+id})"><img src="${TRAIT_ICON(id)}" onerror="this.style.display='none'"><span>${esc((TRAITS[id]||{}).n||('특성 '+id))}</span>${rank>=0?`<b>${rank+1}순위</b>`:''}</button>`;}).join('')}<button type="button" class="clear" onclick="aiClearGoldSlot()">선택 해제</button></div>`;
 }
-function aiSetGoldSlotChoice(rank,traitId){
-  if(aiGoldActiveSlot==null)return;const raw=aiState.goldSlots[aiGoldActiveSlot],choices=Array.isArray(raw)?[...raw]:[raw??null,null];
-  if(String(choices[rank])===String(traitId))choices[rank]=null;else {const other=rank===0?1:0;if(String(choices[other])===String(traitId))choices[other]=null;choices[rank]=traitId;}
-  if(choices.some(v=>v!=null))aiState.goldSlots[aiGoldActiveSlot]=choices;else delete aiState.goldSlots[aiGoldActiveSlot];
+function aiSelectGoldSlot(index){aiGoldActiveSlot=aiGoldActiveSlot===index?null:index;renderAiGoldPositions();}
+function aiPickGoldSlotTrait(traitId){
+  if(aiGoldActiveSlot==null)return;const raw=aiState.goldSlots[aiGoldActiveSlot],choices=(Array.isArray(raw)?raw:[raw]).filter(v=>v!=null),ix=choices.findIndex(v=>String(v)===String(traitId));
+  if(ix>=0)choices.splice(ix,1);else if(choices.length<2)choices.push(traitId);else {toast('포지션별 특성은 2순위까지 선택할 수 있어요');return;}
+  if(choices.length)aiState.goldSlots[aiGoldActiveSlot]=choices;else delete aiState.goldSlots[aiGoldActiveSlot];
   renderAiGoldPositions();
 }
 function aiClearGoldSlot(){if(aiGoldActiveSlot==null)return;delete aiState.goldSlots[aiGoldActiveSlot];renderAiGoldPositions();}
