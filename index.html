@@ -1126,7 +1126,7 @@
       min-height:78px;
       padding:5px;
       display:grid;
-      grid-template-columns:repeat(5,minmax(0,1fr));
+      grid-template-columns:repeat(6,minmax(0,1fr));
       gap:3px;
       border:1px solid rgba(124,139,156,.28);
       border-radius:28px;
@@ -1284,7 +1284,14 @@
       </div>
       <a href="/refresh-estimate.html">희귀매물 갱신시간 추적기</a>
       <a href="/jersey.html">너의 등번호는</a>
-      <a href="/자료/스쿼드메이커%20db만들기/squadmaker_v6_2.html">스쿼드메이커</a>
+      <a href="/자료/스쿼드메이커%20db만들기/강화시뮬레이터.html">BP도둑 백금작</a>
+      <div class="nav-dd">
+        <a href="/자료/스쿼드메이커%20db만들기/squadmaker_v6_2.html">스쿼드메이커 ▾</a>
+        <div class="nav-dd-menu">
+          <a href="/자료/스쿼드메이커%20db만들기/squadmaker_v6_2.html">스쿼드메이커</a>
+          <a href="/자료/스쿼드메이커%20db만들기/trainer.html">집중 훈련 계산기</a>
+        </div>
+      </div>
       <a href="#" onclick="showBoardHub(); return false;">커뮤니티</a>
       <a href="#" onclick="showFavorites(); return false;">즐겨찾기</a>
     </nav>
@@ -1318,6 +1325,7 @@
   <div id="mobileMenu" class="mobile-menu">
     <a onclick="mmNav('guide')">이용 방법</a>
     <a onclick="mmNav('board')">커뮤니티</a>
+    <a href="/자료/스쿼드메이커%20db만들기/trainer.html">집중 훈련 계산기</a>
     <a onclick="mmNav('refresh')">강화 등급별 배율</a>
     <a onclick="mmNav('ach')">시즌별 달성률</a>
     <a onclick="closeMobileMenu(); openInstallGuide();">📱 앱 설치</a>
@@ -1343,6 +1351,7 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 4 4-2 4 2 4 3-3 4v10H7V11L4 7l4-3Z"/><path d="M9.5 9.5h5M12 8v8"/></svg>
       <span>등번호</span>
     </a>
+    <a class="fc-mobile-nav-item" data-mobile-nav="bp" href="/자료/스쿼드메이커%20db만들기/강화시뮬레이터.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12l4 6-10 11L2 10l4-6Z"/><path d="M2 10h20M8 4l-2 6 6 11 6-11-2-6"/></svg><span>백금작</span></a>
     <a class="fc-mobile-nav-item" data-mobile-nav="squad" href="/자료/스쿼드메이커%20db만들기/squadmaker_v6_2.html">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2.2"/><circle cx="6" cy="12" r="2.2"/><circle cx="18" cy="12" r="2.2"/><circle cx="12" cy="19" r="2.2"/><path d="M10.3 6.5 7.7 10M13.7 6.5l2.6 3.5M7.8 13.7l2.5 3.6M16.2 13.7l-2.5 3.6"/></svg>
       <span>스쿼드</span>
