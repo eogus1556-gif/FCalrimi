@@ -34,7 +34,9 @@ h1{font-size:16px;font-weight:800;letter-spacing:-.02em;margin:0 0 12px;}
 .rItem .gtico{width:19px;height:19px;border-radius:4px;}
 .rItem .meta{color:var(--dim);font-size:11.5px;}
 .pface{width:30px;height:30px;border-radius:6px;object-fit:cover;background:var(--surface2);flex:0 0 auto;}
-.pName .pface{width:52px;height:52px;border-radius:8px;flex:0 0 auto;}
+.pName .pface{border-radius:8px;flex:0 0 auto;object-fit:contain;object-position:center bottom;}
+.pPhotos{display:flex;align-items:flex-start;gap:6px;flex:0 0 auto}.pPhotos figure{margin:0;text-align:center}.pPhotos .action{width:90px;height:110px;background:transparent}.pPhotos .mini{width:52px;height:52px;background:var(--surface2)}.pPhotos figcaption{margin-top:3px;color:var(--dim);font-size:9px;font-weight:700;white-space:nowrap}
+@media(max-width:640px){.pPhotos .action{width:70px;height:92px}.pPhotos .mini{width:40px;height:40px}.pPhotos figcaption{font-size:8px}}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:14px;}
 .pName{display:flex;align-items:flex-start;gap:11px;margin-bottom:12px;}
 .pInfo{min-width:0;flex:1;}
@@ -150,7 +152,18 @@ const TRAITURL=id=>`https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/tra
 const COLLECT_EN=1, MAX_PER=2;
 const $=s=>document.querySelector(s);
 
-const FACE=spid=>`https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p${spid}.png`;   // 공홈 선수 이미지
+const NX='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/';
+const NXHI='https://fo4.dn.nexoncdn.co.kr/live/externalAssets/common/';
+const FACE_VER='20261031', FACE_RD='202610310650';
+function faceCands(spid,mini){const pid=(+spid)%1000000;
+  const newer=mini?[NX+`players/p${spid}_26.png?rd=${FACE_RD}`,NX+`players/p${pid}_26.png?rd=${FACE_RD}`]
+    :[NX+`playersActionHigh/p${spid}_26.png?rd=${FACE_RD}`,NXHI+`playersActionHigh/p${spid}_26.png?rd=${FACE_RD}`,NX+`playersAction/p${spid}_26.png?rd=${FACE_RD}`,NXHI+`playersAction/p${spid}_26.png?rd=${FACE_RD}`];
+  const older=mini?[NX+`players/p${spid}.png?v=${FACE_VER}`,NX+`players/p${pid}.png?v=${FACE_VER}`]
+    :[NX+`playersActionHigh/p${spid}.png?v=${FACE_VER}`,NXHI+`playersActionHigh/p${spid}.png?v=${FACE_VER}`,NX+`playersAction/p${spid}.png?v=${FACE_VER}`,NXHI+`playersAction/p${spid}.png?v=${FACE_VER}`];
+  return [...newer,...older];
+}
+function faceImg(spid,mini,cls){const srcs=faceCands(spid,mini);return `<img class="pface ${cls}" src="${srcs[0]}" data-fb="${srcs.slice(1).join('|')}" alt="" onerror="fallbackFace(this)">`;}
+function fallbackFace(img){const rest=(img.dataset.fb||'').split('|').filter(Boolean);if(rest.length){img.src=rest.shift();img.dataset.fb=rest.join('|')}else{img.onerror=null;img.style.visibility='hidden'}}
 let cur=null,pos=null,en=1,boost={},trainOn=true;
 let socSel='',socLv=1,relSel='',relLv=1,waveSel='';   // 소속·관계 팀컬러+단계, 강화케미(물결) 별도
 
@@ -168,7 +181,7 @@ q.addEventListener('input',()=>{
     const gt=gids.length?`<span class="gt">${gids.map(id=>`<img class="gtico" src="${TRAITURL(id)}" title="${(TRAIT[id]||{}).n||''}" onerror="this.style.display='none'">`).join('')}</span>`:'<span class="gt"></span>';
     return `<div class="rItem" data-i="${i}">`
       +`<span class="pay">${r[8]||'-'}</span>`
-      +`<img class="pface" src="${FACE(r[0])}" onerror="this.style.visibility='hidden'">`
+      +faceImg(r[0],true,'')
       +`<span class="sn">${r[2]}</span>`
       +`<span class="nm">${r[1]}</span>`
       +`<span class="pos">${r[3]}</span>`
@@ -203,7 +216,8 @@ function waveOptions(){
 function chemFor(wsel,soc,sl,rel,rl){
   const arr=new Array(34).fill(0);
   if(wsel&&TC[wsel]) applyEff(arr,TC[wsel].eff[0]);
-  if(soc&&TC[soc]) applyEff(arr,TC[soc].eff[Math.min(sl,TC[soc].lv)-1]);
+  if(soc==='single') applyEff(arr,[['전체 능력치',4]]);
+  else if(soc&&TC[soc]) applyEff(arr,TC[soc].eff[Math.min(sl,TC[soc].lv)-1]);
   if(rel&&TC[rel]) applyEff(arr,TC[rel].eff[Math.min(rl,TC[rel].lv)-1]);
   return arr;
 }
@@ -254,8 +268,8 @@ function calc(){
   return {ovr, need:need===100?0:need, pts, slots:slotsUsed(), raw};
 }
 
-function tcOptions(list,sel){
-  return '<option value="">없음</option>'+list.map(no=>{
+function tcOptions(list,sel,allowSingle=false){
+  return '<option value="">없음</option>'+(allowSingle?`<option value="single" ${sel==='single'?'selected':''}>단일 팀컬러 (+4 · 선발 11명 같은 팀)</option>`:'')+list.map(no=>{
     const v=TC[String(no)]; if(!v)return '';
     return `<option value="${no}" ${String(no)===sel?'selected':''}>${v.n}</option>`;
   }).join('');
@@ -317,7 +331,7 @@ function render(){
 
   $('#main').innerHTML=`<div class="panel">
     <div class="pName">
-      <img class="pface" src="${FACE(cur[0])}" onerror="this.style.display='none'">
+      <div class="pPhotos"><figure>${faceImg(cur[0],false,'action')}<figcaption>대갈미페</figcaption></figure><figure>${faceImg(cur[0],true,'mini')}<figcaption>미니페이스온</figcaption></figure></div>
       <div class="pInfo">
         <div class="pn">${cur[1]} <small>${cur[2]} · ${pos} ${c.ovr}</small>${wrHtml}</div>
         <div class="pMeta">${metaHtml}</div>
@@ -327,8 +341,8 @@ function render(){
     <div class="ctrl">
       <div class="fld"><span class="lb">포지션</span><div class="row"><select id="selPos" class="sm">${posOpts}</select></div></div>
       <div class="fld"><span class="lb">소속 팀컬러</span><div class="row">
-        <select id="selSoc" class="tc">${tcOptions(cur[6],socSel)}</select>
-        <select id="selSocLv" class="lv" ${socSel?'':'disabled'}>${lvOptions(socSel,socLv)}</select></div></div>
+        <select id="selSoc" class="tc">${tcOptions(cur[6],socSel,true)}</select>
+        <select id="selSocLv" class="lv" ${socSel&&socSel!=='single'?'':'disabled'}>${lvOptions(socSel,socLv)}</select></div></div>
       <div class="fld enhance-field"><span class="lb">강화단계</span><button type="button" class="enhance-trigger" id="enhanceToggle" aria-expanded="false" aria-controls="enhanceGrid">${en===0?'0':'+'+en}강 ▾</button><div class="enhance-grid" id="enhanceGrid" role="group" aria-label="강화단계 선택">${enOpts}</div></div>
       <div class="fld"><span class="lb">강화 케미</span><div class="row"><select id="selWave" class="tc">${waveOptions()}</select></div></div>
       <div class="fld"><span class="lb">관계 팀컬러</span><div class="row">
