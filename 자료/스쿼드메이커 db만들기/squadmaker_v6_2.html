@@ -3081,6 +3081,26 @@ function rollAutoTc(){   // 자동 선택/재추첨. 성공 시 true
   aiState.tcAuto=true; aiState.tc=p.no; aiState.tcName=p.name; return true;
 }
 let aiState={budget:null, mode:'manager', tc:null, tcName:'', tcAuto:true, form:null, grade:'auto', goldTraits:[], goldSlots:{}, goldSlotsForm:'', locks:[], gmap:{}, gmapForm:'', noRare:false, rareGkFree:false, rareFullbackFree:false};
+const AI_GOLD_SLOTS_KEY='fc_squad_ai_gold_slots_v1';
+function aiStoredGoldSlots(){
+  try{
+    const data=JSON.parse(localStorage.getItem(AI_GOLD_SLOTS_KEY)||'null');
+    if(!data||!FORMATIONS[data.form]||!data.slots||typeof data.slots!=='object')return null;
+    const slots={};
+    for(const [key,raw] of Object.entries(data.slots)){
+      const index=Number(key);if(!Number.isInteger(index)||index<0||index>=FORMATIONS[data.form].length)continue;
+      const choices=(Array.isArray(raw)?raw:[raw]).map(Number)
+        .filter((id,i,list)=>Number.isInteger(id)&&TRAITS?.[id]?.g&&list.indexOf(id)===i).slice(0,2);
+      if(choices.length)slots[index]=choices;
+    }
+    return {goldSlots:slots,goldSlotsForm:data.form};
+  }catch(_){return null;}
+}
+function aiSaveGoldSlots(){
+  aiGoldEnsureForm();
+  try{localStorage.setItem(AI_GOLD_SLOTS_KEY,JSON.stringify({form:aiState.goldSlotsForm,slots:aiState.goldSlots}));}
+  catch(_){toast('포지션별 특성을 이 브라우저에 저장하지 못했어요');}
+}
 let aiIdx=0;
 let aiOpenG=null;   // 필수선수 강화 picker 열린 행 index
 let aiOpenGm=null;  // 개별강화 11칸 강화 picker 열린 행 index
@@ -3125,6 +3145,8 @@ function aiMode(){
   if(!PICK){ toast('픽률 데이터(pickrate.json)가 아직 없어요'); return; }
   if(!CHEM){ toast('data.json 로딩 후 사용하세요'); return; }
   aiState={budget:null, mode:'manager', tc:null, tcName:'', tcAuto:true, form:null, grade:'auto', goldTraits:[], goldSlots:{}, goldSlotsForm:'', locks:[], gmap:{}, gmapForm:'', noRare:false, rareGkFree:false, rareFullbackFree:false};
+  const storedGold=aiStoredGoldSlots();if(storedGold)Object.assign(aiState,storedGold);
+  aiGoldEnsureForm();
   tcbLoad(); rareLoad(); liveLoad();
   aiIdx=0; aiOpenG=null; aiOpenGm=null;aiGoldActiveSlot=null; document.getElementById('aiWiz').classList.add('on'); renderAiStep();
 }
@@ -3212,7 +3234,7 @@ function renderAiStep(){
       .sort((a,b)=>(TRAITS[a].n||'').localeCompare(TRAITS[b].n||'','ko'));
     const selected=aiState.goldTraits||[],positionMode=aiHasPositionGold();
     body.innerHTML=`<div class="aiQ">금빛특성 우선순위를 고르세요</div>
-      <div class="aiHint">자동 배치용 특성을 최대 4개까지 순서대로 선택하세요. 포지션별 특성을 하나라도 선택하면 공통 1~4순위는 적용되지 않습니다. 포지션별 선택을 모두 해제하면 공통 순위가 다시 적용됩니다.</div>
+      <div class="aiHint">자동 배치용 특성을 최대 4개까지 순서대로 선택하세요. 포지션별 특성을 하나라도 선택하면 공통 1~4순위는 적용되지 않습니다. 포지션별 선택은 딸깍 스쿼드 생성 후 이 브라우저에 저장됩니다.</div>
       <div class="aiWrapList" style="max-height:48vh;">
         <div class="aiRow ${selected.length?'':'on'}" data-ai-gold=""><span class="t">선택 안 함</span><span class="n">전체 해제</span></div>
         ${gold.map(id=>{const rank=selected.findIndex(x=>String(x)===String(id));return `<div class="aiRow ${rank>=0&&!positionMode?'on':''}" data-ai-gold="${id}">
@@ -3786,6 +3808,7 @@ function aiBuild(){
   aiEnforceSalary();      // GK·풀백 지키며 급여 310 맞춤
   aiEnsureFloors();       // 급여 조정 후 최소 OVR 재보장
   const goldAssignments=aiApplyRequiredGold();
+  aiSaveGoldSlots();
   save(); closeAiWiz(); renderBoard();
   const pay=aiPayTotal(), bp=aiTotalBP();
   const empty=squad.slice(0,N_START).filter(s=>!s).length;
