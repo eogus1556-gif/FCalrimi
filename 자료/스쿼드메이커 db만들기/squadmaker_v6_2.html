@@ -2561,10 +2561,11 @@ function renderPanel(){
         ['골키퍼',[29,30,31,32,33]]
       ];
       panel.className='cardPanel abilityPanel on';
-      const traitIds=[...(c.tr||[])];if(canAddGoldTrait(s)&&s.goldTrait!=null&&!traitIds.some(x=>String(x)===String(s.goldTrait)))traitIds.push(s.goldTrait);
+      const traitIds=[...(c.tr||[])];
       const summary=groups.slice(0,6).map(([title,ids])=>[title,Math.round(ids.reduce((a,i)=>a+(+vals[i]||0),0)/ids.length)]);
-      const careers=abilityCareerRows(p),foot=c.foot==='L'?'왼발':'오른발';
-      const physical=[c.birth||'',c.h?`${c.h}cm`:'',c.w?`${c.w}kg`:'',c.body||'',foot].filter(Boolean);
+      const careers=abilityCareerRows(p),foot=p[I.strong]==='L'?'왼발':'오른발';
+      const footDetail=p[I.weak]!=null?`5/${p[I.weak]} ${foot}`:foot;
+      const physical=[c.birth||'',c.h?`${c.h}cm`:'',c.w?`${c.w}kg`:'',c.body||'',footDetail].filter(Boolean);
       panel.innerHTML=`<div class="abilityLayout"><section class="abilityMain">
         <div class="abilityProfile">${faceImg('abilityPortrait',s.spid,false,'','auto')}<div class="abilityIdentity">
           <div class="abilityNameLine"><span class="abilitySeason">${esc(p[I.season])}</span><strong>${esc(p[I.name])}</strong><div class="abilityOvr"><small>OVR</small>${finalOvr(s,menuIdx)}</div></div>
@@ -3228,16 +3229,24 @@ function openAiGoldPositions(){
 function closeAiGoldPositions(){document.getElementById('aiGoldPosModal').classList.remove('on');}
 function renderAiGoldPositions(){
   const form=aiGoldEnsureForm(),coords=FORMATIONS[form]||[];
+  const box=document.querySelector('#aiGoldPosModal .aiGoldPosBox'),boxScroll=box.scrollTop;
+  const dropdownScroll=document.querySelector('#aiGoldPitch .aiGoldDropdown')?.scrollTop||0;
   document.getElementById('aiGoldPosForm').textContent=`${aiFormLabel(form)} · 포지션을 눌러 특성을 지정하세요`;
   document.getElementById('aiGoldLegend').innerHTML='<span><b>개별 설정</b> 앞에서 고른 자동 우선순위와 별도로 적용됩니다.</span>';
   const slots=coords.map((L,i)=>{const pos=zoneAt(L[0],L[1]),raw=aiState.goldSlots[i],choices=(Array.isArray(raw)?raw:(raw!=null?[raw]:[])).filter(v=>v!=null),names=choices.map((id,r)=>`${r+1}. ${(TRAITS[id]||{}).n||('특성 '+id)}`),picks=choices.map((id,r)=>{const name=(TRAITS[id]||{}).n||('특성 '+id);return `<span class="aiGoldSlotPick" title="${r+1}순위 ${esc(name)}"><img src="${TRAIT_ICON(id)}" onerror="this.style.display='none'"><b>${r+1}</b><em>${esc(name)}</em></span>`;}).join('');
     const left=4+L[0]*92,top=9+Math.min(1,L[1])*84;return `<button type="button" class="aiGoldSlot ${choices.length?'on':''} ${aiGoldActiveSlot===i?'active':''}" style="left:${left}%;top:${top}%;" onclick="aiSelectGoldSlot(${i})">${picks?`<span class="aiGoldSlotPicks">${picks}</span>`:''}<b>${pos}</b><small>${names.length?esc(names.join(' / ')):'개별 선택'}</small></button>`;}).join('');
   document.getElementById('aiGoldPitch').innerHTML=slots+(aiGoldActiveSlot==null?'':aiGoldDropdownHtml(coords));
+  box.scrollTop=boxScroll;
+  const dropdown=document.querySelector('#aiGoldPitch .aiGoldDropdown');if(dropdown)dropdown.scrollTop=dropdownScroll;
 }
 function aiGoldDropdownHtml(coords){
   const L=coords[aiGoldActiveSlot]||[.5,.5],pos=zoneAt(L[0],L[1]),left=Math.max(22,Math.min(78,4+L[0]*92)),top=9+Math.min(1,L[1])*84,raw=aiState.goldSlots[aiGoldActiveSlot],choices=(Array.isArray(raw)?raw:[raw]).filter(v=>v!=null),gold=Object.keys(TRAITS||{}).filter(id=>TRAITS[id]&&TRAITS[id].g).sort((a,b)=>(TRAITS[a].n||'').localeCompare(TRAITS[b].n||'','ko'));
-  return `<div class="aiGoldDropdown" style="left:${left}%;top:calc(${top}% + 28px)" onclick="event.stopPropagation()"><div class="aiGoldDropdownTitle">${pos} · 특성을 누른 순서대로 1·2순위</div>${gold.map(id=>{const rank=choices.findIndex(x=>String(x)===String(id));return `<button type="button" class="${rank>=0?'on':''}" onclick="aiPickGoldSlotTrait(${+id})"><img src="${TRAIT_ICON(id)}" onerror="this.style.display='none'"><span>${esc((TRAITS[id]||{}).n||('특성 '+id))}</span>${rank>=0?`<b>${rank+1}순위</b>`:''}</button>`;}).join('')}<button type="button" class="clear" onclick="aiClearGoldSlot()">선택 해제</button></div>`;
+  return `<div class="aiGoldDropdown" style="left:${left}%;top:calc(${top}% + 28px)" onclick="event.stopPropagation()"><div class="aiGoldDropdownTitle">${pos} · 특성을 누른 순서대로 1·2순위</div>${gold.map(id=>{const rank=choices.findIndex(x=>String(x)===String(id));return `<button type="button" class="${rank>=0?'on':''}" onmousedown="event.preventDefault()" onclick="aiPickGoldSlotTrait(${+id})"><img src="${TRAIT_ICON(id)}" onerror="this.style.display='none'"><span>${esc((TRAITS[id]||{}).n||('특성 '+id))}</span>${rank>=0?`<b>${rank+1}순위</b>`:''}</button>`;}).join('')}<button type="button" class="clear" onmousedown="event.preventDefault()" onclick="aiClearGoldSlot()">선택 해제</button></div>`;
 }
+document.getElementById('aiGoldPosModal').addEventListener('click',event=>{
+  if(aiGoldActiveSlot==null||event.target.closest('.aiGoldSlot,.aiGoldDropdown'))return;
+  aiGoldActiveSlot=null;renderAiGoldPositions();
+});
 function aiSelectGoldSlot(index){aiGoldActiveSlot=aiGoldActiveSlot===index?null:index;renderAiGoldPositions();}
 function aiPickGoldSlotTrait(traitId){
   if(aiGoldActiveSlot==null)return;const raw=aiState.goldSlots[aiGoldActiveSlot],choices=(Array.isArray(raw)?raw:[raw]).filter(v=>v!=null),ix=choices.findIndex(v=>String(v)===String(traitId));
