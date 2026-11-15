@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>집중 훈련 계산기</title>
 <style>
 :root{
@@ -19,6 +19,8 @@ h1{font-size:16px;font-weight:800;letter-spacing:-.02em;margin:0 0 12px;}
 .searchbar input{width:100%;background:var(--surface2);border:1px solid var(--line);
   border-radius:9px;padding:10px 12px;color:var(--text);font-size:13px;outline:none;}
 .searchbar input:focus{border-color:var(--lime);}
+@media(max-width:780px){body{padding-top:max(10px,env(safe-area-inset-top,0px))}.searchbar input{font-size:16px}}
+.trainer-home{color:var(--dim);font-weight:700;font-size:11px;text-decoration:none}.trainer-home:hover,.trainer-home:focus-visible{color:var(--lime)}
 .results{max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:9px;
   margin:6px 0 0;background:var(--surface);display:none;}
 .results.show{display:block;}
@@ -29,6 +31,7 @@ h1{font-size:16px;font-weight:800;letter-spacing:-.02em;margin:0 0 12px;}
 .rItem .sn{color:var(--dim);font-size:11px;font-weight:700;min-width:52px;}
 .rItem .nm{font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .rItem .pos{color:var(--text);font-weight:800;font-size:12px;}
+.fc-pos{display:inline-block;border-left:3px solid var(--pos-color,transparent);padding-left:4px;line-height:1.1;white-space:nowrap}
 .rItem .ov{font-weight:900;color:var(--lime);min-width:30px;text-align:right;}
 .rItem .gt{display:flex;gap:3px;align-items:center;min-width:20px;justify-content:flex-end;}
 .rItem .gtico{width:19px;height:19px;border-radius:4px;}
@@ -136,7 +139,7 @@ body{padding-bottom:110px}
 <div id="fcToolAdBottom" class="fc-tool-ad bottom" aria-label="하단 광고"></div>
 
 <div class="wrap">
-  <h1>집중 훈련 계산기 <small style="color:var(--dim);font-weight:700;font-size:11px;">FC알리미</small></h1>
+  <h1>집중 훈련 계산기 <a class="trainer-home" href="/index.html">FC알리미</a></h1>
   <div class="searchbar"><input id="q" placeholder="선수 이름 검색 (예: 음바페, 지단)" autocomplete="off"></div>
   <div class="results" id="results"></div>
   <div id="main"><div class="panel"><div class="empty">선수를 검색해서 선택하세요.</div></div></div>
@@ -163,6 +166,7 @@ function faceCands(spid,mini){const pid=(+spid)%1000000;
   return [...newer,...older];
 }
 function faceImg(spid,mini,cls,alt=''){const srcs=faceCands(spid,mini);return `<img class="pface ${cls}" src="${srcs[0]}" data-fb="${srcs.slice(1).join('|')}" alt="${alt}" onerror="fallbackFace(this)">`;}
+function positionColor(pos){const p=String(pos||'').toUpperCase();return p==='GK'?'#f2c84b':/^(ST|CF|LW|RW|LF|RF|LS|RS)$/.test(p)?'#f04e65':/^(CB|LB|RB|LWB|RWB|SW|LCB|RCB)$/.test(p)?'#5b9dff':/^(CAM|CM|CDM|LM|RM|LAM|RAM|LCM|RCM|LDM|RDM)$/.test(p)?'#53bf76':'transparent'}
 function fallbackFace(img){const rest=(img.dataset.fb||'').split('|').filter(Boolean);if(rest.length){img.src=rest.shift();img.dataset.fb=rest.join('|')}else{img.onerror=null;img.style.visibility='hidden'}}
 let cur=null,pos=null,en=1,boost={},trainOn=true;
 let socSel='',socLv=1,relSel='',relLv=1,waveSel='';   // 소속·관계 팀컬러+단계, 강화케미(물결) 별도
@@ -184,7 +188,7 @@ q.addEventListener('input',()=>{
       +faceImg(r[0],true,'','대갈미페')
       +`<span class="sn">${r[2]}</span>`
       +`<span class="nm">${r[1]}</span>`
-      +`<span class="pos">${r[3]}</span>`
+      +`<span class="pos fc-pos" style="--pos-color:${positionColor(r[3])}">${r[3]}</span>`
       +`<span class="ov">${r[4]}</span>`
       +gt+`</div>`;
   }).join('')||'<div class="rItem"><span class="meta">결과 없음</span></div>';
@@ -333,7 +337,7 @@ function render(){
     <div class="pName">
       <div class="pPhotos">${faceImg(cur[0],false,'action','미니페이스온')}</div>
       <div class="pInfo">
-        <div class="pn">${cur[1]} <small>${cur[2]} · ${pos} ${c.ovr}</small>${wrHtml}</div>
+        <div class="pn">${cur[1]} <small>${cur[2]} · <span class="fc-pos" style="--pos-color:${positionColor(pos)}">${pos}</span> ${c.ovr}</small>${wrHtml}</div>
         <div class="pMeta">${metaHtml}</div>
         ${traitHtml?`<div class="pTraits">${traitHtml}</div>`:''}
       </div>
