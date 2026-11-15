@@ -240,7 +240,7 @@
     <div id="materials" class="materials"><button class="material" data-m="1" type="button"><span class="plus">＋</span></button><button class="material" data-m="2" type="button"><span class="plus">＋</span></button><button class="material" data-m="3" type="button"><span class="plus">＋</span></button><button class="material" data-m="4" type="button"><span class="plus">＋</span></button><button class="material" data-m="5" type="button"><span class="plus">＋</span></button></div>
     <div id="materialStagePicker" class="material-stage-picker" aria-label="재료 강화단계 선택"></div>
     <p class="hint">능력치가 높은 선수 투입 시 성공 확률이 높아집니다.</p>
-    <div class="material-tools"><button id="autoMaterials" type="button">최저 비용 조합</button><button id="manualMaterials" type="button">재료 OVR 직접 입력</button><button id="applyMaterials" type="button">적용</button></div>
+    <div class="material-tools"><button id="autoMaterials" type="button">OVR별 평균값 맞춤</button><button id="manualMaterials" type="button">재료 OVR 직접 입력</button><button id="applyMaterials" type="button">적용</button></div>
     <div id="materialOvrEditor" class="material-ovr-editor"><input type="number" min="50" max="180" placeholder="OVR"><input type="number" min="50" max="180" placeholder="OVR"><input type="number" min="50" max="180" placeholder="OVR"><input type="number" min="50" max="180" placeholder="OVR"><input type="number" min="50" max="180" placeholder="OVR"></div>
     <details class="sim-details"><summary>확률·비용·강화 기록 보기</summary><div class="sim-details-body"><div class="sim-stat">성공 확률<b id="summaryChance">－</b></div><div class="sim-stat">이번 비용<b id="summaryCost">－</b></div><div class="sim-stat">총 투입 BP<b id="summarySpent">0 BP</b></div><div class="sim-stat">시도 횟수<b id="summaryAttempts">0회</b></div><div class="sim-stat">최고 단계<b id="summaryBest">－</b></div><div class="sim-stat">성공 횟수<b id="summarySuccess">0회</b></div><table class="odds-table"><thead><tr><th>단계</th><th>기본</th><th>현재</th></tr></thead><tbody id="oddsRows"></tbody></table></div></details>
     <div class="bottom-actions"><button id="gradeProtect" class="wide-btn" type="button"><span class="btnico">▣</span> 강화 등급 보호</button><button id="retry" class="wide-btn" type="button"><span class="btnico">▤</span> 재시도권 <b>0</b></button></div>
@@ -335,7 +335,14 @@ function materialTargetOvr(ratio=1){if(!S.player)return 0;const target=currentOv
 const rareMaterials={ready:false,seasons:new Set(),spids:new Set(),allowedSpids:new Set()};
 const materialAllowed=p=>rareMaterials.ready&&norm(p[2])!=='ICONTM'&&(rareMaterials.allowedSpids.has(Number(p[0]))||(!rareMaterials.seasons.has(norm(p[2]))&&!rareMaterials.spids.has(Number(p[0]))));
 async function loadRareMaterials(){try{const response=await fetch('rare.json',{cache:'no-store'});if(!response.ok)throw new Error(`rare.json ${response.status}`);const data=await response.json();rareMaterials.seasons=new Set((data.seasons||[]).map(norm));rareMaterials.spids=new Set((data.spids||[]).map(Number));rareMaterials.allowedSpids=new Set((data.allowed_spids||[]).map(Number));rareMaterials.ready=true;S.materialPlayers=S.materialPlayers.filter(materialAllowed);S.materials=S.materialPlayers.length;render()}catch(e){S.loadError=`생성 제한 데이터 로딩 실패: ${e.message}`;S.materialPlayers=[];S.materials=0;render()}}
-function materialCandidates(ratio=1){if(!S.player)return[];const minOvr=materialTargetOvr(ratio);return S.rows.filter(p=>materialAllowed(p)&&Number(p[0])!==Number(S.player[0])&&Number(p[4])>=minOvr&&playerPrice(p)>0).sort((a,b)=>playerPrice(a)-playerPrice(b)||Number(b[4])-Number(a[4]))}
+function materialCandidates(ratio=1){
+  if(!S.player)return[];
+  const targetOvr=materialTargetOvr(ratio);
+  const candidates=S.rows.filter(p=>materialAllowed(p)&&Number(p[0])!==Number(S.player[0])&&Number(p[4])>=targetOvr&&playerPrice(p)>0);
+  const averages=new Map();
+  for(const p of candidates){const ovr=Number(p[4]),entry=averages.get(ovr)||{sum:0,count:0};entry.sum+=playerPrice(p);entry.count++;averages.set(ovr,entry)}
+  return candidates.sort((a,b)=>Number(a[4])-Number(b[4])||Math.abs(playerPrice(a)-averages.get(Number(a[4])).sum/averages.get(Number(a[4])).count)-Math.abs(playerPrice(b)-averages.get(Number(b[4])).sum/averages.get(Number(b[4])).count)||playerPrice(a)-playerPrice(b));
+}
 function materialCost(){return S.materialPlayers.reduce((sum,p)=>sum+playerPrice(p),0)}
 function totalCost(){const info=protectionInfo();return materialCost()+(S.gradeProtect&&info.eligible?protectionCost(info):0)}
 function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
@@ -352,19 +359,50 @@ function selectMaterialsForGauge(){
   const desired=Math.max(0,Math.min(1,S.gauge/5));
   const ratio=desired/(1+S.boostEffect/100);
   if(!ratio){S.materialPlayers=[];S.materials=0;render();return}
-  const need=materialTargetOvr(1),r=recipe(),options=[];
-  for(let count=1;count<=5;count++){
-    const minimum=Math.max(50,Math.ceil(need+Math.log(ratio*r.count/count)/Math.log(1.35)));
-    const candidates=[];
-    for(const p of S.rows){if(!materialAllowed(p)||Number(p[0])===Number(S.player[0]))continue;for(let level=1;level<=11;level++){if(currentOvr(p,level)<minimum||!playerPrice(p,level))continue;const candidate=p.slice();candidate.materialLevel=level;candidates.push(candidate)}}
-    candidates.sort((a,b)=>playerPrice(a)-playerPrice(b)||currentOvr(a,a.materialLevel)-currentOvr(b,b.materialLevel));
-    const seen=new Set(),picks=[];for(const p of candidates){if(seen.has(p[0]))continue;seen.add(p[0]);picks.push(p);if(picks.length===count)break}
-    if(picks.length<count)continue;
-    const actual=Math.min(1,picks.reduce((sum,p)=>sum+Math.min(1,Math.pow(1.35,currentOvr(p,p.materialLevel)-need)/r.count),0));
-    if(actual+0.00001>=ratio)options.push({picks,cost:picks.reduce((sum,p)=>sum+playerPrice(p),0),extra:actual-ratio});
+  const need=materialTargetOvr(1),r=recipe();
+  const counts=[1,2,3,4,5].sort((a,b)=>Math.abs(a-r.count)-Math.abs(b-r.count)||b-a);
+  const byBaseOvr=new Map(),byMaterialOvr=new Map();
+  let maxOvr=50;
+  for(const p of S.rows){
+    if(!materialAllowed(p)||Number(p[0])===Number(S.player[0]))continue;
+    const base=Number(p[4]);
+    if(!byBaseOvr.has(base))byBaseOvr.set(base,[]);
+    byBaseOvr.get(base).push(p);
+    maxOvr=Math.max(maxOvr,base+stageOvrBonus[10]);
   }
-  options.sort((a,b)=>a.cost-b.cost||a.extra-b.extra);
-  S.materialPlayers=options[0]?.picks||[];S.materials=S.materialPlayers.length;render()
+  function optionsAtOvr(ovr){
+    if(byMaterialOvr.has(ovr))return byMaterialOvr.get(ovr);
+    const options=[];
+    for(let level=1;level<=11;level++){
+      const base=ovr-stageOvrBonus[level-1];
+      for(const p of byBaseOvr.get(base)||[]){
+        if(!playerPrice(p,level))continue;
+        const candidate=p.slice();candidate.materialLevel=level;options.push(candidate);
+      }
+    }
+    const average=options.reduce((sum,p)=>sum+playerPrice(p),0)/Math.max(1,options.length);
+    options.sort((a,b)=>Math.abs(playerPrice(a)-average)-Math.abs(playerPrice(b)-average)||playerPrice(a)-playerPrice(b));
+    byMaterialOvr.set(ovr,options);
+    return options;
+  }
+  let picks=[];
+  for(const count of counts){
+    const ideal=need+Math.log(ratio*r.count/count)/Math.log(1.35);
+    const minimum=Math.max(50,Math.ceil(ideal));
+    const seen=new Set();picks=[];
+    for(let ovr=minimum;ovr<=maxOvr&&picks.length<count;ovr++){
+      for(const p of optionsAtOvr(ovr)){
+        if(seen.has(p[0]))continue;
+        seen.add(p[0]);picks.push(p);
+        if(picks.length===count)break;
+      }
+    }
+    if(picks.length<count){picks=[];continue}
+    const actual=Math.min(1,picks.reduce((sum,p)=>sum+Math.min(1,Math.pow(1.35,currentOvr(p,p.materialLevel)-need)/r.count),0));
+    if(actual+0.00001>=ratio)break;
+    picks=[];
+  }
+  S.materialPlayers=picks;S.materials=picks.length;render()
 }
 function render(){
   renderMaterials();
@@ -401,7 +439,7 @@ function finishMotion(){if(!S.pending)return;const p=S.pending,ok=p.ok,burst=p.b
 function run(){if(!S.player||S.materials===0||S.busy||S.level>=13)return;S.busy=true;const before=S.level,ok=Math.random()<chance(),protectedFail=!ok&&S.gradeProtect,recoveryLevel=ok?S.level:protectedFail?S.level:rollRecovery(S.level),drop=ok?0:S.level-recoveryLevel,burst=!ok&&!protectedFail&&(drop>=4||recoveryLevel===1&&S.level>=8);S.pending={ok,burst,protectedFail,recovery:recoveryLevel,drop,before};$('motionCard').innerHTML=face(S.player,'motion-cardface');$('motionName').textContent=`${S.player[2]} · ${S.player[1]}`;$('motionCopy').textContent='강화 결과를 확인하세요.';$('motionResult').textContent='';$('motionDetail').innerHTML='';$('motion').className='motion show play';updateReady();setTimeout(()=>{if(S.pending)finishMotion()},3000)}
 const DATA_SOURCES=[['/자료/스쿼드메이커 db만들기/data.json','/자료/스쿼드메이커 db만들기/prices.json'],['/자료/수집기/output/players.json','/자료/수집기/output/prices.json'],['/자료/스쿼드메이커 db만들기/players.json','/자료/스쿼드메이커 db만들기/prices.json'],['/자료/수집기/output/players_full.json','/자료/수집기/output/prices.json']];
 async function load(){let lastError;for(const [playersPath,pricesPath] of DATA_SOURCES){try{const[a,b]=await Promise.all([fetch(playersPath).then(r=>{if(!r.ok)throw new Error(`${playersPath} ${r.status}`);return r.json()}),fetch(pricesPath).then(r=>{if(!r.ok)throw new Error(`${pricesPath} ${r.status}`);return r.json()})]);const prices=b.prices||b;const rows=Array.isArray(a.P)?a.P.map(p=>[p[0],p[1],p[2],p[3],p[4],p[8]||0,p[12]||'',p[14]||0,prices[String(p[0])]||[]]):a.rows||a;if(!Array.isArray(rows)||!rows.length)throw new Error('선수 데이터가 비어 있습니다.');S.rows=rows;S.prices=prices;S.loadError='';render();return}catch(e){lastError=e}}S.loadError=location.protocol==='file:'?'HTML을 파일로 직접 열면 JSON을 읽을 수 없습니다. 데이터 폴더가 있는 C:\\FC알리미 폴더를 로컬 서버로 실행해 주세요.':`선수 데이터 로딩 실패: ${lastError?.message||'데이터 파일을 찾을 수 없습니다.'}`;render()}
-$('targetCard').onclick=pick;$('selectText').onclick=pick;$('pickerClose').onclick=()=>$('picker').classList.remove('show');$('search').addEventListener('input',e=>search(e.target.value));document.querySelectorAll('#gauge button').forEach(b=>b.onclick=()=>setGauge(Number(b.dataset.g)));$('gaugeApply').onclick=applyGauge;document.querySelectorAll('.material').forEach(b=>b.onclick=()=>{b.classList.toggle('filled');b.innerHTML=b.classList.contains('filled')?'<span style="font-weight:900;color:#fff">재료</span>':'<span class="plus">＋</span>';S.materials=document.querySelectorAll('.material.filled').length;render()});$('autoMaterials').onclick=()=>setMaterials(5);$('manualMaterials').onclick=()=>{$('materialOvrEditor').classList.toggle('show')};$('applyMaterials').onclick=applyManualMaterials;$('boostEffect').onclick=openBoost;document.querySelectorAll('#boostOptions .boost-option').forEach(b=>b.onclick=()=>{S.boostDraft=Number(b.dataset.boost);renderBoostOptions()});$('boostApply').onclick=()=>{S.boostEffect=S.boostDraft;closeBoost();render()};$('boostClose').onclick=closeBoost;$('boostPicker').onclick=e=>{if(e.target===$('boostPicker'))closeBoost()};$('stageClose').onclick=closeStage;$('stagePicker').onclick=e=>{if(e.target===$('stagePicker'))closeStage()};$('seasonClose').onclick=closeSeason;$('seasonPicker').onclick=e=>{if(e.target===$('seasonPicker'))closeSeason()};$('gradeProtectRow').onclick=toggleGrade;$('gradeProtect').onclick=toggleGrade;document.addEventListener('click',e=>{if(S.pending&&$('motion').classList.contains('play')){e.stopPropagation();finishMotion();return}const seasonButton=e.target.closest('.season'),upgradeButton=e.target.closest('.upgrade');if(!e.target.closest('#motion')&&seasonButton)openSeason();else if(!e.target.closest('#motion')&&upgradeButton)openStage();if(S.player&&e.target.closest('.details .name'))openSeason()},{capture:true});$('enhance').onclick=run;$('skip').onclick=finishMotion;$('motion').onclick=e=>{if(e.target===$('motion')&&!S.pending){$('motion').className='motion'}};load();
+$('targetCard').onclick=pick;$('selectText').onclick=pick;$('pickerClose').onclick=()=>$('picker').classList.remove('show');$('search').addEventListener('input',e=>search(e.target.value));document.querySelectorAll('#gauge button').forEach(b=>b.onclick=()=>setGauge(Number(b.dataset.g)));$('gaugeApply').onclick=applyGauge;document.querySelectorAll('.material').forEach(b=>b.onclick=()=>{b.classList.toggle('filled');b.innerHTML=b.classList.contains('filled')?'<span style="font-weight:900;color:#fff">재료</span>':'<span class="plus">＋</span>';S.materials=document.querySelectorAll('.material.filled').length;render()});$('autoMaterials').onclick=()=>setMaterials(recipe().count);$('manualMaterials').onclick=()=>{$('materialOvrEditor').classList.toggle('show')};$('applyMaterials').onclick=applyManualMaterials;$('boostEffect').onclick=openBoost;document.querySelectorAll('#boostOptions .boost-option').forEach(b=>b.onclick=()=>{S.boostDraft=Number(b.dataset.boost);renderBoostOptions()});$('boostApply').onclick=()=>{S.boostEffect=S.boostDraft;closeBoost();render()};$('boostClose').onclick=closeBoost;$('boostPicker').onclick=e=>{if(e.target===$('boostPicker'))closeBoost()};$('stageClose').onclick=closeStage;$('stagePicker').onclick=e=>{if(e.target===$('stagePicker'))closeStage()};$('seasonClose').onclick=closeSeason;$('seasonPicker').onclick=e=>{if(e.target===$('seasonPicker'))closeSeason()};$('gradeProtectRow').onclick=toggleGrade;$('gradeProtect').onclick=toggleGrade;document.addEventListener('click',e=>{if(S.pending&&$('motion').classList.contains('play')){e.stopPropagation();finishMotion();return}const seasonButton=e.target.closest('.season'),upgradeButton=e.target.closest('.upgrade');if(!e.target.closest('#motion')&&seasonButton)openSeason();else if(!e.target.closest('#motion')&&upgradeButton)openStage();if(S.player&&e.target.closest('.details .name'))openSeason()},{capture:true});$('enhance').onclick=run;$('skip').onclick=finishMotion;$('motion').onclick=e=>{if(e.target===$('motion')&&!S.pending){$('motion').className='motion'}};load();
 // Result transitions use the same success scene regardless of protection.
 const beams=document.createElement('div');beams.className='motion-beams';$('motion').append(beams);
 const originalFinishMotion=finishMotion;
