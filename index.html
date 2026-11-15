@@ -820,6 +820,7 @@
   .result-row:last-child{ border-bottom:none; }
   .result-row:hover{ background: var(--surface-2); }
   .result-left{ display:flex; align-items:center; gap:12px; }
+  .fc-pos{display:inline-block;border-left:3px solid var(--pos-color,transparent);padding-left:4px;line-height:1.1;white-space:nowrap}
   .result-badge{
     width:36px; height:36px;
     border-radius: 8px;
@@ -1220,6 +1221,12 @@
   .pull-refresh.loading .pull-refresh-icon{ animation:pullSpin .7s linear infinite; }
   @keyframes pullSpin{ to{ transform:rotate(360deg); } }
   @media (min-width:769px), (hover:hover) and (pointer:fine){ .pull-refresh{ display:none; } }
+
+@media(max-width:780px){
+  .fc-mobile-bottom-nav{min-height:50px!important;padding:3px!important;border-radius:22px!important;bottom:max(8px,env(safe-area-inset-bottom,0px))!important}
+  .fc-mobile-nav-item{min-height:42px!important;padding:3px 1px 2px!important;gap:2px!important;border-radius:17px!important}
+  .fc-mobile-nav-item svg{width:20px!important;height:20px!important}
+}
 </style>
 </head>
 <body>
@@ -3251,8 +3258,28 @@
   let _alarmLoop = null;
   let _alarmStopTimer = null;
   let _alarmQueue = [];
-  function showAlarmModal(msg){
+  const ALARM_ACK_KEY = 'fc_refresh_alarm_ack_v1';
+  const ALARM_ACK_TTL = 6 * 60 * 60 * 1000;
+  let _alarmPendingIds = [];
+  function readAlarmAcks(){
+    const s = store();
+    if(!s) return {};
+    try{
+      const now = Date.now(), raw = JSON.parse(s.getItem(ALARM_ACK_KEY) || '{}'), clean = {};
+      Object.entries(raw || {}).forEach(([key, time]) => {
+        if(now - Number(time) < ALARM_ACK_TTL) clean[key] = Number(time);
+      });
+      return clean;
+    }catch(_){ return {}; }
+  }
+  function alarmCycleKey(spid, hj, min, lead, remaining){
+    const stamp = new Date(Date.now() + remaining * 60000);
+    return `${spid}:${stamp.getFullYear()}-${stamp.getMonth()+1}-${stamp.getDate()}-${stamp.getHours()}:${min}:${lead}`;
+  }
+  function showAlarmModal(msg, ids = []){
     const overlay = document.getElementById('alarmOverlay');
+    if(ids.length && ids.every(id => readAlarmAcks()[id])) return;
+    _alarmPendingIds.push(...ids);
     const already = overlay.classList.contains('show');
     if(already){
       // 이미 팝업이 떠 있으면 추가 메시지를 아래에 누적
@@ -3288,6 +3315,13 @@
     }, getSoundMaxSec() * 1000);
   }
   function dismissAlarm(){
+    const s = store();
+    if(s && _alarmPendingIds.length){
+      const ack = readAlarmAcks(), now = Date.now();
+      _alarmPendingIds.forEach(id => { if(id) ack[id] = now; });
+      try{ s.setItem(ALARM_ACK_KEY, JSON.stringify(ack)); }catch(_){ }
+    }
+    _alarmPendingIds = [];
     document.getElementById('alarmOverlay').classList.remove('show');
     if(_alarmLoop){ clearInterval(_alarmLoop); _alarmLoop = null; }
     if(_alarmStopTimer){ clearTimeout(_alarmStopTimer); _alarmStopTimer = null; }
@@ -3297,6 +3331,9 @@
     dismissAlarm();
     try{ showFavorites(); }catch(e){ location.href = '/index.html?view=favorites'; }
   }
+  window.addEventListener('storage', e => {
+    if(e.key === ALARM_ACK_KEY && _alarmPendingIds.length && _alarmPendingIds.every(id => readAlarmAcks()[id])) dismissAlarm();
+  });
   // 알림음 최대 시간 조절 (알림 팝업/테스트에서) — 즉시 저장 + 울리는 중이면 종료시간 갱신
   function _fmtSoundMax(sec){ return sec >= 60 ? (Number.isInteger(sec / 60) ? (sec / 60) + '분' : sec + '초') : sec + '초'; }
   function _resetAlarmStop(sec){
@@ -3751,13 +3788,14 @@
 
       for(const lead of leads){
         const key = cycleKey + ':' + lead;
-        if(alarmed[key]) continue;
+        const sharedKey = alarmCycleKey(spid, eff.hj, Number(eff.min), lead, n);
+        if(alarmed[key] || readAlarmAcks()[sharedKey]){ alarmed[key] = true; continue; }
         const crossedDown = (prev === null)
           ? (n === lead)
           : (prev > lead && n <= lead);
         if(!crossedDown) continue;
         alarmed[key] = true;
-        pending.push({ name: p.name, season: p.season, refresh: refreshLabel(eff.hj, eff.min), n });
+        pending.push({ name: p.name, season: p.season, refresh: refreshLabel(eff.hj, eff.min), n, key: sharedKey });
         if(!quiet){ try{ loadSupabase().then(c => { if(c) c.rpc('bump_alerts', { n: 1 }).then(()=>{}, ()=>{}); }); }catch(e){} }
       }
       prevLeft[spid] = n;
@@ -3780,7 +3818,7 @@
         }
         // 푸시 구독 중이면 OS 알림은 서버 푸시 하나로 통일 → 앱 자체 OS 알림은 생략(화면 팝업만)
         if(canNotify && !pushSubscribed) fireNotification(title, body);
-        showAlarmModal(body);
+        showAlarmModal(body, items.map(item => item.key));
       }
     }
     // 오래된 alarmed 키 정리 (하루 지나면 리셋되도록 크기 제한)
@@ -3921,6 +3959,7 @@
 
   // 검색 결과 한 줄. 사진(배지)·이름 클릭 → 신고게시판 선수 댓글 화면, 그 외 영역 클릭 → 선수 상세
   // season이 있으면 상세 진입 시 해당 클래스 카드만 표시
+  function positionColor(pos){const value=String(pos||'').toUpperCase();return value==='GK'?'#f2c84b':/^(ST|CF|LW|RW|LF|RF|LS|RS)$/.test(value)?'#f04e65':/^(CB|LB|RB|LWB|RWB|SW|LCB|RCB)$/.test(value)?'#5b9dff':/^(CAM|CM|CDM|LM|RM|LAM|RAM|LCM|RCM|LDM|RDM)$/.test(value)?'#53bf76':'transparent'}
   function resultRowHtml(p, season){
     return `
       <div class="result-row" onclick="showPlayer('${esc(p.name)}', '${esc(season || '')}')">
@@ -3928,7 +3967,7 @@
           <div class="result-badge" style="cursor:pointer;" title="선수 게시판(댓글) 열기" onclick="event.stopPropagation(); openReportDetail(${p.id})">${p.position || '-'}${faceImg(p.id)}</div>
           <div>
             <div class="result-name b-name-link" title="선수 게시판(댓글) 열기" onclick="event.stopPropagation(); openReportDetail(${p.id})">${esc(p.name)}</div>
-            <div class="result-meta">카드 ${p.cards}장 · 갱신 시간 확인 ${p.confirmed}장</div>
+            <div class="result-meta"><span class="fc-pos" style="--pos-color:${positionColor(p.position)}">${esc(p.position||'-')}</span> · 카드 ${p.cards}장 · 갱신 시간 확인 ${p.confirmed}장</div>
           </div>
         </div>
         <div class="result-right">
