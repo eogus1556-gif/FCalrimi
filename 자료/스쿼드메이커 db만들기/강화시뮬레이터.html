@@ -188,9 +188,12 @@
 .fc-tool-ad.bottom{left:50%;bottom:0;transform:translateX(-50%);width:min(728px,calc(100vw - 24px));height:90px}
 @media(min-width:1440px){.fc-tool-ad.side{display:block}}
 @media(max-width:780px){.fc-tool-ad.bottom{width:min(320px,calc(100vw - 24px));height:100px}}
-.page{margin-bottom:0}
-.fc-tool-ad.bottom{position:relative;left:auto;bottom:auto;transform:none;margin:16px auto 24px}
-@media(max-width:780px){.fc-tool-ad.bottom{margin-bottom:calc(110px + env(safe-area-inset-bottom,0px))}}
+.page{min-height:calc(100svh - 20px);margin:20px auto 0}
+.fc-tool-ad.bottom{position:relative;left:auto;bottom:auto;transform:none;margin:32px auto 40px}
+@media(max-width:780px){
+  .page{min-height:calc(100svh - 12px);margin-top:12px}
+  .fc-tool-ad.bottom{margin-top:24px;margin-bottom:calc(120px + env(safe-area-inset-bottom,0px))}
+}
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8019320351145896" crossorigin="anonymous"></script>
 </head>

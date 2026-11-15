@@ -35,8 +35,8 @@ h1{font-size:16px;font-weight:800;letter-spacing:-.02em;margin:0 0 12px;}
 .rItem .meta{color:var(--dim);font-size:11.5px;}
 .pface{width:30px;height:30px;border-radius:6px;object-fit:cover;background:var(--surface2);flex:0 0 auto;}
 .pName .pface{border-radius:8px;flex:0 0 auto;object-fit:contain;object-position:center bottom;}
-.pPhotos{display:flex;align-items:flex-start;gap:6px;flex:0 0 auto}.pPhotos figure{margin:0;text-align:center}.pPhotos .action{width:90px;height:110px;background:transparent}.pPhotos .mini{width:52px;height:52px;background:var(--surface2)}.pPhotos figcaption{margin-top:3px;color:var(--dim);font-size:9px;font-weight:700;white-space:nowrap}
-@media(max-width:640px){.pPhotos .action{width:70px;height:92px}.pPhotos .mini{width:40px;height:40px}.pPhotos figcaption{font-size:8px}}
+.pPhotos{display:flex;align-items:flex-start;flex:0 0 auto}.pPhotos .action{width:90px;height:110px;background:transparent}
+@media(max-width:640px){.pPhotos .action{width:70px;height:92px}}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:14px;}
 .pName{display:flex;align-items:flex-start;gap:11px;margin-bottom:12px;}
 .pInfo{min-width:0;flex:1;}
@@ -162,7 +162,7 @@ function faceCands(spid,mini){const pid=(+spid)%1000000;
     :[NX+`playersActionHigh/p${spid}.png?v=${FACE_VER}`,NXHI+`playersActionHigh/p${spid}.png?v=${FACE_VER}`,NX+`playersAction/p${spid}.png?v=${FACE_VER}`,NXHI+`playersAction/p${spid}.png?v=${FACE_VER}`];
   return [...newer,...older];
 }
-function faceImg(spid,mini,cls){const srcs=faceCands(spid,mini);return `<img class="pface ${cls}" src="${srcs[0]}" data-fb="${srcs.slice(1).join('|')}" alt="" onerror="fallbackFace(this)">`;}
+function faceImg(spid,mini,cls,alt=''){const srcs=faceCands(spid,mini);return `<img class="pface ${cls}" src="${srcs[0]}" data-fb="${srcs.slice(1).join('|')}" alt="${alt}" onerror="fallbackFace(this)">`;}
 function fallbackFace(img){const rest=(img.dataset.fb||'').split('|').filter(Boolean);if(rest.length){img.src=rest.shift();img.dataset.fb=rest.join('|')}else{img.onerror=null;img.style.visibility='hidden'}}
 let cur=null,pos=null,en=1,boost={},trainOn=true;
 let socSel='',socLv=1,relSel='',relLv=1,waveSel='';   // 소속·관계 팀컬러+단계, 강화케미(물결) 별도
@@ -181,7 +181,7 @@ q.addEventListener('input',()=>{
     const gt=gids.length?`<span class="gt">${gids.map(id=>`<img class="gtico" src="${TRAITURL(id)}" title="${(TRAIT[id]||{}).n||''}" onerror="this.style.display='none'">`).join('')}</span>`:'<span class="gt"></span>';
     return `<div class="rItem" data-i="${i}">`
       +`<span class="pay">${r[8]||'-'}</span>`
-      +faceImg(r[0],true,'')
+      +faceImg(r[0],true,'','대갈미페')
       +`<span class="sn">${r[2]}</span>`
       +`<span class="nm">${r[1]}</span>`
       +`<span class="pos">${r[3]}</span>`
@@ -331,7 +331,7 @@ function render(){
 
   $('#main').innerHTML=`<div class="panel">
     <div class="pName">
-      <div class="pPhotos"><figure>${faceImg(cur[0],false,'action')}<figcaption>대갈미페</figcaption></figure><figure>${faceImg(cur[0],true,'mini')}<figcaption>미니페이스온</figcaption></figure></div>
+      <div class="pPhotos">${faceImg(cur[0],false,'action','미니페이스온')}</div>
       <div class="pInfo">
         <div class="pn">${cur[1]} <small>${cur[2]} · ${pos} ${c.ovr}</small>${wrHtml}</div>
         <div class="pMeta">${metaHtml}</div>
