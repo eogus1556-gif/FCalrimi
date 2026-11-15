@@ -313,6 +313,9 @@
       state.ready = true;
       const seasons = [...new Set(state.rows.map(row => row.season).filter(Boolean))].sort((a,b) => a.localeCompare(b,'ko',{numeric:true}));
       $('season').insertAdjacentHTML('beforeend', seasons.map(value => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join(''));
+      const linkParams=new URLSearchParams(location.search),linkQuery=linkParams.get('q'),linkSeason=linkParams.get('season');
+      if(linkQuery)$('query').value=linkQuery;
+      if(linkSeason&&seasons.includes(linkSeason))$('season').value=linkSeason;
       const missing = state.rows.filter(row => !hasKnownTime(row)).length;
       const inferable = state.rows.filter(row => row.estimateStatus === 'estimated').length;
       $('loadState').innerHTML = `전체 ${state.rows.length.toLocaleString()}명 · 미등록 ${missing.toLocaleString()}명 · <strong>범위 유추 가능 ${inferable.toLocaleString()}명</strong>`;

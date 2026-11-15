@@ -312,8 +312,8 @@
   .p-card .p-refresh{ font-size:15px; font-weight:600; }
   .p-card .p-refresh.none{ color:var(--text-dim); font-weight:400; }
   .p-card .p-timer{ font-family:var(--font-mono); font-size:12px; color:var(--text-dim); margin-top:6px; }
-  .p-card .report-go{ margin-top:8px; background:none; border:1px solid var(--lime); color:var(--lime);
-    font-family:var(--font-body); font-size:12px; font-weight:700; padding:6px 12px; border-radius:100px; cursor:pointer; }
+  .p-card .report-go{ display:inline-block; margin:8px 5px 0 0; background:none; border:1px solid var(--lime); color:var(--lime);
+    font-family:var(--font-body); font-size:12px; font-weight:700; padding:6px 12px; border-radius:100px; cursor:pointer; text-decoration:none; }
   .p-card .report-go:hover{ background:var(--lime); color:#0B0F14; }
   .p-card .report-chip{
     display:inline-block; margin-top:8px; font-size:11px; color:#F5B84B;
@@ -4256,7 +4256,8 @@
              <div class="p-timer">${c.hj ? timerChip(c.hj, c.min) : ''}</div>`
           : (reportTimeHtml(c.id)
              || `<div class="p-refresh none">갱신 시간 미확인</div>
-             ${reportCountOf(c.id) === 0 ? `<button class="report-go" onclick="event.stopPropagation(); openReportModal(${c.id})">제보</button>` : ''}`)}
+             ${reportCountOf(c.id) === 0 ? `<button class="report-go" onclick="event.stopPropagation(); openReportModal(${c.id})">제보</button>` : ''}
+             ${trackerSearchLink(c)}`)}
         ${reportChipHtml(c.id)}
       </div>
     `).join('');
@@ -4300,6 +4301,10 @@
   function goSearch(){ goSearchFrom('playerSearch'); }
 
   // ---------- 검색 결과 카드 화면: 관련 선수 전원의 카드를 갱신시간과 함께 표시 ----------
+  function trackerSearchLink(c){
+    const url = `/refresh-estimate.html?q=${encodeURIComponent(c.name)}&season=${encodeURIComponent(c.season || '')}`;
+    return `<a class="report-go" href="${url}" onclick="event.stopPropagation()">추적기에서 검색하러 가기</a>`;
+  }
   function multiCardHtml(c, favs){
     return `
       <div class="p-card">
@@ -4309,7 +4314,7 @@
         ${c.pos || c.ovr ? `<div class="p-timer" style="margin:0 0 8px;">${esc(c.pos)}${c.pos && c.ovr ? ' · ' : ''}${c.ovr ? 'OVR ' + c.ovr : ''}</div>` : ''}
         ${c.refresh
           ? `<div class="p-refresh">${c.refresh}</div><div class="p-timer">${timerChip(c.hj, c.min)}</div>`
-          : (reportTimeHtml(c.id) || `<div class="p-refresh none">갱신 시간 미확인</div>${reportCountOf(c.id) === 0 ? `<button class="report-go" onclick="event.stopPropagation(); openReportModal(${c.id})">제보</button>` : ''}`)}
+          : (reportTimeHtml(c.id) || `<div class="p-refresh none">갱신 시간 미확인</div>${reportCountOf(c.id) === 0 ? `<button class="report-go" onclick="event.stopPropagation(); openReportModal(${c.id})">제보</button>` : ''}${trackerSearchLink(c)}`)}
         ${reportChipHtml(c.id)}
       </div>`;
   }
