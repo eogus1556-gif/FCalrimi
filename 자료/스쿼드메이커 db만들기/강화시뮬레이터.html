@@ -76,7 +76,8 @@
 </style>
 <style>
 /* Geometry measured from the supplied portrait recordings. */
-.motion{width:min(100vw,46.2svh,460px);height:100svh;container-type:size}
+.motion{width:100vw;height:100svh;container-type:normal}
+.motion-stage{position:relative;z-index:2;width:min(100vw,46.2svh,460px);height:100%;margin:auto;container-type:size}
 .motion-card{width:37cqw;height:57cqw}.motion .motion-card .cardface{width:37cqw;height:57cqw}
 .motion .cardface{clip-path:polygon(50% 0,96% 7%,100% 10%,100% 91%,50% 100%,0 91%,0 10%,4% 7%);border-radius:0;background:linear-gradient(135deg,#d9c77e 0%,#25344a 16%,#0c1827 60%,#d1b775 100%);border:2px solid #c1b47d;box-shadow:inset 0 0 0 3px #26384b}
 .motion .cardface .player-img{top:14%;height:68%;width:108%;object-position:center bottom}
@@ -263,7 +264,7 @@ html.ios-webapp body{padding-top:var(--webapp-top-safe)}
 <div id="boostPicker" class="choice-modal"><div class="choice-box"><div class="choice-title"><span>강화 부스트 효과 선택</span><button id="boostClose" class="choice-close" type="button">×</button></div><p class="choice-copy">강화 부스트 효과를 선택한 뒤 적용하세요.</p><div id="boostOptions" class="boost-options"><button class="boost-option" type="button" data-boost="0">없음</button><button class="boost-option" type="button" data-boost="25">25%</button><button class="boost-option" type="button" data-boost="30">30%</button><button class="boost-option" type="button" data-boost="35">35%</button></div><button id="boostApply" class="choice-apply" type="button">적용</button></div></div>
 <div id="stagePicker" class="choice-modal"><div class="choice-box"><div class="choice-title"><span>현재 강화 단계 수정</span><button id="stageClose" class="choice-close" type="button">×</button></div><p class="choice-copy">카드의 시즌명을 눌러 현재 강화 단계를 바꿀 수 있습니다.</p><div id="stageOptions" class="boost-options"></div></div></div>
 <div id="seasonPicker" class="choice-modal"><div class="choice-box"><div class="choice-title"><span>시즌 교체</span><button id="seasonClose" class="choice-close" type="button">×</button></div><p class="choice-copy">같은 선수의 다른 시즌으로 교체합니다.</p><div id="seasonOptions" class="season-options"></div></div></div>
-<div id="motion" class="motion"><button id="skip" class="skip" type="button">SKIP</button><div class="motion-card"><div id="motionCard" class="cardface"></div><div id="motionName" class="motion-name"></div><div id="motionCopy" class="motion-copy">강화 결과를 확인하세요.</div></div><div id="motionResult" class="motion-result"></div><div id="motionDetail" class="motion-detail"></div><div class="motion-prompt">화면의 임의의 구역을 터치하여 나가세요.</div></div>
+<div id="motion" class="motion"><div class="motion-stage" id="motionStage"><button id="skip" class="skip" type="button">SKIP</button><div class="motion-card"><div id="motionCard" class="cardface"></div><div id="motionName" class="motion-name"></div><div id="motionCopy" class="motion-copy">강화 결과를 확인하세요.</div></div><div id="motionResult" class="motion-result"></div><div id="motionDetail" class="motion-detail"></div><div class="motion-prompt">화면의 임의의 구역을 터치하여 나가세요.</div></div></div>
 <div id="simModal" class="sim-modal"><div class="sim-box"><div class="sim-head"><b>목표 강화 시뮬레이션</b><button id="simClose" type="button" aria-label="닫기">×</button></div><div class="sim-form"><div class="sim-stage-field"><label for="simStartButton">현재 강화단계</label><select id="simStart"></select><button id="simStartButton" class="sim-stage-trigger" type="button"></button><div id="simStartGrid" class="sim-stage-grid"></div></div><div class="sim-stage-field"><label for="simTargetButton">목표 강화단계</label><select id="simTarget"></select><button id="simTargetButton" class="sim-stage-trigger" type="button"></button><div id="simTargetGrid" class="sim-stage-grid"></div></div><div class="sim-gauge-field"><label>확률 부스트 게이지</label><select id="simGauge"></select><div id="simGaugeBars" class="sim-gauge-bars" role="group" aria-label="확률 부스트 게이지 1~5칸"><button type="button" data-g="1">1</button><button type="button" data-g="2">2</button><button type="button" data-g="3">3</button><button type="button" data-g="4">4</button><button type="button" data-g="5">5</button></div></div><label class="sim-check"><input id="simProtect" type="checkbox">강화 등급 보호 사용</label></div><button id="simRun" class="sim-run" type="button">목표까지 돌리기</button><div id="simResult" class="sim-result" aria-live="polite">선수를 선택한 뒤 조건을 설정하세요.</div></div></div>
 <script>
 (()=>{
@@ -536,7 +537,7 @@ function shatterCard(source){
       const clone=source.cloneNode(true);clone.removeAttribute('id');clone.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));clone.querySelectorAll('button').forEach(n=>{n.tabIndex=-1;n.disabled=true});piece.append(clone);layer.append(piece);
     }
   }
-  $('motion').append(layer);setTimeout(()=>layer.remove(),1700);
+  $('motionStage').append(layer);setTimeout(()=>layer.remove(),1700);
 }
 finishMotion=function(){const pending=S.pending;if(!pending)return;const source=$('motionCard').querySelector('.cardface')?.cloneNode(true);originalFinishMotion();if(!pending.ok&&source)shatterCard(source);
   const name=$('motionDetail').querySelector('.detail-name');if(name){name.textContent=S.player[1];const icon=document.createElement('img');icon.src=seasonImage(S.player[2]);icon.alt=S.player[2];name.prepend(icon)}
@@ -546,7 +547,7 @@ finishMotion=function(){const pending=S.pending;if(!pending)return;const source=
   rows[1]?.querySelector('em')?.remove();
 };
 let resultShownAt=Infinity;const finishWithFragments=finishMotion;
-finishMotion=function(){if(!S.pending)return;const ok=S.pending.ok;finishWithFragments();resultShownAt=performance.now();if(ok){const sparks=document.createElement('div');sparks.className='motion-sparks';sparks.innerHTML=Array.from({length:32},(_,i)=>{const a=i*2.399;return `<i style="--x:${Math.cos(a)*140}px;--y:${Math.sin(a)*220}px;--r:0deg"></i>`}).join('');$('motion').append(sparks);setTimeout(()=>sparks.remove(),1800)}};
+finishMotion=function(){if(!S.pending)return;const ok=S.pending.ok;finishWithFragments();resultShownAt=performance.now();if(ok){const sparks=document.createElement('div');sparks.className='motion-sparks';sparks.innerHTML=Array.from({length:32},(_,i)=>{const a=i*2.399;return `<i style="--x:${Math.cos(a)*140}px;--y:${Math.sin(a)*220}px;--r:0deg"></i>`}).join('');$('motionStage').append(sparks);setTimeout(()=>sparks.remove(),1800)}};
 $('motion').onclick=null;
 document.addEventListener('click',e=>{if($('motion').classList.contains('show')&&!S.pending&&performance.now()-resultShownAt>300){e.stopImmediatePropagation();$('motion').className='motion'}},true);
 const renderWithSeason=render;
