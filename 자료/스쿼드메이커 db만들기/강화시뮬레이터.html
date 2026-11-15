@@ -188,13 +188,15 @@
 .fc-tool-ad.bottom{left:50%;bottom:0;transform:translateX(-50%);width:min(728px,calc(100vw - 24px));height:90px}
 @media(min-width:1440px){.fc-tool-ad.side{display:block}}
 @media(max-width:780px){.fc-tool-ad.bottom{width:min(320px,calc(100vw - 24px));height:100px}}
+.page{margin-bottom:0}
+.fc-tool-ad.bottom{position:relative;left:auto;bottom:auto;transform:none;margin:16px auto 24px}
+@media(max-width:780px){.fc-tool-ad.bottom{margin-bottom:calc(110px + env(safe-area-inset-bottom,0px))}}
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8019320351145896" crossorigin="anonymous"></script>
 </head>
 <body>
 <div id="fcToolAdLeft" class="fc-tool-ad side left" aria-label="좌측 광고"></div>
 <div id="fcToolAdRight" class="fc-tool-ad side right" aria-label="우측 광고"></div>
-<div id="fcToolAdBottom" class="fc-tool-ad bottom" aria-label="하단 광고"></div>
 
 <main class="page">
   <header class="topbar"><h1>선수 강화</h1><button id="simOpen" class="sim-open" type="button">딸깍 시뮬레이션</button><a class="help" href="https://fconline.nexon.com/news/notice/view?n4ArticleSN=5106" target="_blank" rel="noopener noreferrer"><b>?</b> 강화 확률 안내</a></header>
@@ -217,6 +219,7 @@
   </section>
   <button id="enhance" class="bottom" type="button" disabled>강화</button>
 </main>
+<div id="fcToolAdBottom" class="fc-tool-ad bottom" aria-label="하단 광고"></div>
 <div id="picker" class="picker"><div class="picker-box"><div class="picker-title"><span>대상 선수 선택</span><button id="pickerClose" class="picker-close" type="button">×</button></div><input id="search" placeholder="선수명 또는 시즌명 검색" autocomplete="off"><p id="loadStatus" class="load-status" hidden></p><div id="results" class="results"></div></div></div>
 <div id="boostPicker" class="choice-modal"><div class="choice-box"><div class="choice-title"><span>강화 부스트 효과 선택</span><button id="boostClose" class="choice-close" type="button">×</button></div><p class="choice-copy">강화 부스트 효과를 선택한 뒤 적용하세요.</p><div id="boostOptions" class="boost-options"><button class="boost-option" type="button" data-boost="0">없음</button><button class="boost-option" type="button" data-boost="25">25%</button><button class="boost-option" type="button" data-boost="30">30%</button><button class="boost-option" type="button" data-boost="35">35%</button></div><button id="boostApply" class="choice-apply" type="button">적용</button></div></div>
 <div id="stagePicker" class="choice-modal"><div class="choice-box"><div class="choice-title"><span>현재 강화 단계 수정</span><button id="stageClose" class="choice-close" type="button">×</button></div><p class="choice-copy">카드의 시즌명을 눌러 현재 강화 단계를 바꿀 수 있습니다.</p><div id="stageOptions" class="boost-options"></div></div></div>
@@ -422,11 +425,12 @@ function renderSimGauge(){const selected=Number($('simGauge').value);document.qu
 document.querySelectorAll('#simGaugeBars button').forEach(b=>b.onclick=()=>{$('simGauge').value=b.dataset.g;renderSimGauge()});
 function renderSimStage(kind){const select=$(kind),grid=$(`${kind}Grid`),trigger=$(`${kind}Button`),min=kind==='simStart'?1:2,max=kind==='simStart'?12:13;trigger.textContent=`${select.value}강 ▾`;trigger.className=`sim-stage-trigger ${stageClass(Number(select.value))}`;grid.innerHTML=Array.from({length:max-min+1},(_,i)=>{const level=i+min;return`<button type="button" class="${stageClass(level)} ${Number(select.value)===level?'selected':''}" data-level="${level}">${levelLabel(level)}</button>`}).join('');grid.querySelectorAll('button').forEach(b=>b.onclick=()=>{select.value=b.dataset.level;grid.classList.remove('show');renderSimStage(kind)})}
 for(const kind of ['simStart','simTarget']){$(`${kind}Button`).onclick=()=>{const grid=$(`${kind}Grid`),button=$(`${kind}Button`);document.querySelectorAll('.sim-stage-grid').forEach(g=>{if(g!==grid)g.classList.remove('show')});grid.classList.toggle('show');if(grid.classList.contains('show')){const anchor=button.getBoundingClientRect(),width=grid.offsetWidth,height=grid.offsetHeight;grid.style.left=`${Math.max(8,Math.min(innerWidth-width-8,anchor.left))}px`;grid.style.top=`${anchor.bottom+height+8<=innerHeight?anchor.bottom+4:Math.max(8,anchor.top-height-4)}px`}}}
-$('simOpen').onclick=()=>{const start=Math.min(12,S.level);$('simStart').value=String(start);$('simTarget').value=String(Math.min(13,start+1));renderSimStage('simStart');renderSimStage('simTarget');document.querySelectorAll('.sim-stage-grid').forEach(g=>g.classList.remove('show'));$('simGauge').value=String(S.gauge||5);renderSimGauge();$('simProtect').checked=S.gradeProtect;$('simResult').textContent=S.player?'조건을 선택하고 실행하세요.':'먼저 대상 선수를 선택하세요.';$('simRun').textContent='목표까지 돌리기';$('simModal').classList.add('show')};
+$('simProtect').addEventListener('click',e=>{const info=protectionInfo();if(!info.excluded)return;e.preventDefault();$('simProtect').checked=false;const message=excludedClasses.has(norm(S.player[2]))?'강화 등급 보호 제외 대상 시즌입니다.':'강화 등급 보호 제외 대상 선수입니다.';$('simResult').textContent=message;alert(message)});
+$('simOpen').onclick=()=>{const start=Math.min(12,S.level);$('simStart').value=String(start);$('simTarget').value=String(Math.min(13,start+1));renderSimStage('simStart');renderSimStage('simTarget');document.querySelectorAll('.sim-stage-grid').forEach(g=>g.classList.remove('show'));$('simGauge').value=String(S.gauge||5);renderSimGauge();$('simProtect').checked=S.gradeProtect&&!protectionInfo().excluded;$('simResult').textContent=S.player?'조건을 선택하고 실행하세요.':'먼저 대상 선수를 선택하세요.';$('simRun').textContent='목표까지 돌리기';$('simModal').classList.add('show')};
 $('simClose').onclick=()=>$('simModal').classList.remove('show');$('simModal').onclick=e=>{if(e.target===$('simModal'))$('simModal').classList.remove('show')};
 $('simRun').onclick=async()=>{
   const out=$('simResult'),button=$('simRun'),start=Number($('simStart').value),target=Number($('simTarget').value),gauge=Number($('simGauge').value),protect=$('simProtect').checked;
-  if(!S.player){out.textContent='먼저 대상 선수를 선택하세요.';return}if(!rareMaterials.ready){out.textContent='생성 제한 재료 데이터가 로드되지 않았습니다.';return}if(target<=start){out.textContent='목표 강화단계는 현재 단계보다 높아야 합니다.';return}
+  if(!S.player){out.textContent='먼저 대상 선수를 선택하세요.';return}if(protect&&protectionInfo().excluded){$('simProtect').checked=false;out.textContent='강화 등급 보호 제외 대상 선수입니다.';return}if(!rareMaterials.ready){out.textContent='생성 제한 재료 데이터가 로드되지 않았습니다.';return}if(target<=start){out.textContent='목표 강화단계는 현재 단계보다 높아야 합니다.';return}
   button.disabled=true;out.textContent='단계별 재료와 비용을 계산하고 있습니다…';
   const previous={level:S.level,gauge:S.gauge,materials:S.materials,players:S.materialPlayers,gradeProtect:S.gradeProtect};
   try{
