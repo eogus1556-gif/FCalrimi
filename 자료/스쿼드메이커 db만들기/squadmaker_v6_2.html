@@ -1254,12 +1254,13 @@ function liveWrTxt(mode, tc){ const w=liveTcWr(mode,tc);
 let RARE=null, _rareLoading=null;   // rare.json: 희귀매물(생성제한) 시즌·카드 목록
 function rareLoad(){ if(RARE||_rareLoading)return;
   _rareLoading=fetch('rare.json',{cache:'no-cache'}).then(r=>r.json()).then(d=>{
-    RARE={ss:new Set(d.seasons||[]), sp:new Set((d.spids||[]).map(Number))}; }).catch(()=>{RARE=null;}); }
+    RARE={ss:new Set(d.seasons||[]), sp:new Set((d.spids||[]).map(Number)), ok:new Set((d.allowed_spids||[]).map(Number))}; }).catch(()=>{RARE=null;}); }
 // 희귀매물 여부 (제외 옵션이 꺼져 있으면 항상 false)
 function isRare(spid){ if(!aiState.noRare||!RARE)return false;
   const r=byId(spid),pos=String(r?.[I.pos]||'').toUpperCase();
   if(aiState.rareGkFree&&pos==='GK')return false;
   if(aiState.rareFullbackFree&&['LWB','LB','RB','RWB'].includes(pos))return false;
+  if(RARE.ok.has(+spid))return false;
   if(RARE.sp.has(+spid))return true;
   return !!(r&&RARE.ss.has(r[I.season])); }
 // 딸깍이 쓸 수 있는 카드인가 — 로컬 DB에 있고, 희귀매물 제외 조건에 안 걸림
