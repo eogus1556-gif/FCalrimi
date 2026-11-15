@@ -197,8 +197,8 @@
 .fc-tool-ad.bottom{left:50%;bottom:0;transform:translateX(-50%);width:min(728px,calc(100vw - 24px));height:90px}
 @media(min-width:1440px){.fc-tool-ad.side{display:block}}
 @media(max-width:780px){.fc-tool-ad.bottom{width:min(320px,calc(100vw - 24px));height:100px}}
-.page{height:calc(100svh - 112px);min-height:560px;margin:10px auto 0}
-.page .field{flex-basis:clamp(250px,35svh,270px)}
+.page{height:100svh;min-height:560px;margin:0 auto}
+.page .field{flex-basis:clamp(270px,38svh,310px)}
 .page .field .details .name{font-size:18px;margin-bottom:8px}
 .page .field .statrow{margin:4px 0;font-size:13px}
 .page .field .statrow strong{font-size:17px}
@@ -206,11 +206,11 @@
 .page .field .select-hint{bottom:5px;font-size:10px}
 .page .topbar{height:54px;flex:0 0 54px}
 .page #enhance{height:56px;flex:0 0 56px}
-.fc-tool-ad.bottom{position:relative;left:auto;bottom:auto;transform:none;margin:8px auto 4px}
+.fc-tool-ad.bottom{position:relative;left:auto;bottom:auto;transform:none;margin:28px auto 40px}
 @media(max-width:780px){
-  .page{height:calc(100svh - 230px);min-height:520px;margin-top:8px}
-  .page .field{flex-basis:clamp(230px,30svh,250px)}
-  .fc-tool-ad.bottom{margin-top:12px;margin-bottom:calc(106px + env(safe-area-inset-bottom,0px))}
+  .page{height:100svh;min-height:520px;margin-top:0}
+  .page .field{flex-basis:clamp(270px,36svh,305px)}
+  .fc-tool-ad.bottom{margin-top:24px;margin-bottom:calc(106px + env(safe-area-inset-bottom,0px))}
 }
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8019320351145896" crossorigin="anonymous"></script>
@@ -326,7 +326,7 @@ function recipe(){return fullGaugeRecipe[Math.max(0,Math.min(fullGaugeRecipe.len
 function materialTargetOvr(ratio=1){if(!S.player)return 0;const target=currentOvr(S.player),ref=referenceTargetOvr[Math.max(0,Math.min(referenceTargetOvr.length-1,S.level-1))]||target;return Math.max(50,Math.round(target+(recipe().avg-ref)*ratio))}
 const rareMaterials={ready:false,seasons:new Set(),spids:new Set()};
 const materialAllowed=p=>rareMaterials.ready&&norm(p[2])!=='ICONTM'&&!rareMaterials.seasons.has(norm(p[2]))&&!rareMaterials.spids.has(Number(p[0]));
-async function loadRareMaterials(){try{const response=await fetch('/자료/스쿼드메이커 db만들기/rare.json');if(!response.ok)throw new Error(`rare.json ${response.status}`);const data=await response.json();rareMaterials.seasons=new Set((data.seasons||[]).map(norm));rareMaterials.spids=new Set((data.spids||[]).map(Number));rareMaterials.ready=true;S.materialPlayers=S.materialPlayers.filter(materialAllowed);S.materials=S.materialPlayers.length;render()}catch(e){S.loadError=`생성 제한 데이터 로딩 실패: ${e.message}`;S.materialPlayers=[];S.materials=0;render()}}
+async function loadRareMaterials(){try{const response=await fetch('rare.json',{cache:'no-store'});if(!response.ok)throw new Error(`rare.json ${response.status}`);const data=await response.json();rareMaterials.seasons=new Set((data.seasons||[]).map(norm));rareMaterials.spids=new Set((data.spids||[]).map(Number));rareMaterials.ready=true;S.materialPlayers=S.materialPlayers.filter(materialAllowed);S.materials=S.materialPlayers.length;render()}catch(e){S.loadError=`생성 제한 데이터 로딩 실패: ${e.message}`;S.materialPlayers=[];S.materials=0;render()}}
 function materialCandidates(ratio=1){if(!S.player)return[];const minOvr=materialTargetOvr(ratio);return S.rows.filter(p=>materialAllowed(p)&&Number(p[0])!==Number(S.player[0])&&Number(p[4])>=minOvr&&playerPrice(p)>0).sort((a,b)=>playerPrice(a)-playerPrice(b)||Number(b[4])-Number(a[4]))}
 function materialCost(){return S.materialPlayers.reduce((sum,p)=>sum+playerPrice(p),0)}
 function totalCost(){const info=protectionInfo();return materialCost()+(S.gradeProtect&&info.eligible?protectionCost(info):0)}
