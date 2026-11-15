@@ -1006,7 +1006,7 @@ button{cursor:pointer;}
     <div class="aiGoldPosHead"><strong id="aiGoldPosTitle">포지션별 금빛특성</strong><span id="aiGoldPosForm"></span><button type="button" onclick="closeAiGoldPositions()">완료</button></div>
     <div class="aiGoldLegend" id="aiGoldLegend"></div>
     <div class="aiGoldPitch" id="aiGoldPitch"></div>
-    <p class="aiGoldPosHint">포지션을 누르면 바로 아래에 특성 목록이 열립니다. 처음 누른 특성은 1순위, 다음 특성은 2순위로 자동 등록됩니다.</p>
+    <p class="aiGoldPosHint">포지션을 누르면 바로 아래에 특성 목록이 열립니다. 처음 누른 특성은 1순위, 다음 특성은 2순위입니다. 두 특성 중 하나를 기본으로 가진 선수를 우선 배치하고, 없으면 픽률 순으로 채웁니다.</p>
   </div>
 </div>
 
@@ -3021,7 +3021,7 @@ function autoFormFor(mode, tcName){
   if(tcName){ const byTc=md.formation_by_tc&&md.formation_by_tc[tcName]; const f=pick(byTc); if(f) return f; }
   return pick(md.top_formations);
 }
-// 자동 팀컬러: 랭커 사용률 순으로 고르되 선택한 1·2순위 금빛특성에 맞는 선수 둘을 확보한다.
+// 자동 팀컬러: 특성 조건에 맞는 인기 팀을 우선하고, 없으면 픽률 상위 팀으로 진행한다.
 const AUTO_TC_TOP=10;
 function autoTcGoldPlayers(mode,no,traitId){
   const groups=[...new Set((GOLD_TRAIT_POS_PREF[traitId]||[]).map(grpOf))],found=new Map();
@@ -3033,6 +3033,7 @@ function autoTcGoldPlayers(mode,no,traitId){
   return [...found.values()].sort((a,b)=>b.score-a.score).slice(0,30);
 }
 function autoTcGoldFits(mode,no,tcName){
+  if(aiHasPositionGold())return true;
   const wanted=(aiState.goldTraits||[]).slice(0,2);if(!wanted.length)return true;
   const form=aiState.form&&aiState.form!=='auto'?aiState.form:(autoFormFor(mode,tcName)||curForm);
   const slots=(FORMATIONS[form]||[]).map(coords=>grpOf(zoneAt(coords[0],coords[1])));
@@ -3041,18 +3042,37 @@ function autoTcGoldFits(mode,no,tcName){
   const second=autoTcGoldPlayers(mode,no,wanted[1]);
   return first.some(a=>second.some(b=>b.pid!==a.pid&&slots.some((group,i)=>group===b.group&&i!==a.slot)));
 }
+function autoTcPositionGoldFits(mode,no){
+  const form=FORMATIONS[aiState.goldSlotsForm]||FORMATIONS[curForm]||[];
+  const required=Object.entries(aiState.goldSlots||{}).map(([index])=>({index:+index,choices:aiGoldSlotChoices(+index)}))
+    .filter(item=>item.choices.length&&form[item.index]);
+  if(!required.length)return true;
+  const candidates=required.map(item=>{
+    const coords=form[item.index],group=grpOf(zoneAt(coords[0],coords[1]));
+    return [...new Set(((PICK?.[mode]||{})[group]||[]).slice(0,200)
+      .filter(pick=>(CHEM?.[pick.spid]?.tc||[]).some(id=>+id===+no)&&aiOk(pick.spid)&&item.choices.some(id=>hasBaseGoldTrait(pick.spid,id)))
+      .map(pick=>PID(pick.spid)))];
+  });
+  if(candidates.some(list=>!list.length))return false;
+  const owner=new Map();
+  const match=(slot,seen)=>{for(const pid of candidates[slot]){
+    if(seen.has(pid))continue;seen.add(pid);
+    if(!owner.has(pid)||match(owner.get(pid),seen)){owner.set(pid,slot);return true;}
+  }return false;};
+  return required.every((_,slot)=>match(slot,new Set()));
+}
 function autoTcCands(mode){
   const md=RANK&&RANK.modes&&RANK.modes[rankModeKey(mode)];
   if(!md||!TCFULL) return [];
   const byName={}; for(const no in TCFULL){ const nm=TCFULL[no].n; if(byName[nm]==null) byName[nm]=no; }
-  const out=[];
+  const matched=[],fallback=[];
   const soc=socTcSet();
   for(const e of (md.top_teamcolors||[])){
-    const no=byName[e.name]; if(!no||!soc.has(+no)||!autoTcGoldFits(mode,+no,e.name)) continue; // 금빛특성 1·2순위가 들어갈 팀만
-    out.push({no:+no, name:e.name});
-    if(out.length>=AUTO_TC_TOP) break;
+    const no=byName[e.name];if(!no||!soc.has(+no))continue;
+    const candidate={no:+no,name:e.name};fallback.push(candidate);
+    if(autoTcGoldFits(mode,+no,e.name)&&autoTcPositionGoldFits(mode,+no))matched.push(candidate);
   }
-  return out;
+  return (matched.length?matched:fallback).slice(0,AUTO_TC_TOP);
 }
 function rollAutoTc(){   // 자동 선택/재추첨. 성공 시 true
   const c=autoTcCands(aiState.mode); if(!c.length){aiState.tc=null;aiState.tcName='';return false;}
@@ -3149,7 +3169,7 @@ function renderAiStep(){
   }
   else if(step.key==='tc'){
     body.innerHTML=`<div class="aiQ">팀컬러를 고를까요?</div>
-      <div class="aiHint">자동 선택은 랭커 픽률이 높은 팀부터 확인하며, 앞서 고른 금빛특성 1·2순위를 적용할 수 있는 선수가 있는 팀만 고릅니다. 8강 미만 카드는 기본 보유 특성만 적용됩니다. 직접 고르거나 건너뛸 수도 있어요.</div>
+      <div class="aiHint">자동 선택은 랭커 픽률이 높은 팀부터 확인하며, 포지션별 특성을 선택했다면 해당 조건을 우선 적용합니다. 조건에 맞는 팀이나 선수가 없으면 픽률 순으로 채웁니다. 포지션별 선택이 없을 때만 공통 1·2순위를 기준으로 고릅니다.</div>
       <div class="inClear" style="width:min(560px,92vw);margin-bottom:10px;"><input class="tInput" id="aiTcQ" placeholder="팀컬러 검색 (예: 레알 마드리드 · ㄹㅇㅁㄷㄹㄷ · w g)" style="width:100%;padding:10px 12px;"><button type="button" class="inX" onclick="clearInput('aiTcQ')">×</button></div>
       <div class="aiWrapList" id="aiTcList"></div>`;
     const inp=document.getElementById('aiTcQ');
@@ -3190,13 +3210,13 @@ function renderAiStep(){
   else if(step.key==='gold'){
     const gold=Object.keys(TRAITS||{}).filter(id=>TRAITS[id]&&TRAITS[id].g)
       .sort((a,b)=>(TRAITS[a].n||'').localeCompare(TRAITS[b].n||'','ko'));
-    const selected=aiState.goldTraits||[];
+    const selected=aiState.goldTraits||[],positionMode=aiHasPositionGold();
     body.innerHTML=`<div class="aiQ">금빛특성 우선순위를 고르세요</div>
-      <div class="aiHint">자동 배치용 특성을 최대 4개까지 순서대로 선택하세요. 1·2순위는 다음 단계의 자동 팀컬러 선택에 우선 반영됩니다. 하단 포지션별 선택은 이 순위와 별도로 각 자리의 1·2순위를 직접 지정합니다. 아무것도 선택하지 않아도 됩니다.</div>
+      <div class="aiHint">자동 배치용 특성을 최대 4개까지 순서대로 선택하세요. 포지션별 특성을 하나라도 선택하면 공통 1~4순위는 적용되지 않습니다. 포지션별 선택을 모두 해제하면 공통 순위가 다시 적용됩니다.</div>
       <div class="aiWrapList" style="max-height:48vh;">
         <div class="aiRow ${selected.length?'':'on'}" data-ai-gold=""><span class="t">선택 안 함</span><span class="n">전체 해제</span></div>
-        ${gold.map(id=>{const rank=selected.findIndex(x=>String(x)===String(id));return `<div class="aiRow ${rank>=0?'on':''}" data-ai-gold="${id}">
-          <img src="${TRAIT_ICON(id)}" onerror="this.style.visibility='hidden'"><span class="t">${esc(TRAITS[id].n||('특성 '+id))}</span><span class="n">${rank>=0?`${rank+1}순위`:'선택'}</span></div>`;}).join('')}
+        ${gold.map(id=>{const rank=selected.findIndex(x=>String(x)===String(id));return `<div class="aiRow ${rank>=0&&!positionMode?'on':''}" data-ai-gold="${id}">
+          <img src="${TRAIT_ICON(id)}" onerror="this.style.visibility='hidden'"><span class="t">${esc(TRAITS[id].n||('특성 '+id))}</span><span class="n">${rank>=0?positionMode?'포지션별 선택 중 미적용':`${rank+1}순위`:'선택'}</span></div>`;}).join('')}
       </div>
       <button type="button" class="aiGoldPosOpen" data-ai-gold-pos>포지션별 선택하기</button>`;
   }
@@ -3208,7 +3228,7 @@ function renderAiStep(){
     const budTxt=aiState.budget?`${aiState.budget}억 BP${budgetBucketLabel(aiState.budget)?` · ${budgetBucketLabel(aiState.budget)} 랭커 기준`:''}`:'제한 없음';
     const grTxt=aiState.grade==='custom'?'개별 설정':((GRADE_PRESETS[aiState.grade]||{}).label||'자동');
     aiGoldEnsureForm();const positionGoldTxt=Object.entries(aiState.goldSlots||{}).map(([slot,raw])=>{const L=(FORMATIONS[aiState.goldSlotsForm]||[])[+slot]||[.5,.5],pos=zoneAt(L[0],L[1]),names=(Array.isArray(raw)?raw:[raw]).filter(id=>id!=null).map((id,r)=>`${r+1}. ${(TRAITS[id]||{}).n||('특성 '+id)}`);return names.length?`${pos}: ${names.join(' / ')}`:'';}).filter(Boolean);
-    const autoGoldTxt=(aiState.goldTraits||[]).map((id,i)=>`${i+1}. ${(TRAITS[id]||{}).n||('특성 '+id)}`);
+    const autoGoldTxt=aiHasPositionGold()?[]:(aiState.goldTraits||[]).map((id,i)=>`${i+1}. ${(TRAITS[id]||{}).n||('특성 '+id)}`);
     const goldTxt=[autoGoldTxt.length?`자동 ${autoGoldTxt.join(', ')}`:'',...positionGoldTxt].filter(Boolean).join('<br>')||'선택 안 함';
     const lockTxt=aiState.locks.length?`${aiState.locks.length}명`:'없음';
     body.innerHTML=`<div class="aiQ aiBuildTitle">이대로 만들까요?</div>
@@ -3243,9 +3263,9 @@ function renderAiTcList(){
   const auto=autoTcCands(aiState.mode);
   box.innerHTML=
     (auto.length?`<div class="aiRow ${aiState.tcAuto?'on':''}" data-tc="auto">
-      <span class="t">자동 — 인기 팀컬러<br><small style="color:var(--text-dim);font-weight:700;">${(aiState.goldTraits||[]).length?'금빛특성 1·2순위 가능 팀 중 픽률 순':'랭커 픽률 상위'} · 11명 전원 같은 팀</small></span>
+      <span class="t">자동 — 인기 팀컬러<br><small style="color:var(--text-dim);font-weight:700;">${aiHasPositionGold()?'포지션별 기본 특성 우선 · 없으면 픽률 순':(aiState.goldTraits||[]).length?'금빛특성 1·2순위 우선 · 없으면 픽률 순':'랭커 픽률 상위'} · 11명 전원 같은 팀</small></span>
       <span class="n">${aiState.tcAuto?`<b class="aiAutoName">${esc(aiState.tcName)} ⟳</b>`:'추첨'}${aiState.tcAuto&&aiState.tc&&!careerKeyNorm(aiState.tc)&&liveWrTxt(aiState.mode,aiState.tc)?`<br><small style="color:var(--text-dim);font-weight:700;">${liveWrTxt(aiState.mode,aiState.tc)}</small>`:''}</span></div>`:'')+
-    (!auto.length&&(aiState.goldTraits||[]).length?'<div class="aiHint">선택한 금빛특성 1·2순위에 맞는 자동 팀을 찾지 못했어요. 특성을 바꾸거나 팀컬러를 직접 선택해 주세요.</div>':'')+
+    (!auto.length&&(aiHasPositionGold()||(aiState.goldTraits||[]).length)?'<div class="aiHint">선택한 금빛특성 조건에 맞는 자동 팀을 찾지 못했어요. 특성을 바꾸거나 팀컬러를 직접 선택해 주세요.</div>':'')+
     `<div class="aiRow ${(!aiState.tcAuto&&aiState.tc==null)?'on':''}" data-tc="none"><span class="t">선택 안 함<br><small style="color:var(--text-dim);font-weight:700;">픽률대로 뽑은 뒤 최다 소속으로 11명 통일</small></span></div>`+
     entries.map(([no,d])=>{const single=SINGLE_TC_NOS.has(String(no))?' 단일':'';return `<div class="aiRow ${String(aiState.tc)===no?'on':''}" data-tc="${no}">
       <img src="${d.img}" onerror="this.style.visibility='hidden'"><span class="t">${esc(d.n)}${single}</span><span class="n">${d.need?d.need+'명':''}</span></div>`;}).join('')+
@@ -3269,16 +3289,32 @@ function aiGoldEnsureForm(){
   }
   aiState.goldSlots=mapped;aiState.goldSlotsForm=form;aiGoldActiveSlot=null;return form;
 }
+function aiGoldSlotChoices(index){
+  const raw=aiState.goldSlots?.[index];
+  return (Array.isArray(raw)?raw:(raw==null?[]:[raw])).filter(id=>id!=null&&TRAITS?.[id]?.g).slice(0,2);
+}
+function aiHasPositionGold(){return Object.keys(aiState.goldSlots||{}).some(index=>aiGoldSlotChoices(+index).length>0);}
+function aiSlotBaseGoldMatch(index,spid){
+  const choices=aiGoldSlotChoices(index);
+  return !choices.length||choices.some(id=>hasBaseGoldTrait(spid,id));
+}
 function openAiGoldPositions(){
   aiGoldEnsureForm();aiGoldActiveSlot=null;renderAiGoldPositions();document.getElementById('aiGoldPosModal').classList.add('on');
 }
-function closeAiGoldPositions(){document.getElementById('aiGoldPosModal').classList.remove('on');}
+function closeAiGoldPositions(){
+  const modal=document.getElementById('aiGoldPosModal');if(!modal.classList.contains('on'))return;
+  modal.classList.remove('on');
+  if(aiState.tcAuto&&aiState.tc&&(!autoTcGoldFits(aiState.mode,aiState.tc,aiState.tcName)||!autoTcPositionGoldFits(aiState.mode,aiState.tc))){
+    aiState.tc=null;aiState.tcName='';rollAutoTc();
+    if(AI_STEPS[aiIdx]?.key==='tc')renderAiTcList();
+  }
+}
 function renderAiGoldPositions(){
   const form=aiGoldEnsureForm(),coords=FORMATIONS[form]||[];
   const box=document.querySelector('#aiGoldPosModal .aiGoldPosBox'),boxScroll=box.scrollTop;
   const dropdownScroll=document.querySelector('#aiGoldPitch .aiGoldDropdown')?.scrollTop||0;
   document.getElementById('aiGoldPosForm').textContent=`${aiFormLabel(form)} · 포지션을 눌러 특성을 지정하세요`;
-  document.getElementById('aiGoldLegend').innerHTML='<span><b>개별 설정</b> 앞에서 고른 자동 우선순위와 별도로 적용됩니다.</span>';
+  document.getElementById('aiGoldLegend').innerHTML='<span><b>개별 설정</b> 기본 보유 선수를 우선 배치하고, 없으면 픽률 순으로 채웁니다.</span>';
   const slots=coords.map((L,i)=>{const pos=zoneAt(L[0],L[1]),raw=aiState.goldSlots[i],choices=(Array.isArray(raw)?raw:(raw!=null?[raw]:[])).filter(v=>v!=null),names=choices.map((id,r)=>`${r+1}. ${(TRAITS[id]||{}).n||('특성 '+id)}`),picks=choices.map((id,r)=>{const name=(TRAITS[id]||{}).n||('특성 '+id);return `<span class="aiGoldSlotPick" title="${r+1}순위 ${esc(name)}"><img src="${TRAIT_ICON(id)}" onerror="this.style.display='none'"><b>${r+1}</b><em>${esc(name)}</em></span>`;}).join('');
     const left=4+L[0]*92,top=9+Math.min(1,L[1])*84;return `<button type="button" class="aiGoldSlot ${choices.length?'on':''} ${aiGoldActiveSlot===i?'active':''}" style="left:${left}%;top:${top}%;" onclick="aiSelectGoldSlot(${i})">${picks?`<span class="aiGoldSlotPicks">${picks}</span>`:''}<b>${pos}</b><small>${names.length?esc(names.join(' / ')):'개별 선택'}</small></button>`;}).join('');
   document.getElementById('aiGoldPitch').innerHTML=slots+(aiGoldActiveSlot==null?'':aiGoldDropdownHtml(coords));
@@ -3400,7 +3436,8 @@ document.getElementById('aiBody').addEventListener('click',e=>{
     if(aiState.tcAuto){aiState.tc=null;aiState.tcName='';} // 금빛특성을 먼저 고른 다음 팀컬러 선정
     renderAiStep(); return; }
   const fc=e.target.closest('[data-form]'); if(fc){ aiState.form=fc.dataset.form;
-    if(aiState.tcAuto&&aiState.tc&&!autoTcGoldFits(aiState.mode,aiState.tc,aiState.tcName)){
+    aiGoldEnsureForm();
+    if(aiState.tcAuto&&aiState.tc&&(!autoTcGoldFits(aiState.mode,aiState.tc,aiState.tcName)||!autoTcPositionGoldFits(aiState.mode,aiState.tc))){
       aiState.tc=null;aiState.tcName='';rollAutoTc();toast('새 포메이션에 맞는 팀컬러를 다시 골랐어요');
     }
     renderAiStep(); return; }
@@ -3458,13 +3495,19 @@ function aiSwapCheaperPay(i){
   const curPay=(byId(cur.spid)||[])[I.pay]||0;
   const tryset=(spid)=>{ if(!byId(spid))return false; squad[i]={spid,g}; if(min && finalOvr(squad[i],i)<min){ squad[i]=cur; return false; } return true; };
   const list=(PICK[aiState.mode]&&PICK[aiState.mode][grp])||[];
-  for(const x of list){ if(!aiOk(x.spid))continue; if(!aiHasTc(x.spid))continue; if(usedPids.has(x.pid)&&x.pid!==PID(cur.spid))continue;
-    if(((byId(x.spid)||[])[I.pay]||0)<curPay){ if(tryset(x.spid)) return true; } }
+  for(const preferGold of [true,false])for(const x of list){
+    if(!aiOk(x.spid)||!aiHasTc(x.spid)||(preferGold&&!aiSlotBaseGoldMatch(i,x.spid)))continue;
+    if(usedPids.has(x.pid)&&x.pid!==PID(cur.spid))continue;
+    if(((byId(x.spid)||[])[I.pay]||0)<curPay&&tryset(x.spid))return true;
+  }
   let bo=-1,rep=null;
-  for(const p of PLAYERS){ const pid=PID(p[I.spid]); if(usedPids.has(pid)&&pid!==PID(cur.spid))continue;
-    if(!aiOk(p[I.spid]))continue;
-    if(aiState.tc&&!aiHasTc(p[I.spid]))continue; if(grpOf(p[I.pos])!==grp)continue;
-    if((p[I.pay]||0)>=curPay)continue; const ov=ovrAt(p,g); if(ov>bo){ bo=ov; rep=p; } }
+  for(const preferGold of [true,false]){
+    for(const p of PLAYERS){const pid=PID(p[I.spid]);if(usedPids.has(pid)&&pid!==PID(cur.spid))continue;
+      if(!aiOk(p[I.spid])||(preferGold&&!aiSlotBaseGoldMatch(i,p[I.spid])))continue;
+      if(aiState.tc&&!aiHasTc(p[I.spid]))continue;if(grpOf(p[I.pos])!==grp)continue;
+      if((p[I.pay]||0)>=curPay)continue;const ov=ovrAt(p,g);if(ov>bo){bo=ov;rep=p;}}
+    if(rep)break;
+  }
   if(rep && tryset(rep[I.spid])) return true;
   squad[i]=cur; return false;
 }
@@ -3517,12 +3560,14 @@ function aiEnsureSlotFloor(i, min, group){
   if(squad[i]&&squad[i].lk) return;    // 완전 고정 선수는 존중
   const isGK=(group==='GK'), gMax=isGK?13:G_MAX;   // GK만 OVR130 위해 12·13 허용, 그 외 11 상한
   const usedPids=new Set(squad.map((s,ix)=>s&&ix!==i?PID(s.spid):null).filter(v=>v!=null));
-  const fit=(spid)=>{ const st=Math.max(1,(squad[i]&&squad[i].spid===spid)?squad[i].g:8);
+  const fit=(spid)=>{const st=Math.max(1,(squad[i]&&squad[i].spid===spid)?squad[i].g:8);
     for(let g=st;g<=gMax;g++){ if(g===10)continue; squad[i]={spid,g}; if(finalOvr(squad[i],i)>=min) return g; }  // 위로 올림(10 건너뜀)
     for(let g=8;g<=gMax;g++){ if(g===10)continue; squad[i]={spid,g}; if(finalOvr(squad[i],i)>=min) return g; } return null; };
   if(squad[i]){ const g=fit(squad[i].spid); if(g!=null){ squad[i]={spid:squad[i].spid,g}; return; } }
-  let cands=PLAYERS.filter(p=>grpOf(p[I.pos])===group && !usedPids.has(PID(p[I.spid])) && aiOk(p[I.spid]) && (!aiState.tc||aiHasTc(p[I.spid])));
-  if(!cands.length) cands=PLAYERS.filter(p=>grpOf(p[I.pos])===group && !usedPids.has(PID(p[I.spid])) && byId(p[I.spid]) && (!aiState.tc||aiHasTc(p[I.spid])));   // 희귀 빼고 후보 0명이면 완화
+  let cands=PLAYERS.filter(p=>grpOf(p[I.pos])===group && !usedPids.has(PID(p[I.spid])) && aiOk(p[I.spid]) && (!aiState.tc||aiHasTc(p[I.spid])) && aiSlotBaseGoldMatch(i,p[I.spid]));
+  if(!cands.length) cands=PLAYERS.filter(p=>grpOf(p[I.pos])===group && !usedPids.has(PID(p[I.spid])) && byId(p[I.spid]) && (!aiState.tc||aiHasTc(p[I.spid])) && aiSlotBaseGoldMatch(i,p[I.spid]));   // 희귀 빼고 후보 0명이면 완화
+  if(!cands.length)cands=PLAYERS.filter(p=>grpOf(p[I.pos])===group&&!usedPids.has(PID(p[I.spid]))&&aiOk(p[I.spid])&&(!aiState.tc||aiHasTc(p[I.spid])));
+  if(!cands.length)cands=PLAYERS.filter(p=>grpOf(p[I.pos])===group&&!usedPids.has(PID(p[I.spid]))&&byId(p[I.spid])&&(!aiState.tc||aiHasTc(p[I.spid])));
   cands.sort((a,b)=>(a[I.pay]||0)-(b[I.pay]||0) || ovrAt(b,gMax)-ovrAt(a,gMax));
   for(const p of cands.slice(0,80)){ const g=fit(p[I.spid]); if(g!=null){ squad[i]={spid:p[I.spid],g}; return; } }
   cands.sort((a,b)=>ovrAt(b,gMax)-ovrAt(a,gMax));   // 도달 가능 없으면 최고 OVR라도(상한강화)
@@ -3559,11 +3604,12 @@ const GOLD_TRAIT_POS_PREF={
   66:['ST','CF','CAM','LW','RW'],67:['ST','CF','LW','RW'],68:['GK']
 };
 function aiApplyRequiredGold(){
-  const wanted=(aiState.goldTraits||[]).slice(0,4);aiGoldEnsureForm();if(!wanted.length&&!Object.keys(aiState.goldSlots||{}).length)return [];
+  aiGoldEnsureForm();const wanted=aiHasPositionGold()?[]:(aiState.goldTraits||[]).slice(0,4);
+  if(!wanted.length&&!aiHasPositionGold())return [];
   const used=new Set(),assigned=[],manualTraits=new Set();
   for(const [rawIndex,rawChoices] of Object.entries(aiState.goldSlots||{})){const index=+rawIndex,target=squad[index],choices=(Array.isArray(rawChoices)?rawChoices:[rawChoices]).filter(id=>id!=null&&TRAITS&&TRAITS[id]&&TRAITS[id].g).slice(0,2);if(!choices.length)continue;
-    const traitId=target?choices.find(id=>canUseGoldTrait(target,id)):null;
-    if(traitId!=null&&index<N_START&&!used.has(index)){if(canAddGoldTrait(target))target.goldTrait=+traitId;used.add(index);manualTraits.add(String(traitId));assigned.push({traitId:+traitId,target,index,manual:true});}
+    const traitId=target?choices.find(id=>hasBaseGoldTrait(target.spid,id)):null;
+    if(traitId!=null&&index<N_START&&!used.has(index)){used.add(index);manualTraits.add(String(traitId));assigned.push({traitId:+traitId,target,index,manual:true});}
     else assigned.push({traitId:+choices[0],target:null,index,manual:true});
   }
   for(const traitId of wanted){
@@ -3587,8 +3633,11 @@ function aiSwapCheaperPlayer(i){                        // 그 자리를 더 싼
   const usedPids=new Set(squad.filter(Boolean).map(s=>PID(s.spid)));
   const curBP=bpAt(byId(squad[i].spid),g)||0;
   const list=(PICK[aiState.mode]&&PICK[aiState.mode][grp])||[];
-  for(const x of list){ if(!aiOk(x.spid))continue; if(!aiHasTc(x.spid))continue; if(usedPids.has(x.pid)&&x.pid!==PID(squad[i].spid))continue;
-    const bp=bpAt(byId(x.spid),g); if(bp!=null&&bp<curBP){ squad[i]={spid:x.spid,g}; return true; } }
+  for(const preferGold of [true,false])for(const x of list){
+    if(!aiOk(x.spid)||!aiHasTc(x.spid)||(preferGold&&!aiSlotBaseGoldMatch(i,x.spid)))continue;
+    if(usedPids.has(x.pid)&&x.pid!==PID(squad[i].spid))continue;
+    const bp=bpAt(byId(x.spid),g);if(bp!=null&&bp<curBP){squad[i]={spid:x.spid,g};return true;}
+  }
   return false;
 }
 function aiBudgetFit(){
@@ -3615,7 +3664,7 @@ function aiBudgetFit(){
       const cards=BY_PID.get(PID(squad[i].spid))||[];   // ① 같은 선수 더 싼 시즌(같은 강화)
       const sgrp=grpOf(zoneAt(layout[i].fx,layout[i].fy));
       for(const c of cards){ if(c[I.spid]===squad[i].spid)continue;
-        if(!aiOk(c[I.spid]))continue;                   // 희귀매물 제외 옵션
+        if(!aiOk(c[I.spid]))continue; // 희귀매물 제외 옵션
         if(aiState.tc&&!aiHasTc(c[I.spid]))continue;    // 시즌 팀컬러(25DP 등)는 시즌 바꾸면 케미가 깨짐
         if(grpOf(c[I.pos])!==sgrp)continue;             // 포지션 그룹도 유지
         const bp=bpAt(c,g);
@@ -3638,6 +3687,7 @@ function aiSetForm(){
 }
 // 11칸 채우기(보정 전). aiState.tc 가 있으면 그 팀컬러 케미 되는 선수만
 function aiFillSquad(){
+  aiGoldEnsureForm();
   const mode=aiState.mode;
   for(let i=0;i<N_ALL;i++) squad[i]=null;
   const used=new Set(); let miss=0;
@@ -3651,16 +3701,21 @@ function aiFillSquad(){
     const adj=(POS_NEAR[base]||[]).map(grpOf);             // 인접 포지션(RM→RW 등)
     const tryGroups=[]; for(const gg of [...groups, mainGrp, ...adj]) if(!tryGroups.includes(gg)) tryGroups.push(gg);   // 픽률 → 선호 → 인접
     let slot=-1;
-    for(const wantGrp of tryGroups){
-      for(let i=0;i<N_START;i++){ if(squad[i])continue; if(grpOf(zoneAt(layout[i].fx,layout[i].fy))===wantGrp){ slot=i; break; } }
-      if(slot>=0) break;
+    for(const preferGold of [true,false]){
+      for(const wantGrp of tryGroups){
+        for(let i=0;i<N_START;i++){if(squad[i]||(preferGold&&!aiSlotBaseGoldMatch(i,l.spid)))continue;
+          if(grpOf(zoneAt(layout[i].fx,layout[i].fy))===wantGrp){slot=i;break;}}
+        if(slot>=0)break;
+      }
+      if(slot>=0)break;
     }
     if(slot<0){ const wantGK=(mainGrp==='GK'); for(let i=0;i<N_START;i++){ if(squad[i])continue;   // 남은 빈 슬롯(GK는 GK핀만)
       const isGK=zoneAt(layout[i].fx,layout[i].fy)==='GK'; if(isGK!==wantGK)continue; slot=i; break; } }
     if(slot<0){ lockFail.push(p[I.name]); continue; }
     squad[slot]={spid:l.spid,g,lk:1}; used.add(PID(l.spid));
   }
-  for(let i=0;i<N_START;i++){
+  const slotOrder=[...Array(N_START).keys()].sort((a,b)=>Number(!!aiGoldSlotChoices(b).length)-Number(!!aiGoldSlotChoices(a).length)||a-b);
+  for(const i of slotOrder){
     if(squad[i])continue;   // 고정선수가 이미 들어간 슬롯은 건너뜀
     const lb=zoneAt(layout[i].fx,layout[i].fy), grp=grpOf(lb);
     // 팀컬러 실제 픽률(tc_pickrate) 우선 → 없으면 전체 픽률
@@ -3671,14 +3726,21 @@ function aiFillSquad(){
     const tcl=rankedTc?tcPickList(mode,aiState.tc,grp):null; if(tcl)tryLists.push(tcl);
     tryLists.push((PICK[mode]&&PICK[mode][grp])||[]);
     let chosen=null;
-    for(const L of tryLists){ for(const x of L){ if(used.has(x.pid))continue; if(!aiOk(x.spid))continue; if(!aiHasTc(x.spid))continue; chosen=x; break; } if(chosen)break; }
+    for(const preferGold of [true,false]){
+      for(const L of tryLists){for(const x of L){if(used.has(x.pid)||!aiOk(x.spid)||!aiHasTc(x.spid))continue;
+        if(preferGold&&!aiSlotBaseGoldMatch(i,x.spid))continue;chosen=x;break;}if(chosen)break;}
+      if(chosen)break;
+    }
     if(chosen){ squad[i]={spid:chosen.spid,g:8}; used.add(chosen.pid); continue; }
     let best=null,bo=-1;                                 // 픽률에 없으면 팀컬러 최고 OVR 폴백
-    for(const p of PLAYERS){ const pid=PID(p[I.spid]); if(used.has(pid))continue;
-      if(!aiOk(p[I.spid]))continue;
-      if(aiState.tc && !aiHasTc(p[I.spid]))continue;
-      if(grpOf(p[I.pos])!==grp)continue;
-      const ov=ovrAt(p,8); if(ov>bo){ bo=ov; best=p; } }
+    for(const preferGold of [true,false]){
+      for(const p of PLAYERS){const pid=PID(p[I.spid]);if(used.has(pid)||!aiOk(p[I.spid]))continue;
+        if(aiState.tc&&!aiHasTc(p[I.spid]))continue;
+        if(preferGold&&!aiSlotBaseGoldMatch(i,p[I.spid]))continue;
+        if(grpOf(p[I.pos])!==grp)continue;
+        const ov=ovrAt(p,8);if(ov>bo){bo=ov;best=p;}}
+      if(best)break;
+    }
     if(best){ squad[i]={spid:best[I.spid],g:8}; used.add(PID(best[I.spid])); }
     else miss++;
   }
@@ -3706,7 +3768,7 @@ function aiPickSoc(){
   aiState.tc=kt; aiState.tcName=kn; return null;
 }
 function aiBuild(){
-  if(aiState.tcAuto&&!aiState.tc&&(aiState.goldTraits||[]).length){
+  if(aiState.tcAuto&&!aiState.tc&&(aiHasPositionGold()||(aiState.goldTraits||[]).length)){
     toast('금빛특성에 맞는 자동 팀을 먼저 선택해 주세요');aiGoto(AI_STEPS.findIndex(step=>step.key==='tc'),false);return;
   }
   aiAutoSoc='';
