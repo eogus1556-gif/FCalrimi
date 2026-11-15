@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>집중 훈련 계산기</title>
+<style>
+:root{
+  --bg:#0B0F14; --surface:#131A22; --surface2:#1B2430; --line:#26313D;
+  --text:#E7EDF3; --dim:#8A98A8; --lime:#B6F13D; --gold:#F2C14E; --cyan:#5AD1C7;
+  --up:#E5484D; --down:#3E7BFA;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Malgun Gothic",sans-serif;
+  font-size:13px;line-height:1.4;}
+.wrap{max-width:880px;margin:0 auto;padding:16px;}
+h1{font-size:16px;font-weight:800;letter-spacing:-.02em;margin:0 0 12px;}
+.searchbar input{width:100%;background:var(--surface2);border:1px solid var(--line);
+  border-radius:9px;padding:10px 12px;color:var(--text);font-size:13px;outline:none;}
+.searchbar input:focus{border-color:var(--lime);}
+.results{max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:9px;
+  margin:6px 0 0;background:var(--surface);display:none;}
+.results.show{display:block;}
+.rItem{display:flex;gap:8px;align-items:center;padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--line);}
+.rItem:last-child{border-bottom:none;}
+.rItem:hover{background:var(--surface2);}
+.rItem .pay{min-width:26px;text-align:center;font-weight:800;color:var(--gold);font-size:12px;}
+.rItem .sn{color:var(--dim);font-size:11px;font-weight:700;min-width:52px;}
+.rItem .nm{font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rItem .pos{color:var(--text);font-weight:800;font-size:12px;}
+.rItem .ov{font-weight:900;color:var(--lime);min-width:30px;text-align:right;}
+.rItem .gt{display:flex;gap:3px;align-items:center;min-width:20px;justify-content:flex-end;}
+.rItem .gtico{width:19px;height:19px;border-radius:4px;}
+.rItem .meta{color:var(--dim);font-size:11.5px;}
+.pface{width:30px;height:30px;border-radius:6px;object-fit:cover;background:var(--surface2);flex:0 0 auto;}
+.pName .pface{width:52px;height:52px;border-radius:8px;flex:0 0 auto;}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:14px;}
+.pName{display:flex;align-items:flex-start;gap:11px;margin-bottom:12px;}
+.pInfo{min-width:0;flex:1;}
+.pInfo .pn{font-size:15px;font-weight:800;line-height:1.4;word-break:keep-all;}
+.pInfo .pn small{color:var(--dim);font-weight:700;font-size:11.5px;margin-left:6px;}
+.pInfo .pMeta{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:4px;font-size:11px;color:var(--dim);font-weight:600;align-items:center;}
+.pInfo .pMeta b{color:var(--text);font-weight:800;}
+.pInfo .wr .up{color:var(--up);font-weight:800;} .pInfo .wr .down{color:var(--down);font-weight:800;}
+.pInfo .sk{color:var(--gold);letter-spacing:-1px;} .pInfo .ft b{color:var(--text);font-weight:900;}
+.pInfo .gtb{color:var(--gold);font-weight:800;}
+.pTraits{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap;}
+.tico{width:23px;height:23px;border-radius:5px;background:var(--surface2);object-fit:cover;}
+.recs{max-height:210px;overflow:auto;border:1px solid var(--line);border-radius:9px;background:var(--surface2);}
+.recItem{display:flex;gap:8px;align-items:center;padding:6px 10px;cursor:pointer;border-bottom:1px solid var(--line);font-size:12px;}
+.recItem:last-child{border-bottom:none;} .recItem:hover{background:var(--line);}
+.recItem .rg{font-weight:900;color:var(--lime);min-width:52px;}
+.recItem .rs{color:var(--gold);font-weight:800;min-width:34px;}
+.recItem .ra{color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.recHead{font-size:10.5px;color:var(--dim);font-weight:800;padding:6px 2px 4px;}
+.recEmpty{color:var(--dim);font-size:12px;padding:12px;text-align:center;}
+.ctrl{display:flex;flex-wrap:wrap;gap:10px 12px;margin-bottom:14px;align-items:flex-end;}
+.ctrl .fld{display:flex;flex-direction:column;gap:4px;}
+.ctrl .lb{font-size:10.5px;color:var(--dim);font-weight:800;}
+.ctrl .row{display:flex;gap:5px;}
+.ctrl select{background:var(--surface2);border:1px solid var(--line);border-radius:8px;
+  padding:7px 8px;color:var(--text);font-size:12px;outline:none;}
+.ctrl select.sm{width:auto;min-width:60px;}          /* 포지션·강화단계: 글자맞춤 */
+.ctrl select.tc{width:150px;}                          /* 팀컬러 이름 */
+.ctrl select.lv{width:58px;}
+.ctrl select.combo{width:300px;max-width:78vw;}
+.ctrl .fld.wide{flex:1 1 100%;}
+.stats{display:flex;gap:20px;flex-wrap:wrap;padding:12px 14px;background:var(--surface2);
+  border-radius:10px;margin-bottom:14px;align-items:center;}
+.stat .k{font-size:10.5px;color:var(--dim);font-weight:700;}
+.stat .v{font-size:22px;font-weight:900;letter-spacing:-.02em;line-height:1.1;}
+.stat .v.lime{color:var(--lime);} .stat .v.gold{color:var(--gold);}
+.stat .v small{font-size:12px;color:var(--dim);font-weight:700;}
+.toggle{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.toggle button{background:var(--surface);border:1px solid var(--line);color:var(--dim);
+  border-radius:100px;padding:7px 14px;font-size:12px;font-weight:800;cursor:pointer;}
+.toggle button.on{background:var(--lime);color:#0B0F14;border-color:var(--lime);}
+.reset{background:none;border:1px solid var(--line);color:var(--dim);border-radius:8px;
+  padding:6px 11px;font-size:11.5px;font-weight:700;cursor:pointer;}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;}
+@media(max-width:640px){.grid{grid-template-columns:1fr;}}
+.ab{display:grid;grid-template-columns:1fr 46px 30px 92px;gap:6px;align-items:center;
+  padding:6px 4px;border-bottom:1px solid var(--line);}
+.ab .an{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ab.w0 .an{color:var(--dim);}
+.ab .av{text-align:right;font-weight:800;font-variant-numeric:tabular-nums;}
+.ab .av.boost{color:var(--lime);} .ab .av.chem{color:var(--cyan);}
+.ab .aw{text-align:center;color:var(--dim);font-size:11.5px;}
+.ab .aw.lo{color:#FFE9A8;font-weight:700;}   /* 가중치 1~9: 밝은 연노랑 */
+.ab .aw.hi{color:var(--gold);font-weight:800;}   /* 가중치 10↑: 골드 */
+.step{display:flex;align-items:center;gap:4px;justify-content:flex-end;}
+.step button{width:24px;height:24px;border-radius:6px;border:1px solid var(--line);
+  background:var(--surface2);color:var(--text);font-size:14px;font-weight:800;cursor:pointer;line-height:1;}
+.step button:disabled{opacity:.3;cursor:default;}
+.step .tv{min-width:24px;text-align:center;font-weight:800;font-variant-numeric:tabular-nums;}
+.step .tv.zero{color:var(--dim);}
+.hint{color:var(--dim);font-size:11px;margin-top:12px;line-height:1.5;}
+.empty{color:var(--dim);text-align:center;padding:40px 0;}
+.legend{font-size:10.5px;color:var(--dim);margin-top:8px;}
+.legend b.c{color:var(--cyan);} .legend b.l{color:var(--lime);}
+
+/* 스쿼드메이커 선수 세부정보와 같은 능력치 단계별 색상 */
+.statLow{color:#8793a6!important}.stat80{color:#2691ff!important}.stat100{color:#8b66ff!important}
+.stat120{color:#ef38ce!important}.stat130{color:#ff4057!important}.stat140{color:#dfb000!important}
+.stat150{color:#ff9800!important}.stat160{color:#00c99b!important}.stat170{color:#20dc74!important}
+.enhance-field{position:relative}.enhance-trigger{min-width:74px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--surface2);color:var(--text);font-size:12px;font-weight:800;cursor:pointer}
+.enhance-grid{display:none;position:absolute;top:calc(100% + 5px);left:0;z-index:30;grid-template-columns:repeat(2,52px);gap:5px;padding:7px;border:1px solid var(--line);border-radius:9px;background:var(--surface);box-shadow:0 14px 28px rgba(0,0,0,.5)}
+.enhance-grid.open{display:grid}
+.enhance-grid button{min-height:31px;border:2px solid transparent;border-radius:5px;color:#12151a;font-weight:900;font-size:13px;cursor:pointer}
+.enhance-grid button[aria-pressed="true"]{border-color:#b6f13d;box-shadow:0 0 0 2px rgba(182,241,61,.28)}
+.enhance-grid button:hover{filter:brightness(1.15)}
+.enhance-grid .en0{background:#666c75;color:#fff}.enhance-grid .en1{background:#3e464f;color:#fff}
+.enhance-grid .en2,.enhance-grid .en3,.enhance-grid .en4{background:#bd7532}
+.enhance-grid .en5,.enhance-grid .en6,.enhance-grid .en7{background:#abb4bf}
+.enhance-grid .en8,.enhance-grid .en9,.enhance-grid .en10{background:#e9c457}
+.enhance-grid .en11,.enhance-grid .en12,.enhance-grid .en13{background:#b988d9}
+body{padding-bottom:110px}
+</style>
+<style>
+.fc-tool-ad{position:fixed;z-index:990;overflow:hidden;text-align:center;opacity:0;visibility:hidden;pointer-events:none}
+.fc-tool-ad.adReady{opacity:1;visibility:visible;pointer-events:auto}
+.fc-tool-ad.side{display:none;top:120px;width:160px;height:min(600px,calc(100vh - 140px))}
+.fc-tool-ad.left{left:20px}.fc-tool-ad.right{right:20px}
+.fc-tool-ad.bottom{left:50%;bottom:0;transform:translateX(-50%);width:min(728px,calc(100vw - 24px));height:90px}
+@media(min-width:1440px){.fc-tool-ad.side{display:block}}
+@media(max-width:780px){.fc-tool-ad.bottom{width:min(320px,calc(100vw - 24px));height:100px}}
+</style>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8019320351145896" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="fcToolAdLeft" class="fc-tool-ad side left" aria-label="좌측 광고"></div>
+<div id="fcToolAdRight" class="fc-tool-ad side right" aria-label="우측 광고"></div>
+<div id="fcToolAdBottom" class="fc-tool-ad bottom" aria-label="하단 광고"></div>
+
+<div class="wrap">
+  <h1>집중 훈련 계산기 <small style="color:var(--dim);font-weight:700;font-size:11px;">FC알리미</small></h1>
+  <div class="searchbar"><input id="q" placeholder="선수 이름 검색 (예: 음바페, 지단)" autocomplete="off"></div>
+  <div class="results" id="results"></div>
+  <div id="main"><div class="panel"><div class="empty">선수를 검색해서 선택하세요.</div></div></div>
+</div>
+
+<script>
+let D, AB, W, GROW, P, TC, WAVE, TRAIT, AB_IDX;
+fetch('data.json').then(r=>r.json()).then(d=>{
+  D=d; AB=d.AB; W=d.W; GROW=d.GROW; P=d.P; TC=d.TC; WAVE=d.WAVE; TRAIT=d.TRAIT||{};
+  AB_IDX=Object.fromEntries(AB.map((k,i)=>[k,i]));
+}).catch(e=>{document.getElementById('main').innerHTML='<div class="panel"><div class="empty">데이터(data.json)를 못 불러왔습니다. 로컬은 서버로 열어주세요 (python -m http.server).</div></div>';});
+const TRAITURL=id=>`https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_${id}.png`;
+const COLLECT_EN=1, MAX_PER=2;
+const $=s=>document.querySelector(s);
+
+const FACE=spid=>`https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p${spid}.png`;   // 공홈 선수 이미지
+let cur=null,pos=null,en=1,boost={},trainOn=true;
+let socSel='',socLv=1,relSel='',relLv=1,waveSel='';   // 소속·관계 팀컬러+단계, 강화케미(물결) 별도
+
+function maxSlots(){ return en>=11?6:5; }
+function slotsUsed(){ return Object.keys(boost).length; }
+
+// 검색
+const q=$('#q'), results=$('#results');
+q.addEventListener('input',()=>{
+  const t=q.value.trim();
+  if(!t){ results.classList.remove('show'); return; }
+  const hit=P.filter(r=>r[1].includes(t)).slice(0,30);
+  results.innerHTML=hit.map(r=>{const i=P.indexOf(r);
+    const gids=(r[19]||[]).filter(id=>(TRAIT[id]||{}).g);   // 금빛 특성 id만
+    const gt=gids.length?`<span class="gt">${gids.map(id=>`<img class="gtico" src="${TRAITURL(id)}" title="${(TRAIT[id]||{}).n||''}" onerror="this.style.display='none'">`).join('')}</span>`:'<span class="gt"></span>';
+    return `<div class="rItem" data-i="${i}">`
+      +`<span class="pay">${r[8]||'-'}</span>`
+      +`<img class="pface" src="${FACE(r[0])}" onerror="this.style.visibility='hidden'">`
+      +`<span class="sn">${r[2]}</span>`
+      +`<span class="nm">${r[1]}</span>`
+      +`<span class="pos">${r[3]}</span>`
+      +`<span class="ov">${r[4]}</span>`
+      +gt+`</div>`;
+  }).join('')||'<div class="rItem"><span class="meta">결과 없음</span></div>';
+  results.classList.add('show');
+});
+results.addEventListener('click',e=>{
+  const it=e.target.closest('.rItem[data-i]'); if(!it)return;
+  select(P[+it.dataset.i]); results.classList.remove('show'); q.value='';
+});
+
+function select(row){ cur=row; pos=row[3]; en=COLLECT_EN; boost={}; trainOn=true;
+  socSel=''; socLv=1; relSel=''; relLv=1; waveSel=''; render(); }
+
+// 케미 보너스 계산 → 34칸 배열
+function applyEff(arr,eff){
+  for(const [name,val] of eff){
+    if(name==='전체 능력치'){ for(let i=0;i<34;i++) arr[i]+=val; }
+    else if(AB_IDX[name]!=null){ arr[AB_IDX[name]]+=val; }
+  }
+}
+const WAVE_ORDER=['10003','10002','10001','10004'];   // 동·은·금·백금
+const WAVE_TH={'10003':3,'10002':5,'10001':8,'10004':11};  // 물결 최소 강화단계
+function waveOptions(){
+  return '<option value="">없음</option>'+WAVE_ORDER.map(no=>{
+    const dis=en<WAVE_TH[no];   // 현재 강화단계 미만이면 선택 불가
+    return `<option value="${no}" ${no===waveSel?'selected':''} ${dis?'disabled':''}>${TC[no].n}${dis?` (${WAVE_TH[no]}강↑)`:''}</option>`;
+  }).join('');
+}
+function chemFor(wsel,soc,sl,rel,rl){
+  const arr=new Array(34).fill(0);
+  if(wsel&&TC[wsel]) applyEff(arr,TC[wsel].eff[0]);
+  if(soc&&TC[soc]) applyEff(arr,TC[soc].eff[Math.min(sl,TC[soc].lv)-1]);
+  if(rel&&TC[rel]) applyEff(arr,TC[rel].eff[Math.min(rl,TC[rel].lv)-1]);
+  return arr;
+}
+function computeChem(){ return chemFor(waveSel,socSel,socLv,relSel,relLv); }
+// 임의 케미 조합의 OVR (현재 포지션/강화/집중훈련 기준)
+function ovrWith(chemArr){
+  const w=W[pos]||{}; let raw=0;
+  for(const [k,wt] of Object.entries(w)){
+    const i=AB_IDX[k];
+    raw += (enhAbility(i)+chemArr[i]+(trainOn?(boost[i]||0):0))*wt;
+  }
+  return Math.floor(raw/100);
+}
+// 집중훈련 경우의 수 전부: 칸(능력치 +2) 조합을 열거해 OVR 오르는 안을
+// OVR별 최소 칸 조합 모두 나열 (어느 스탯에 투자할지 선택지 제공)
+let TRAINRECS=[];
+function buildTrainRecs(){
+  const w=W[pos]||{};
+  const wa=AB.map((n,i)=>({i,n,wt:w[n]||0})).filter(x=>x.wt>0).sort((a,b)=>b.wt-a.wt);
+  let baseRaw=0; for(const [k,wt] of Object.entries(w)) baseRaw+=(enhAbility(AB_IDX[k])+CHEM[AB_IDX[k]])*wt;
+  const base=Math.floor(baseRaw/100), budget=Math.min(maxSlots(),wa.length);
+  const found=[]; const chosen=[];
+  (function rec(start,raw){
+    if(chosen.length){ const ov=Math.floor(raw/100); if(ov>base) found.push({ov,slots:chosen.length,ids:[...chosen]}); }
+    if(chosen.length>=budget) return;
+    for(let j=start;j<wa.length;j++){ chosen.push(wa[j].i); rec(j+1,raw+2*wa[j].wt); chosen.pop(); }
+  })(0,baseRaw);
+  // OVR별 최소 칸 조합 전부 (각 OVR을 최소 칸으로 올리는 모든 스탯 조합).
+  // 더 높은 OVR에 6칸이 필요하면 6칸 조합이 자동으로 나온다.
+  const minSlot={};
+  for(const f of found) if(minSlot[f.ov]==null||f.slots<minSlot[f.ov]) minSlot[f.ov]=f.slots;
+  const list=found.filter(f=>f.slots===minSlot[f.ov])
+      .sort((a,b)=> b.ov-a.ov || a.slots-b.slots)
+      .slice(0,150).map(f=>({ov:f.ov, gain:f.ov-base, slots:f.slots,
+        boost:Object.fromEntries(f.ids.map(i=>[i,2])), abs:f.ids.map(i=>AB[i])}));
+  return {base, list};
+}
+let CHEM=new Array(34).fill(0);
+
+function enhAbility(idx){ return cur[5][idx] + (GROW[en]-GROW[COLLECT_EN]); }
+function effAbility(idx){ return enhAbility(idx) + CHEM[idx] + (trainOn?(boost[idx]||0):0); }
+
+function calc(){
+  const w=W[pos]||{}; let raw=0;
+  for(const [k,wt] of Object.entries(w)) raw+=effAbility(AB_IDX[k])*wt;
+  const ovr=Math.floor(raw/100), need=100-(raw%100);
+  const pts=Object.values(boost).reduce((a,b)=>a+b,0);
+  return {ovr, need:need===100?0:need, pts, slots:slotsUsed(), raw};
+}
+
+function tcOptions(list,sel){
+  return '<option value="">없음</option>'+list.map(no=>{
+    const v=TC[String(no)]; if(!v)return '';
+    return `<option value="${no}" ${String(no)===sel?'selected':''}>${v.n}</option>`;
+  }).join('');
+}
+function lvOptions(sel,curLv){
+  const mx=(sel&&TC[sel])?TC[sel].lv:1;
+  let o='';for(let g=1;g<=mx;g++)o+=`<option value="${g}" ${g===curLv?'selected':''}>${g}단계</option>`;
+  return o;
+}
+
+document.addEventListener('click',e=>{if(e.target.closest('.enhance-field'))return;document.querySelector('.enhance-grid.open')?.classList.remove('open');document.querySelector('#enhanceToggle')?.setAttribute('aria-expanded','false');});
+function statTone(v){v=+v||0;return v>=170?'stat170':v>=160?'stat160':v>=150?'stat150':v>=140?'stat140':v>=130?'stat130':v>=120?'stat120':v>=100?'stat100':v>=80?'stat80':'statLow';}
+function render(){
+  if(!cur)return;
+  CHEM=computeChem();
+  const TR=buildTrainRecs(); TRAINRECS=TR.list;
+  const c=calc(), w=W[pos]||{};
+  const posOpts=Object.keys(W).map(p=>`<option ${p===pos?'selected':''}>${p}</option>`).join('');
+  const enOpts=Array.from({length:14},(_,g)=>`<button type="button" class="en${g}" data-en="${g}" aria-pressed="${g===en}">${g===0?'0':'+'+g}</button>`).join('');
+  const recsHtml=TR.list.length
+    ? TR.list.map((x,i)=>`<div class="recItem" data-r="${i}"><span class="rg">+${x.gain}→${x.ov}</span><span class="rs">${x.slots}칸</span><span class="ra">${x.abs.join(', ')} +2</span></div>`).join('')
+    : '<div class="recEmpty">현재 상태에선 칸 내 OVR 상승 조합 없음</div>';
+  // 선수정보: 참여도(이름 옆) + 나머지(사진 옆)
+  const wr=cur[9];
+  const wrHtml=wr?` <span class="wr">고유 참여도 <span class="up">${wr[0]}</span>/<span class="down">${wr[1]}</span></span>`:'';
+  const parts=[];
+  if(cur[11]) parts.push(`<b>${cur[11]}</b>`);                       // 국적
+  if(cur[14]){ const sk=Math.min(6, cur[14]+(en>=13?3:en>=8?2:en>=5?1:0));  // 강화별 개인기(5~7:+1,8~12:+2,13:+3, 최대6)
+    parts.push(`<span class="sk">${'★'.repeat(sk)}</span>`); }
+  if(cur[12]){ const s=cur[12], wv=cur[13]||'';                      // L 먼저·R 나중 고정, 주발만 진하게
+    const lv=s==='L'?5:wv, rv=s==='R'?5:wv;
+    const L=s==='L'?`<b>L${lv}</b>`:`L${lv}`, R=s==='R'?`<b>R${rv}</b>`:`R${rv}`;
+    parts.push(`<span class="ft">${L}-${R}</span>`); }
+  if(cur[15]||cur[16]) parts.push(`<b>${cur[15]||'-'}cm ${cur[16]||'-'}kg</b>`);
+  if(cur[17]) parts.push(`<b>${cur[17]}</b>`);
+  if(cur[18]) parts.push(`<b>${cur[18]}</b>`);
+  const metaHtml=parts.join(' · ');
+  const trs=cur[19]||[];
+  const traitHtml=trs.map(id=>{const t=TRAIT[id]||{};
+    return `<img class="tico${t.g?' g':''}" src="${TRAITURL(id)}" title="${t.n||''}" onerror="this.style.display='none'">`;}).join('');
+
+  const abRow=idx=>{
+    const name=AB[idx], wt=w[name]||0;
+    const add=boost[idx]||0, ch=CHEM[idx], eff=effAbility(idx);
+    const plusOff=add>=MAX_PER||(add===0&&slotsUsed()>=maxSlots());
+    const cls=statTone(eff);
+    return `<div class="ab ${wt?'':'w0'}">
+      <span class="an">${name}</span>
+      <span class="av ${cls}">${eff}</span>
+      <span class="aw ${wt>=10?'hi':(wt>=1?'lo':'')}">${wt||'·'}</span>
+      <span class="step">
+        <button data-m="-1" data-i="${idx}" ${add<=0?'disabled':''}>−</button>
+        <span class="tv ${add?'':'zero'}">${add}</span>
+        <button data-m="1" data-i="${idx}" ${plusOff?'disabled':''}>+</button>
+      </span></div>`;
+  };
+  const order=AB.map((_,i)=>i).sort((a,b)=>(w[AB[b]]||0)-(w[AB[a]]||0));
+  const half=Math.ceil(order.length/2);
+
+  $('#main').innerHTML=`<div class="panel">
+    <div class="pName">
+      <img class="pface" src="${FACE(cur[0])}" onerror="this.style.display='none'">
+      <div class="pInfo">
+        <div class="pn">${cur[1]} <small>${cur[2]} · ${pos} ${c.ovr}</small>${wrHtml}</div>
+        <div class="pMeta">${metaHtml}</div>
+        ${traitHtml?`<div class="pTraits">${traitHtml}</div>`:''}
+      </div>
+    </div>
+    <div class="ctrl">
+      <div class="fld"><span class="lb">포지션</span><div class="row"><select id="selPos" class="sm">${posOpts}</select></div></div>
+      <div class="fld"><span class="lb">소속 팀컬러</span><div class="row">
+        <select id="selSoc" class="tc">${tcOptions(cur[6],socSel)}</select>
+        <select id="selSocLv" class="lv" ${socSel?'':'disabled'}>${lvOptions(socSel,socLv)}</select></div></div>
+      <div class="fld enhance-field"><span class="lb">강화단계</span><button type="button" class="enhance-trigger" id="enhanceToggle" aria-expanded="false" aria-controls="enhanceGrid">${en===0?'0':'+'+en}강 ▾</button><div class="enhance-grid" id="enhanceGrid" role="group" aria-label="강화단계 선택">${enOpts}</div></div>
+      <div class="fld"><span class="lb">강화 케미</span><div class="row"><select id="selWave" class="tc">${waveOptions()}</select></div></div>
+      <div class="fld"><span class="lb">관계 팀컬러</span><div class="row">
+        <select id="selRel" class="tc">${tcOptions(cur[7],relSel)}</select></div></div>
+      <div class="fld wide"><span class="lb">집중훈련 추천 (오버롤 올리는 경우의 수 · 클릭 시 적용)</span><div class="recs" id="recs">${recsHtml}</div></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="k">오버롤</div><div class="v lime">${c.ovr}</div></div>
+      <div class="stat"><div class="k">다음 등급까지</div><div class="v">${c.need}<small> 포인트</small></div></div>
+      <div class="stat"><div class="k">사용 칸</div><div class="v gold">${c.slots}<small> /${maxSlots()}</small></div></div>
+      <div class="toggle">
+        <button class="reset" id="btnReset">집중훈련 초기화</button>
+        <span style="font-size:11px;color:var(--dim);font-weight:700;">집중훈련</span>
+        <button id="btnTrain" class="${trainOn?'on':''}">${trainOn?'ON':'OFF'}</button>
+      </div>
+    </div>
+    <div class="grid"><div>${order.slice(0,half).map(abRow).join('')}</div><div>${order.slice(half).map(abRow).join('')}</div></div>
+    <div class="legend">능력치 숫자 색상은 강화·케미·집중훈련이 반영된 최종 수치에 따라 바뀝니다.</div>
+  </div>`;
+
+  $('#selPos').onchange=e=>{pos=e.target.value;render();};
+  $('#enhanceToggle').onclick=e=>{e.stopPropagation();const grid=$('#enhanceGrid'),open=grid.classList.toggle('open');e.currentTarget.setAttribute('aria-expanded',String(open));};
+  $('#enhanceGrid').onclick=e=>{const button=e.target.closest('button[data-en]');if(!button)return;en=+button.dataset.en; const ms=maxSlots(),ks=Object.keys(boost);
+    if(ks.length>ms) ks.slice(ms).forEach(k=>delete boost[k]);
+    if(waveSel&&en<WAVE_TH[waveSel]) waveSel='';   // 강화 낮추면 무효 물결 해제
+    render();};
+  $('#selWave').onchange=e=>{waveSel=e.target.value;render();};
+  $('#selSoc').onchange=e=>{socSel=e.target.value; socLv=(socSel&&TC[socSel])?TC[socSel].lv:1; render();};  // 선택 시 자동 최대(4)단계
+  $('#selSocLv').onchange=e=>{socLv=+e.target.value;render();};
+  $('#recs').onclick=e=>{ const it=e.target.closest('.recItem[data-r]'); if(!it)return;
+    boost={...TRAINRECS[+it.dataset.r].boost}; trainOn=true; render(); };
+  $('#selRel').onchange=e=>{relSel=e.target.value;relLv=1;render();};   // 관계는 1단계 고정
+  $('#btnTrain').onclick=()=>{trainOn=!trainOn;render();};
+  $('#btnReset').onclick=()=>{boost={};render();};
+  $('#main').querySelectorAll('.step button').forEach(b=>{
+    b.onclick=()=>{ const i=+b.dataset.i,m=+b.dataset.m; let v=boost[i]||0;
+      if(m>0){ if(v>=MAX_PER)return; if(v===0&&slotsUsed()>=maxSlots())return; v++; } else v--;
+      if(v<=0)delete boost[i]; else boost[i]=v; render(); };
+  });
+}
+</script>
+<script>
+(function(){
+  const client='ca-pub-8019320351145896';
+  function mount(id,slot,w,h){
+    const box=document.getElementById(id);
+    if(!box||box.dataset.mounted||box.offsetWidth===0)return;
+    box.dataset.mounted='1';
+    const ins=document.createElement('ins');ins.className='adsbygoogle';ins.style.display='inline-block';
+    ins.style.width=w+'px';ins.style.height=h+'px';
+    ins.setAttribute('data-ad-client',client);ins.setAttribute('data-ad-slot',slot);
+    box.appendChild(ins);
+    const sync=()=>{const status=ins.getAttribute('data-ad-status');box.classList.toggle('adReady',status==='filled');if(status==='filled'||status==='unfilled')observer.disconnect()};
+    const observer=new MutationObserver(sync);observer.observe(ins,{attributes:true,attributeFilter:['data-ad-status']});
+    try{(window.adsbygoogle=window.adsbygoogle||[]).push({})}catch(e){box.classList.remove('adReady')}
+    setTimeout(sync,2500);
+  }
+  function load(){
+    const mobile=matchMedia('(max-width:780px)').matches;
+    mount('fcToolAdBottom','5429773263',mobile?320:728,mobile?100:90);
+    if(matchMedia('(min-width:1440px)').matches){
+      mount('fcToolAdLeft','4782493315',160,600);
+      mount('fcToolAdRight','8648596453',160,600);
+    }
+  }
+  if(document.readyState==='complete')load();else window.addEventListener('load',load);
+  window.addEventListener('resize',load);
+})();
+</script>
+<script src="/fc-refresh-alert.js?v=20261114-2" data-page="tool" defer></script>
+</body>
+</html>
