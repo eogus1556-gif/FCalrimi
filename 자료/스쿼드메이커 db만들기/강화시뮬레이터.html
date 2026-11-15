@@ -355,8 +355,18 @@ function materialCandidates(ratio=1){
   if(!S.player)return[];
   const targetOvr=materialTargetOvr(ratio);
   const refs=S.materialReference?.ovrs||{};
-  const candidates=S.rows.filter(p=>materialAllowed(p)&&Number(p[0])!==Number(S.player[0])&&Number(p[4])>=targetOvr&&refs[String(p[4])]?.avg_lowest_bp>0&&playerPrice(p)>0);
-  return candidates.sort((a,b)=>Number(a[4])-Number(b[4])||Math.abs(playerPrice(a)-refs[String(a[4])].avg_lowest_bp)-Math.abs(playerPrice(b)-refs[String(b[4])].avg_lowest_bp)||playerPrice(a)-playerPrice(b));
+  const candidates=[];
+  for(const p of S.rows){
+    if(!materialAllowed(p)||Number(p[0])===Number(S.player[0]))continue;
+    for(let level=1;level<=12;level++){
+      const ovr=currentOvr(p,level),ref=refs[String(ovr)];
+      if(!ref?.avg_lowest_bp||playerPrice(p,level)<=0)continue;
+      const candidate=p.slice();candidate.materialLevel=level;candidates.push(candidate);
+    }
+  }
+  const gap=p=>{const ovr=currentOvr(p,p.materialLevel);return ovr>=targetOvr?ovr-targetOvr:1000+targetOvr-ovr};
+  candidates.sort((a,b)=>gap(a)-gap(b)||Math.abs(playerPrice(a,a.materialLevel)-refs[String(currentOvr(a,a.materialLevel))].avg_lowest_bp)-Math.abs(playerPrice(b,b.materialLevel)-refs[String(currentOvr(b,b.materialLevel))].avg_lowest_bp));
+  const seen=new Set();return candidates.filter(p=>{const id=Number(p[0]);if(seen.has(id))return false;seen.add(id);return true});
 }
 function officialOptionsAtOvr(ovr){
   const ref=S.materialReference?.ovrs?.[String(ovr)];
@@ -376,7 +386,8 @@ function selectOfficialRecommendation(){
   if(!S.player)return;
   if(!S.materialReference){alert('공홈 재료 기준 파일을 불러오지 못했습니다. material_reference.json 배포 상태를 확인해 주세요.');return}
   const key=`${Number(S.player[4])}:${S.level}`;
-  const recipes=S.materialReference?.recommendations?.[key]||[];
+  const requiredBoost=S.gauge?S.gauge*20:100;
+  const recipes=(S.materialReference?.recommendations?.[key]||[]).filter(recipe=>Number(recipe.boost_pct)>=requiredBoost-0.1);
   const options=new Map(),valid=[];
   for(const recipe of recipes){
     const used=new Set(),picks=[];
@@ -389,7 +400,12 @@ function selectOfficialRecommendation(){
     if(picks.length===(recipe.ovrs||[]).length&&picks.length)valid.push({recipe,picks});
   }
   valid.sort((a,b)=>a.recipe.avg_lowest_total_bp-b.recipe.avg_lowest_total_bp||a.recipe.rank-b.recipe.rank);
-  if(!valid.length){alert('공홈 추천 조합에 맞는 재료 데이터가 없습니다. 해당 OVR은 자동선택에서 제외됩니다.');return}
+  if(!valid.length){
+    const fallback=materialCandidates().slice(0,5);
+    if(fallback.length){S.officialRecipe=null;S.materialPlayers=fallback;S.materials=fallback.length;render();alert(`공홈 ${requiredBoost}% 추천 조합이 없어 공식 가격 데이터가 있는 재료로 채웠습니다. 실제 게이지를 확인해 주세요.`)}
+    else alert(`${requiredBoost}% 이상 채우는 공홈 추천 조합 또는 사용 가능한 재료 데이터가 없습니다.`);
+    return;
+  }
   S.materialPlayers=valid[0].picks;S.materials=S.materialPlayers.length;
   S.officialRecipe={key,ovrs:[...valid[0].recipe.ovrs].sort((a,b)=>a-b),boost_pct:valid[0].recipe.boost_pct};render();
 }
@@ -455,6 +471,7 @@ function selectMaterialsForGauge(){
     if(actual+0.00001>=ratio)break;
     picks=[];
   }
+  if(!picks.length)picks=materialCandidates().slice(0,5);
   S.materialPlayers=picks;S.materials=picks.length;render()
 }
 function render(){
@@ -483,8 +500,17 @@ function renderSeasonOptions(){if(!S.player)return;const pid=Number(S.player[0])
 function openSeason(){closeStage();renderSeasonOptions();$('seasonPicker').classList.add('show');positionEditPanel('seasonPicker')}
 function closeSeason(){$('seasonPicker').classList.remove('show')}
 function chooseSeason(id){const next=S.rows.find(p=>Number(p[0])===id);if(!next)return;S.player=next;S.targetProtect=false;S.materialPlayers=[];S.materials=0;closeSeason();render()}
-function setMaterials(n){S.materialPlayers=materialCandidates().slice(0,Math.max(0,Math.min(5,n)));S.materials=S.materialPlayers.length;render()}
-function applyManualMaterials(){const vals=[...document.querySelectorAll('#materialOvrEditor input')].map(x=>Number(x.value)).filter(n=>n>=50&&n<=180);setMaterials(Math.min(5,Math.max(0,vals.length)));$('materialOvrEditor').classList.remove('show')}
+function setMaterials(n){S.officialRecipe=null;S.materialPlayers=materialCandidates().slice(0,Math.max(0,Math.min(5,n)));S.materials=S.materialPlayers.length;render()}
+function applyManualMaterials(){
+  const vals=[...document.querySelectorAll('#materialOvrEditor input')].map(x=>Number(x.value)).filter(n=>n>=50&&n<=180).slice(0,5);
+  const used=new Set(),picks=[];
+  for(const ovr of vals){
+    const card=officialOptionsAtOvr(ovr).find(p=>!used.has(Number(p[0])));
+    if(!card){alert(`${ovr} OVR의 공식 평균 최저가 또는 사용 가능한 재료 선수가 없습니다.`);return}
+    used.add(Number(card[0]));picks.push(card);
+  }
+  S.officialRecipe=null;S.materialPlayers=picks;S.materials=picks.length;render();$('materialOvrEditor').classList.remove('show');
+}
 function toggleGrade(){const i=protectionInfo();if(i.eligible){S.gradeProtect=!S.gradeProtect;render()}}
 function rollRecovery(level){const table=recovery[Math.max(0,Math.min(recovery.length-1,level-1))]||[[0,100]],r=Math.random()*100;let sum=0;for(const [drop,percent] of table){sum+=percent;if(r<sum)return Math.max(1,level-drop)}return Math.max(1,level-(table.at(-1)?.[0]||0))}
 function motionDetails(p,ok){const title=esc(`${S.player[2]} ${S.player[1]}`),gain=ok?'<em>+1</em>':'',value=money(valueAt(S.level));return`<div class="detail-name">${title}</div><div class="detail-row"><span>강화 등급</span><b>${levelLabel(S.level)}</b>${gain}</div><div class="detail-row"><span>능력치</span><b>${esc(S.player[4])}</b>${ok?'<em>+1</em>':''}</div><div class="detail-row"><span>특성 슬롯</span><b>0</b><em>+0</em></div><div class="detail-row"><span>집중 훈련</span><b>${esc(S.player[5]??5)}</b><em>+0</em></div><div class="detail-row"><span>개인기</span><b>★★★★★★</b><span></span></div><div class="detail-row"><span>선수 가치</span><b>${value}</b><span></span></div>`}
