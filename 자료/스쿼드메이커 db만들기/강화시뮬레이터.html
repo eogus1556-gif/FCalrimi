@@ -103,8 +103,8 @@
 .motion .motion-result{line-height:1.3;top:48.4%;letter-spacing:-.03em}
 .motion .motion-detail{top:53%;bottom:13.6%;background:linear-gradient(115deg,#6b858a28,#647b8038)!important}
 .motion .detail-name{display:flex;align-items:center;gap:5px}.motion .detail-name img{width:4cqw;height:4cqw;object-fit:contain}
-.motion .detail-row em:empty{display:none}.motion .detail-row .result-level{min-width:6cqw;text-align:center;font-size:3.5cqw;line-height:1.15;background:#69717a;color:#fff}
-.motion.success .result-level{background:#b87539;color:#17110e}.motion .detail-row .result-stars{color:#eac034;letter-spacing:-.1em}
+.motion .detail-row em:empty{display:none}.motion .detail-row .result-level{min-width:6cqw;text-align:center;font-size:3.5cqw;line-height:1.15;background:#4b515a;color:#fff}
+.motion .motion-detail .detail-row .result-level.en-one{background:#31505a;color:#fff}.motion .motion-detail .detail-row .result-level.en-bronze{background:#ad713d;color:#100c08}.motion .motion-detail .detail-row .result-level.en-silver{background:#c5cfd8;color:#151a20}.motion .motion-detail .detail-row .result-level.en-gold{background:#e5bd4f;color:#161206}.motion .motion-detail .detail-row .result-level.en-holo{background:linear-gradient(125deg,#ca97e9,#e0b9ed);color:#1e1028}.motion .detail-row .result-stars{color:#eac034;letter-spacing:-.1em}
 @keyframes cardPieceFlight{0%{opacity:1;transform:translate3d(0,0,0) rotate(0)}15%{opacity:1;filter:brightness(1.6)}72%{opacity:.85}100%{opacity:0;transform:translate3d(var(--dx),var(--dy),var(--dz)) rotateX(var(--rx)) rotateY(var(--ry)) rotateZ(var(--rz))}}
 </style>
 <style>
@@ -549,7 +549,7 @@ function shatterCard(source){
 }
 finishMotion=function(){const pending=S.pending;if(!pending)return;const source=$('motionCard').querySelector('.cardface')?.cloneNode(true);originalFinishMotion();if(!pending.ok&&source)shatterCard(source);
   const name=$('motionDetail').querySelector('.detail-name');if(name){name.textContent=S.player[1];const icon=document.createElement('img');icon.src=seasonImage(S.player[2]);icon.alt=S.player[2];name.prepend(icon)}
-  const rows=$('motionDetail').querySelectorAll('.detail-row');rows[0]?.querySelector('b')?.classList.add('result-level');rows[4]?.querySelector('b')?.classList.add('result-stars');
+  const rows=$('motionDetail').querySelectorAll('.detail-row');rows[0]?.querySelector('b')?.classList.add('result-level',stageClass(S.level));rows[4]?.querySelector('b')?.classList.add('result-stars');
   // Salary is not training level; absent source values must not be invented.
   for(const i of [2,3,4]){const value=rows[i]?.querySelector('b');if(value)value.textContent='—';rows[i]?.querySelector('em')?.remove()}
   rows[1]?.querySelector('em')?.remove();
