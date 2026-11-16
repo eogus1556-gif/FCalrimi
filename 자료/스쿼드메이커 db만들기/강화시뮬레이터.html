@@ -458,9 +458,10 @@ function selectMaterialsForGauge(forceHeuristic=false){
         const candidate=p.slice();candidate.materialLevel=level;options.push(candidate);
       }
     }
-    const average=S.materialReference?.ovrs?.[String(ovr)]?.avg_lowest_bp;
-    if(!average){byMaterialOvr.set(ovr,[]);return[]}
-    options.sort((a,b)=>Math.abs(playerPrice(a)-average)-Math.abs(playerPrice(b)-average)||playerPrice(a)-playerPrice(b));
+    const ref=S.materialReference?.ovrs?.[String(ovr)];
+    if(!ref?.avg_lowest_bp){byMaterialOvr.set(ovr,[]);return[]}
+    const priority=p=>(norm(p[2])===norm(ref.top_season)?2:0)+(p.materialLevel===Number(ref.top_grade)?1:0);
+    options.sort((a,b)=>priority(b)-priority(a)||Math.abs(playerPrice(a)-ref.avg_lowest_bp)-Math.abs(playerPrice(b)-ref.avg_lowest_bp)||playerPrice(a)-playerPrice(b));
     byMaterialOvr.set(ovr,options);
     return options;
   }
