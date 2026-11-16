@@ -1963,7 +1963,9 @@ function careerTeamIndex(){
       }
       for(const teamName of rec.career||[]){
         const norm=jTeamNorm(teamName);if(!norm)continue;set.add(norm);
-        if(!byNorm.has(norm))byNorm.set(norm,{key:`career:${norm}`,norm,name:CAREER_TEAM_ALIASES[norm]||teamName,aliases:[teamName],players:0});
+        if(!byNorm.has(norm))byNorm.set(norm,{key:`career:${norm}`,norm,name:CAREER_TEAM_ALIASES[norm]||teamName,aliases:[],players:0});
+        const aliases=byNorm.get(norm).aliases;
+        for(const alias of [teamName,...(rec.career_aliases?.[teamName]||[])])if(!aliases.includes(alias))aliases.push(alias);
       }
       if(set.size)playerTeams.set(playerKey,set);
     }
