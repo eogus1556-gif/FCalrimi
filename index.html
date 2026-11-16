@@ -71,7 +71,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FC알리미">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230B0F14'/%3E%3Ccircle cx='16' cy='18' r='5' fill='%23C4FF3D'/%3E%3Ctext x='34' y='46' font-family='Arial,sans-serif' font-weight='bold' font-size='30' fill='%23C4FF3D' text-anchor='middle'%3EFC%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/png" sizes="96x96" href="/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <!-- 폰트 CSS는 비동기 로드: 폰트 서버가 느려도 페이지 렌더링을 막지 않음 -->
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Pretendard:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
@@ -148,6 +148,7 @@
     max-width: 380px;
     margin: 20px;
   }
+  #noticeOverlay .modal{max-height:calc(100dvh - 24px);overflow-y:auto;}
   .modal h2{
     font-family: var(--font-display);
     font-size: 26px;
@@ -642,7 +643,7 @@
     background: var(--lime);
     box-shadow: 0 0 10px var(--lime);
   }
-  nav{ display:flex; gap:32px; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); }
+  nav{ display:flex; align-items:center; gap:32px; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); }
   nav a{
     font-size: 14px;
     color: var(--text-dim);
@@ -1246,7 +1247,7 @@
 
   <style>
     /* PC 상단 메뉴: '이용 방법'에 마우스 올리면 '강화 등급별 배율' 하위 메뉴 */
-    .nav-dd{ position:relative; display:inline-block; }
+    .nav-dd{ position:relative; display:flex; align-items:center; }
     .nav-dd-menu{ display:none; position:absolute; top:100%; left:0; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:6px; min-width:150px; z-index:200; box-shadow:0 8px 24px rgba(0,0,0,.35); }
     .nav-dd:hover .nav-dd-menu, .nav-dd:focus-within .nav-dd-menu{ display:block; }
     .nav-dd-menu a{ display:block; padding:8px 12px; white-space:nowrap; border-radius:6px; }
@@ -1551,12 +1552,13 @@
     <div class="modal-overlay" id="noticeOverlay" onclick="if(event.target===this) closeNotice()">
     <div class="modal" style="text-align:center;">
       <button class="modal-close" onclick="closeNotice()">&times;</button>
-      <h2 style="margin-bottom:10px;">희귀매물 갱신시간 추적기</h2>
-      <p class="modal-sub" style="line-height:1.7;">갱신시간이 비어 있는 희귀매물도<br>FC알리미 데이터로 예상 범위를 확인해 보세요.</p>
+      <h2 style="margin-bottom:10px;">BP도둑 백금작</h2>
+      <p class="modal-sub" style="line-height:1.7;">클릭 몇 번으로 백금 강화 비용을<br>대략 알아볼 수 있어요.</p>
       <div style="margin:14px 0 4px; padding:14px 15px; border:1px solid rgba(196,255,61,.35); border-radius:12px; background:rgba(196,255,61,.06); text-align:left;">
-        <b style="display:block; color:var(--lime); margin-bottom:6px;">빈 갱신시간 자동 계산</b>
-        <p style="margin:0; color:var(--text); font-size:13px; line-height:1.65;">같은 시즌의 앞뒤 확정 데이터를 기준으로 예상 갱신시간 범위를 계산하고, 가장 빠른 시간으로 알림도 예약할 수 있습니다.</p>
-        <a href="/refresh-estimate.html" onclick="noticeGoTracker()" style="display:inline-block; margin-top:9px; color:var(--lime); font-size:13px; font-weight:800; text-decoration:underline; text-underline-offset:3px;">추적기 바로가기 →</a>
+        <b style="display:block; color:var(--lime); margin-bottom:6px;">딸깍 시뮬레이터</b>
+        <p style="margin:0; color:var(--text); font-size:13px; line-height:1.65;">선수와 목표 강화단계를 고르면 예상 비용과 시도 횟수를 볼 수 있어요. 결과는 매번 달라질 수 있습니다.</p>
+        <img src="/assets/platinum-simulator-preview.png" alt="목표 강화 시뮬레이션에서 사용 예산과 시도 횟수를 보여주는 화면" style="display:block; width:auto; max-width:100%; height:auto; max-height:260px; margin:12px auto 0; border:1px solid var(--line); border-radius:8px; object-fit:contain;">
+        <a href="/자료/스쿼드메이커%20db만들기/강화시뮬레이터.html" onclick="noticeGoPlatinum()" style="display:inline-block; margin-top:9px; color:var(--lime); font-size:13px; font-weight:800; text-decoration:underline; text-underline-offset:3px;">백금작 바로가기 →</a>
       </div>
       <button class="auth-submit" onclick="closeNotice()">닫기</button>
       <p style="margin-top:14px; font-size:12px; color:var(--text-dim); line-height:1.6;">
@@ -3601,8 +3603,8 @@
 
   // ── 업데이트 안내 1회성 팝업 ──
   // 규칙: (1) 닫기를 누르면 그 기기(브라우저)에서 다시 안 뜸  (2) 공지 만료일이 지나면 아무에게도 안 뜸
-  const NOTICE_ID = 'fc_notice_rare_refresh_tracker_v1';       // 새 공지를 낼 땐 이 값만 바꾸면 됩니다
-  const NOTICE_EXPIRE = new Date('2026-11-20T23:59:59+09:00').getTime();  // 이 시각 이후엔 표시 안 함
+  const NOTICE_ID = 'fc_notice_platinum_simulator_v1';       // 새 공지를 낼 땐 이 값만 바꾸면 됩니다
+  const NOTICE_EXPIRE = new Date('2026-11-30T23:59:59+09:00').getTime();  // 이 시각 이후엔 표시 안 함
   function maybeShowNotice(){
     try{
       if(Date.now() > NOTICE_EXPIRE) return;                 // 공지 기간 종료
@@ -3624,7 +3626,7 @@
     var ov = document.getElementById('noticeOverlay'); if(ov) ov.classList.remove('show');
     try{ showFreeBoard(); setTimeout(function(){ try{ setFreeCat('공지사항'); }catch(e){} }, 350); }catch(e){}
   }
-  function noticeGoTracker(){
+  function noticeGoPlatinum(){
     try{ localStorage.setItem(NOTICE_ID, '1'); }catch(e){}
   }
 
