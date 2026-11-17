@@ -235,6 +235,25 @@
 html.ios-webapp{--webapp-top-safe:max(44px,env(safe-area-inset-top,0px))}
 html.ios-webapp body{padding-top:var(--webapp-top-safe)}
 </style>
+<style>
+/* FC Online player detail: 48x21 grade menu cells and 58x36 full-card badge. */
+.en-gray,.en-one{--grade-bg:linear-gradient(140deg,#51545a 0%,#51545a 0%,#42464d 100%);--grade-fg:#c5c8c9}
+.en-bronze{--grade-bg:linear-gradient(140deg,#de946b 0%,#de946b 0%,#ad5f42 100%);--grade-fg:#7e3f27}
+.en-silver{--grade-bg:linear-gradient(140deg,#020024 0%,#d8d9dc 0%,#b8bdca 100%);--grade-fg:#4e545e}
+.en-gold{--grade-bg:linear-gradient(140deg,#f9dd62 0%,#f9dd62 0%,#dca908 100%);--grade-fg:#695100}
+.en-holo{--grade-bg:url('https://ssl.nexon.com/s2/game/fc/online/obt/datacenter/bg_plt.png') no-repeat 0 0/100% 100%;--grade-fg:#2d2b43}
+:is(#stagePicker .boost-option,.material-stage-picker button,.sim-stage-grid button,.sim-stage-trigger,.cardface .upgrade,.page .material .mat-stage,.motion .motion-detail .result-level):is(.en-gray,.en-one,.en-bronze,.en-silver,.en-gold,.en-holo){background:var(--grade-bg)!important;color:var(--grade-fg)!important}
+#stagePicker .boost-options,.sim-stage-grid{grid-template-columns:repeat(2,48px);gap:2px}
+#stagePicker .boost-option,.sim-stage-grid button{width:48px;height:21px;min-height:21px;line-height:19px;padding:0;border:0;border-radius:0;font-size:14px;box-shadow:none}
+#stagePicker .boost-options{justify-content:center}
+.material-stage-picker{grid-template-columns:repeat(4,48px);justify-content:center;gap:3px}
+.material-stage-picker button{width:48px;height:21px;padding:0;border:0;border-radius:0;font-size:14px;line-height:19px}
+.cardface .upgrade{display:grid;place-items:center;width:38px;height:24px;min-width:0;padding:0;border:0;border-radius:0;line-height:1}
+.motion .cardface .upgrade{width:58px;height:36px;padding:0;line-height:36px}
+.page .material .mat-stage{display:grid;place-items:center;width:26px;height:17px;padding:0;line-height:1}
+.sim-stage-trigger{min-height:36px}
+.motion .motion-detail .result-level{display:inline-grid;place-items:center;min-width:58px;min-height:36px;padding:0 3px;line-height:36px}
+</style>
 <script>document.documentElement.classList.toggle('ios-webapp',navigator.standalone===true);</script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8019320351145896" crossorigin="anonymous"></script>
 </head>
