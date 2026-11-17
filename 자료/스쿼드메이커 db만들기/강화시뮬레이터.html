@@ -321,10 +321,9 @@ const isLive=s=>/^(17|18|19|20|21|22|23|24|25|26)?LIVE$/.test(norm(s));
 function protectionInfo(){
   if(!S.player)return{eligible:false,excluded:false,rate:0,reason:''};
   const season=norm(S.player[2]),ovr=Number(S.player[4])||0,id=key(S.player);
-  const limitedSeason=excludedClasses.has(season);
-  if(excludedPlayers.has(id))return{eligible:false,excluded:true,rate:0,reason:'보호 데이터의 시즌·선수 제외 대상'};
-  if(S.level<5)return{eligible:false,excluded:false,preview:true,limitedSeason,rate:30,reason:'5강부터 12강까지 적용'};
-  if(S.level>12)return{eligible:false,excluded:false,preview:false,limitedSeason,rate:0,reason:'12강까지만 적용'};
+  const limitedSeason=excludedClasses.has(season),limitedPlayer=excludedPlayers.has(id);
+  if(S.level<5)return{eligible:false,excluded:false,preview:true,limitedSeason,limitedPlayer,rate:30,reason:'5강부터 12강까지 적용'};
+  if(S.level>12)return{eligible:false,excluded:false,preview:false,limitedSeason,limitedPlayer,rate:0,reason:'12강까지만 적용'};
   let rate;
   if(S.level<=7)rate=[30,60,95][S.level-5];
   else if(special30.has(id))rate=30;
@@ -332,7 +331,7 @@ function protectionInfo(){
   else if(ovr<=100)rate=80;
   else if(ovr<=104)rate=60;
   else rate=40;
-  return{eligible:true,excluded:false,limitedSeason,rate,reason:''};
+  return{eligible:true,excluded:false,limitedSeason,limitedPlayer,rate,reason:''};
 }
 function materialGaugeRatio(){
   if(!S.player||!S.materialPlayers.length)return 0;
@@ -506,7 +505,7 @@ render=function(){
   renderBase();
   if(!S.player)return;
   const info=protectionInfo();
-  if(info.limitedSeason)$('gradeDetail').innerHTML=`<b>${esc(S.player[2])} 시즌 안내 · 5강 이상부터 보호 적용</b><br>${$('gradeDetail').innerHTML}`;
+  if(info.limitedSeason||info.limitedPlayer)$('gradeDetail').innerHTML=`<b>${info.limitedPlayer?'보호 제외 대상 선수':'보호 제외 대상 시즌'}이지만 보호 가능</b><br>${$('gradeDetail').innerHTML}`;
   if(S.gradeProtect&&!info.eligible&&!info.excluded){$('gradeState').textContent='5강부터 적용';$('gradeState').className='state';$('gradeProtect').classList.remove('active')}
 };
 function updateSummary(){const c=chance(),g=Math.min(1,effectiveGaugeRatio()+S.boostEffect/100);if($('summaryChance'))$('summaryChance').textContent=S.player?`${(c*100).toFixed(2)}%`:'－';if($('summaryCost'))$('summaryCost').textContent=S.player?`${money(totalCost())} BP`:'－';if($('summarySpent'))$('summarySpent').textContent=`${money(S.spent)} BP`;if($('summaryAttempts'))$('summaryAttempts').textContent=`${S.attempts}회`;if($('summaryBest'))$('summaryBest').textContent=S.player?levelLabel(S.best):'－';if($('summarySuccess'))$('summarySuccess').textContent=`${S.successes}회`;if($('oddsRows'))$('oddsRows').innerHTML=base.map((v,i)=>`<tr class="${i===S.level-1?'now':''}"><td>${levelLabel(i+1)} → ${levelLabel(i+2)}</td><td>${Math.round(v*100)}%</td><td>${S.player&&S.materialPlayers.length?Math.round(v*g*10000)/100:'－'}%</td></tr>`).join('')}
@@ -599,8 +598,8 @@ function renderSimGauge(){const selected=Number($('simGauge').value);document.qu
 document.querySelectorAll('#simGaugeBars button').forEach(b=>b.onclick=()=>{$('simGauge').value=b.dataset.g;renderSimGauge()});
 function renderSimStage(kind){const select=$(kind),grid=$(`${kind}Grid`),trigger=$(`${kind}Button`),min=kind==='simStart'?1:2,max=kind==='simStart'?12:13;trigger.textContent=`${select.value}강 ▾`;trigger.className=`sim-stage-trigger ${stageClass(Number(select.value))}`;grid.innerHTML=Array.from({length:max-min+1},(_,i)=>{const level=i+min;return`<button type="button" class="${stageClass(level)} ${Number(select.value)===level?'selected':''}" data-level="${level}">${levelLabel(level)}</button>`}).join('');grid.querySelectorAll('button').forEach(b=>b.onclick=()=>{select.value=b.dataset.level;grid.classList.remove('show');renderSimStage(kind)})}
 for(const kind of ['simStart','simTarget']){$(`${kind}Button`).onclick=()=>{const grid=$(`${kind}Grid`),button=$(`${kind}Button`);document.querySelectorAll('.sim-stage-grid').forEach(g=>{if(g!==grid)g.classList.remove('show')});grid.classList.toggle('show');if(grid.classList.contains('show')){const anchor=button.getBoundingClientRect(),width=grid.offsetWidth,height=grid.offsetHeight;grid.style.left=`${Math.max(8,Math.min(innerWidth-width-8,anchor.left))}px`;grid.style.top=`${anchor.bottom+height+8<=innerHeight?anchor.bottom+4:Math.max(8,anchor.top-height-4)}px`}}}
-$('simProtect').addEventListener('click',e=>{const info=protectionInfo();if(info.excluded){e.preventDefault();$('simProtect').checked=false;const message='강화 등급 보호 제외 대상 선수입니다.';$('simResult').textContent=message;alert(message);return}if(info.limitedSeason)$('simResult').textContent=`${S.player[2]} 시즌은 5강 이상부터 강화 등급 보호가 적용됩니다.`});
-$('simOpen').onclick=()=>{const start=Math.min(12,S.level);$('simStart').value=String(start);$('simTarget').value=String(Math.min(13,start+1));renderSimStage('simStart');renderSimStage('simTarget');document.querySelectorAll('.sim-stage-grid').forEach(g=>g.classList.remove('show'));$('simGauge').value=String(S.gauge||5);renderSimGauge();$('simProtect').checked=S.gradeProtect&&!protectionInfo().excluded;$('simResult').textContent=S.player?(protectionInfo().limitedSeason?`${S.player[2]} 시즌은 5강 이상부터 강화 등급 보호가 적용됩니다.`:'조건을 선택하고 실행하세요.'):'먼저 대상 선수를 선택하세요.';$('simRun').textContent='목표까지 돌리기';$('simModal').classList.add('show')};
+$('simProtect').addEventListener('click',e=>{const info=protectionInfo();if(info.excluded){e.preventDefault();$('simProtect').checked=false;const message='강화 등급 보호 제외 대상 선수입니다.';$('simResult').textContent=message;alert(message);return}if(info.limitedSeason||info.limitedPlayer)$('simResult').textContent=info.limitedPlayer?'보호 제외 대상 선수이지만 보호 가능합니다.':`${S.player[2]} 시즌은 보호 제외 대상이지만 보호 가능합니다.`});
+$('simOpen').onclick=()=>{const start=Math.min(12,S.level);$('simStart').value=String(start);$('simTarget').value=String(Math.min(13,start+1));renderSimStage('simStart');renderSimStage('simTarget');document.querySelectorAll('.sim-stage-grid').forEach(g=>g.classList.remove('show'));$('simGauge').value=String(S.gauge||5);renderSimGauge();const info=protectionInfo();$('simProtect').checked=S.gradeProtect&&!info.excluded;$('simResult').textContent=S.player?(info.limitedPlayer?'보호 제외 대상 선수이지만 보호 가능합니다.':info.limitedSeason?`${S.player[2]} 시즌은 보호 제외 대상이지만 보호 가능합니다.`:'조건을 선택하고 실행하세요.'):'먼저 대상 선수를 선택하세요.';$('simRun').textContent='목표까지 돌리기';$('simModal').classList.add('show')};
 $('simClose').onclick=()=>$('simModal').classList.remove('show');$('simModal').onclick=e=>{if(e.target===$('simModal'))$('simModal').classList.remove('show')};
 $('simRun').onclick=async()=>{
   const out=$('simResult'),button=$('simRun'),start=Number($('simStart').value),target=Number($('simTarget').value),gauge=Number($('simGauge').value),protect=$('simProtect').checked;
