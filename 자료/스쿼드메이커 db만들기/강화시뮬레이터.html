@@ -466,10 +466,10 @@ function officialOptionsAtOvr(ovr){
   const priority=p=>(norm(p[2])===norm(ref.top_season)?2:0)+(p.materialLevel===Number(ref.top_grade)?1:0);
   return options.sort((a,b)=>priority(b)-priority(a)||Math.abs(playerPrice(a,a.materialLevel)-ref.avg_lowest_bp)-Math.abs(playerPrice(b,b.materialLevel)-ref.avg_lowest_bp)||playerPrice(a,a.materialLevel)-playerPrice(b,b.materialLevel));
 }
-function selectOfficialRecommendation(){
+function selectOfficialRecommendation(silent=false){
   if(!S.player)return;
   if(currentOvr(S.player)>=149){selectHighOvrMaterials();return}
-  if(!S.materialReference){alert('공홈 재료 기준 파일을 불러오지 못했습니다. material_reference.json 배포 상태를 확인해 주세요.');return}
+  if(!S.materialReference){if(!silent)alert('공홈 재료 기준 파일을 불러오지 못했습니다. material_reference.json 배포 상태를 확인해 주세요.');return}
   const key=`${Number(S.player[4])}:${S.level}`;
   const requiredBoost=S.gauge?S.gauge*20:100;
   const recipes=(S.materialReference?.recommendations?.[key]||[]).filter(recipe=>Number(recipe.boost_pct)>=requiredBoost-0.1);
@@ -486,10 +486,10 @@ function selectOfficialRecommendation(){
   }
   valid.sort((a,b)=>a.recipe.avg_lowest_total_bp-b.recipe.avg_lowest_total_bp||a.recipe.rank-b.recipe.rank);
   if(!valid.length){
+    const hasOvrData=Boolean(S.materialReference?.ovrs?.[String(currentOvr(S.player))]?.avg_lowest_bp);
     S.officialRecipe=null;
     selectMaterialsForGauge(true);
-    if(S.materialPlayers.length)alert(`공홈 ${requiredBoost}% 추천 조합이 없어 현재 가격 데이터의 재료로 목표 게이지에 맞춰 선택했습니다.`);
-    else alert(`${requiredBoost}% 이상 채우는 공홈 추천 조합 또는 사용 가능한 재료 데이터가 없습니다.`);
+    if(!silent&&!S.materialPlayers.length&&!hasOvrData)alert(`${requiredBoost}% 이상 채우는 공홈 추천 조합 또는 사용 가능한 재료 데이터가 없습니다.`);
     return;
   }
   S.materialPlayers=valid[0].picks;S.materials=S.materialPlayers.length;
@@ -511,12 +511,14 @@ function face(p,cls='',id=''){if(!p)return`<div class="cardface empty ${cls}"><s
 function updateReady(){$('enhance').disabled=!(S.player&&S.materials>0&&S.level<13)||S.busy;$('enhance').textContent=S.level>=13?'최고 강화 단계':'강화'}
 function renderMaterials(){document.querySelectorAll('.material').forEach((b,i)=>{const p=S.materialPlayers[i];b.classList.toggle('filled',!!p);b.classList.toggle('active',!!p);if(p){const urls=playerFaceCandidates(p[0]),level=p.materialLevel||1,ovr=currentOvr(p,level);b.innerHTML=`<span class="mat-card"><img class="mat-photo" src="${urls[0]}" data-fb="${urls.slice(1).join('|')}" onerror="fallbackFace(this)" alt=""><b class="mat-ovr">${ovr}</b><span class="mat-stage ${stageClass(level)}" role="button" tabindex="0" aria-label="${i+1}번 재료 강화단계 변경">+${level}</span><span class="mat-footer"><span class="mat-title"><img class="mat-season" src="${seasonImage(p[2])}" onerror="this.style.display='none'" alt=""><span class="mat-name">${esc(p[1])}</span></span><span class="mat-price">${money(playerPrice(p))} BP</span></span></span>`;b.setAttribute('aria-label',`${p[2]} ${p[1]} OVR ${ovr} +${level} ${money(playerPrice(p))} BP`);const stage=b.querySelector('.mat-stage');stage.onclick=e=>{e.stopPropagation();openMaterialStage(i)};stage.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();openMaterialStage(i)}}}else{b.innerHTML='<span class="plus">＋</span>';b.setAttribute('aria-label',`${i+1}번 재료 선택`)}b.onclick=e=>{if(e.target.closest('.mat-stage'))return;if(p){S.materialPlayers.splice(i,1);S.materials=S.materialPlayers.length;render()}else if(S.player){const next=materialCandidates().find(x=>!S.materialPlayers.some(y=>Number(y[0])===Number(x[0])));if(next){S.materialPlayers.push(next);S.materials=S.materialPlayers.length;render()}}};});}
 function openMaterialStage(index){const p=S.materialPlayers[index],box=$('materialStagePicker');if(!p)return;box.innerHTML=Array.from({length:11},(_,i)=>`<button type="button" data-level="${i+1}" class="${stageClass(i+1)} ${(p.materialLevel||1)===i+1?'selected':''}">+${i+1}</button>`).join('');box.classList.add('show');box.querySelectorAll('button').forEach(b=>b.onclick=()=>{p.materialLevel=Number(b.dataset.level);box.classList.remove('show');render()})}
-function selectMaterialsForGauge(forceHeuristic=false){
+document.addEventListener('click',e=>{const box=$('materialStagePicker');if(!box.classList.contains('show')||box.contains(e.target))return;box.classList.remove('show');e.preventDefault();e.stopImmediatePropagation()},true);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')$('materialStagePicker').classList.remove('show')});
+function selectMaterialsForGauge(forceHeuristic=false,silent=false){
   const desired=Math.max(0,Math.min(1,S.gauge?S.gauge/5:forceHeuristic?1:0));
   const ratio=desired/(1+S.boostEffect/100);
   if(!ratio){S.materialPlayers=[];S.materials=0;render();return}
   if(currentOvr(S.player)>=149){selectHighOvrMaterials();return}
-  if(!forceHeuristic&&S.gauge===5&&S.materialReference?.recommendations?.[`${Number(S.player?.[4])}:${S.level}`]){selectOfficialRecommendation();return}
+  if(!forceHeuristic&&S.gauge===5&&S.materialReference?.recommendations?.[`${Number(S.player?.[4])}:${S.level}`]){selectOfficialRecommendation(silent);return}
   S.officialRecipe=null;
   const need=materialTargetOvr(1),r=recipe();
   const counts=[1,2,3,4,5].sort((a,b)=>Math.abs(a-r.count)-Math.abs(b-r.count)||b-a);
@@ -716,7 +718,7 @@ $('simClose').onclick=()=>$('simModal').classList.remove('show');$('simModal').o
    try{
      const plans=new Map();S.gauge=gauge;
      for(let level=1;level<target;level++){
-       S.level=level;selectMaterialsForGauge();
+       S.level=level;selectMaterialsForGauge(false,true);
        if(!S.materialPlayers.length)throw new Error(`${level}강 재료 조합을 찾지 못했습니다.`);
        const protection=protectionInfo(),ratio=Math.min(1,materialGaugeRatio()*(1+S.boostEffect/100));
        plans.set(level,{chance:(base[level-1]||0)*ratio,cost:materialCost()+(protect&&protection.eligible?protectionCost(protection):0),protected:protect&&protection.eligible,ratio});
@@ -730,7 +732,7 @@ $('simClose').onclick=()=>$('simModal').classList.remove('show');$('simModal').o
  }
  $('simRun').onclick=runSimulation;
   document.getElementById('autoMaterials').textContent='공홈 추천 재료 자동선택';
-  document.getElementById('autoMaterials').onclick=selectOfficialRecommendation;
+  document.getElementById('autoMaterials').onclick=()=>selectOfficialRecommendation();
   fetch(`material_reference.json?v=${Date.now()}`,{cache:'no-store'})
     .then(response=>{if(!response.ok)throw new Error(`material_reference.json ${response.status}`);return response.json()})
     .then(reference=>{S.materialReference=reference})
