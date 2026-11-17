@@ -258,7 +258,16 @@ html.ios-webapp body{padding-top:var(--webapp-top-safe)}
 .cardface .player-img{z-index:1}
 .cardface .card-right{z-index:3}
 .cardface .card-bottom{z-index:2}
-.motion .cardface{clip-path:none;border:0;box-shadow:none}
+.motion .motion-card{width:37cqw;height:43.53cqw}
+.motion .motion-card .cardface{width:100%;height:100%}
+.motion .cardface{clip-path:none;border:0;border-radius:0;box-shadow:none;background:transparent;overflow:visible}
+.motion .cardface .player-img{left:31%;top:23%;width:53%;height:45%;transform:none;object-fit:contain;object-position:center bottom}
+.motion .cardface .ovr{left:21%;top:22.5%;font-size:4.4cqw;line-height:1}
+.motion .cardface .pos{left:21%;top:32.5%;font-size:2.5cqw;line-height:1}
+.motion .cardface .card-pay{left:21%;top:39.5%;font-size:2.5cqw}
+.motion .cardface .card-right{left:21%;right:auto;top:59%}
+.motion .cardface .upgrade{width:29px;height:18px;font-size:2.7cqw;line-height:18px}
+.motion .cardface .card-bottom{left:19%;right:19%;bottom:8%}
 </style>
 <script>document.documentElement.classList.toggle('ios-webapp',navigator.standalone===true);</script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8019320351145896" crossorigin="anonymous"></script>
