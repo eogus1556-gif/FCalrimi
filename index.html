@@ -891,8 +891,10 @@
     .timer-now{ animation: none; }
   }
   .toast-box{
-    position: fixed; right: 20px; bottom: 20px; z-index: 200;
-    display: flex; flex-direction: column; gap: 10px;
+    position: fixed; left: 50%; top: calc(18px + env(safe-area-inset-top, 0px));
+    transform: translateX(-50%); z-index: 200;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    width: min(360px, calc(100vw - 24px)); pointer-events: none;
   }
   .toast{
     background: var(--surface); border: 1px solid var(--lime);
@@ -1160,7 +1162,7 @@
     }
     .fc-mobile-nav-item svg{ width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round; }
     .fc-mobile-nav-item.active{ background:var(--lime); color:#0b0f14; box-shadow:0 6px 18px rgba(196,255,61,.18); }
-    .toast-box{ left:12px; right:12px; bottom:calc(105px + env(safe-area-inset-bottom, 0px)); align-items:stretch; }
+    .toast-box{ align-items:stretch; }
     .toast{ max-width:none; }
 
     /* 모바일: 자유게시판 표 → 카드형 (제목 + 메타 한 줄) */
