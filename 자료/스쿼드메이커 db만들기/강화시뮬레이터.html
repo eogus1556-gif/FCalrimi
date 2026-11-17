@@ -442,12 +442,14 @@ function materialCandidates(ratio=1){
 function selectHighOvrMaterials(){
   if(!S.player)return;
   const level=Math.max(1,Math.min(12,S.level)),slots=Math.max(1,Math.min(5,Number(S.gauge)||5));
-  const targetOvr=currentOvr(S.player,level),used=new Set(),picks=[];
-  const add=p=>{const id=Number(p[0]);if(used.has(id)||playerPrice(p,level)<=0)return;const copy=p.slice();copy.materialLevel=level;used.add(id);picks.push(copy)};
-  add(S.player);
-  const options=S.rows.filter(p=>Number(p[0])!==Number(S.player[0])&&materialAllowed(p)&&playerPrice(p,level)>0);
-  options.sort((a,b)=>Math.abs(currentOvr(a,level)-targetOvr)-Math.abs(currentOvr(b,level)-targetOvr)||playerPrice(a,level)-playerPrice(b,level));
-  for(const p of options){if(picks.length>=slots)break;add(p)}
+  const requiredOvr=materialTargetOvr(1);
+  let card=currentOvr(S.player,level)===requiredOvr&&playerPrice(S.player,level)>0?S.player:null;
+  if(!card){
+    const options=S.rows.filter(p=>materialAllowed(p)&&currentOvr(p,level)===requiredOvr&&playerPrice(p,level)>0);
+    options.sort((a,b)=>playerPrice(a,level)-playerPrice(b,level));
+    card=options[0];
+  }
+  const picks=card?Array.from({length:slots},()=>{const copy=card.slice();copy.materialLevel=level;return copy}):[];
   S.officialRecipe=null;S.materialPlayers=picks;S.materials=picks.length;render();
 }
 function officialOptionsAtOvr(ovr){
