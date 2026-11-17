@@ -254,7 +254,7 @@ html.ios-webapp body{padding-top:var(--webapp-top-safe)}
 .sim-stage-trigger{min-height:36px}
 .motion .motion-detail .result-level{display:inline-grid;place-items:center;min-width:58px;min-height:36px;padding:0 3px;line-height:36px}
 .cardface .card-frame{display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:0;pointer-events:none}
-.motion:is(.success,.fail,.burst,.protected-fail) .cardface .card-frame{display:block}
+.motion.show .cardface .card-frame{display:block}
 .cardface .player-img{z-index:1}
 .cardface .card-right{z-index:3}
 .cardface .card-bottom{z-index:2}
@@ -278,6 +278,23 @@ html.ios-webapp body{padding-top:var(--webapp-top-safe)}
 .motion .cardface .card-mark-nation,.motion .cardface .card-mark-team{width:11.43%}
 .motion .cardface .card-mark-league{width:15.24%}
 .motion .motion-detail .detail-row .result-level{min-width:40px;min-height:26px;height:26px;padding:1px 4px;font-size:14px;line-height:1}
+.motion.sim-outcome .motion-detail{top:53%;bottom:3%;left:4%;right:4%;padding:12px 14px;border:1px solid #537c66;border-radius:10px;background:#15231fe8!important;overflow-y:auto;overscroll-behavior:contain}
+.motion.sim-outcome .motion-prompt{display:none}
+.sim-outcome-summary{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;padding-bottom:9px;border-bottom:1px solid #496557;font-size:12px;line-height:1.45}
+.sim-outcome-summary strong{color:#baff86;font-size:15px}
+.sim-outcome-summary .sim-outcome-total{grid-column:1/-1}
+.sim-outcome-title{margin:9px 0 7px;color:#d9f5dc;font-size:13px;font-weight:900}
+.sim-outcome-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sim-outcome-fields label,.sim-outcome-gauge-label{display:block;color:#b7c8bb;font-size:11px}
+.sim-outcome-fields select{display:block;width:100%;height:32px;margin-top:3px;padding:0 6px;border:1px solid #5b7465;border-radius:5px;background:#101b18;color:#fff;font-weight:800}
+.sim-outcome-gauge-label{margin:8px 0 3px}
+.sim-outcome-gauge{display:grid;grid-template-columns:repeat(5,1fr);gap:2px}
+.sim-outcome-gauge button{height:29px;border:1px solid #526055;background:#29372e;color:#c8d6c9;cursor:pointer}
+.sim-outcome-gauge button.on{border-color:#1bd363;background:#17d75b;color:#08230f}
+.sim-outcome-protect{display:flex;align-items:center;gap:5px;margin:7px 0;color:#d4e4d5;font-size:11px}
+.sim-outcome-protect input{accent-color:#21db63}
+.sim-outcome-run{width:100%;height:34px;border:0;border-radius:5px;background:#1bd65f;color:#09200f;font-weight:900;cursor:pointer}
+.sim-outcome-run:disabled{opacity:.55;cursor:wait}
 @keyframes referenceSettle{0%,50%{top:44%;opacity:1;transform:translate(-50%,-50%)}100%{top:24.5%;opacity:1;transform:translate(-50%,-50%)}}
 @keyframes referenceRestore{0%,35%{top:44%;opacity:1;filter:grayscale(1);transform:translate(-50%,-50%)}55%{filter:brightness(3)}70%,100%{top:24.5%;opacity:1;filter:none;transform:translate(-50%,-50%)}}
 </style>
@@ -422,6 +439,17 @@ function materialCandidates(ratio=1){
   candidates.sort((a,b)=>gap(a)-gap(b)||Math.abs(playerPrice(a,a.materialLevel)-refs[String(currentOvr(a,a.materialLevel))].avg_lowest_bp)-Math.abs(playerPrice(b,b.materialLevel)-refs[String(currentOvr(b,b.materialLevel))].avg_lowest_bp));
   const seen=new Set();return candidates.filter(p=>{const id=Number(p[0]);if(seen.has(id))return false;seen.add(id);return true});
 }
+function selectHighOvrMaterials(){
+  if(!S.player)return;
+  const level=Math.max(1,Math.min(12,S.level)),slots=Math.max(1,Math.min(5,Number(S.gauge)||5));
+  const targetOvr=currentOvr(S.player,level),used=new Set(),picks=[];
+  const add=p=>{const id=Number(p[0]);if(used.has(id)||playerPrice(p,level)<=0)return;const copy=p.slice();copy.materialLevel=level;used.add(id);picks.push(copy)};
+  add(S.player);
+  const options=S.rows.filter(p=>Number(p[0])!==Number(S.player[0])&&materialAllowed(p)&&playerPrice(p,level)>0);
+  options.sort((a,b)=>Math.abs(currentOvr(a,level)-targetOvr)-Math.abs(currentOvr(b,level)-targetOvr)||playerPrice(a,level)-playerPrice(b,level));
+  for(const p of options){if(picks.length>=slots)break;add(p)}
+  S.officialRecipe=null;S.materialPlayers=picks;S.materials=picks.length;render();
+}
 function officialOptionsAtOvr(ovr){
   const ref=S.materialReference?.ovrs?.[String(ovr)];
   if(!ref?.avg_lowest_bp)return[];
@@ -438,6 +466,7 @@ function officialOptionsAtOvr(ovr){
 }
 function selectOfficialRecommendation(){
   if(!S.player)return;
+  if(currentOvr(S.player)>=149){selectHighOvrMaterials();return}
   if(!S.materialReference){alert('공홈 재료 기준 파일을 불러오지 못했습니다. material_reference.json 배포 상태를 확인해 주세요.');return}
   const key=`${Number(S.player[4])}:${S.level}`;
   const requiredBoost=S.gauge?S.gauge*20:100;
@@ -484,6 +513,7 @@ function selectMaterialsForGauge(forceHeuristic=false){
   const desired=Math.max(0,Math.min(1,S.gauge?S.gauge/5:forceHeuristic?1:0));
   const ratio=desired/(1+S.boostEffect/100);
   if(!ratio){S.materialPlayers=[];S.materials=0;render();return}
+  if(currentOvr(S.player)>=149){selectHighOvrMaterials();return}
   if(!forceHeuristic&&S.gauge===5&&S.materialReference?.recommendations?.[`${Number(S.player?.[4])}:${S.level}`]){selectOfficialRecommendation();return}
   S.officialRecipe=null;
   const need=materialTargetOvr(1),r=recipe();
@@ -624,7 +654,7 @@ finishMotion=function(){const pending=S.pending;if(!pending)return;const source=
 let resultShownAt=Infinity;const finishWithFragments=finishMotion;
 finishMotion=function(){if(!S.pending)return;const ok=S.pending.ok;finishWithFragments();resultShownAt=performance.now();if(ok){const sparks=document.createElement('div');sparks.className='motion-sparks';sparks.innerHTML=Array.from({length:32},(_,i)=>{const a=i*2.399;return `<i style="--x:${Math.cos(a)*140}px;--y:${Math.sin(a)*220}px;--r:0deg"></i>`}).join('');$('motionStage').append(sparks);setTimeout(()=>sparks.remove(),1800)}};
 $('motion').onclick=null;
-document.addEventListener('click',e=>{if($('motion').classList.contains('show')&&!S.pending&&performance.now()-resultShownAt>300){e.stopImmediatePropagation();$('motion').className='motion'}},true);
+ document.addEventListener('click',e=>{if(e.target.closest('.motion.sim-outcome .motion-detail'))return;if($('motion').classList.contains('show')&&!S.pending&&performance.now()-resultShownAt>300){e.stopImmediatePropagation();$('motion').className='motion'}},true);
 const renderWithSeason=render;
 function paintGauge(){const material=materialGaugeRatio(),combined=Math.min(1,material*(1+S.boostEffect/100));document.querySelectorAll('#gauge button').forEach((b,i)=>{const start=i/5,fill=x=>Math.max(0,Math.min(100,(x-start)*500));const a=fill(material),c=fill(combined);b.classList.remove('on','boost-filled','material-filled','boost-and-material');const kind=a&&c>a?'boost-and-material':a?'material-filled':null;if(kind)b.classList.add(kind);b.style.setProperty('--boost-fill',`${a}%`);b.style.setProperty('--material-fill',`${a}%`);b.style.setProperty('--combined-fill',`${c}%`)});$('gaugeApply').textContent=`예상 ${Math.round(combined*100)}% (재료 ${Math.round(material*100)}% × ${1+S.boostEffect/100}) · 목표 ${S.gauge*20}%`}
 function normalizePlayerRows(){if(!S.rows.length||S.rows[0][4]!==0||typeof S.rows[0][5]!=='string')return;S.rows=S.rows.map(p=>[p[0],p[1],p[2],p[5],p[6],p[7],p[8],p[9],S.prices[String(p[0])]||[]]);if(S.player)S.player=S.rows.find(p=>Number(p[0])===Number(S.player[0]))||null}
@@ -651,25 +681,52 @@ for(const kind of ['simStart','simTarget']){$(`${kind}Button`).onclick=()=>{cons
 $('simProtect').addEventListener('click',e=>{const info=protectionInfo();if(info.excluded){e.preventDefault();$('simProtect').checked=false;const message='강화 등급 보호 제외 대상 선수입니다.';$('simResult').textContent=message;alert(message);return}if(info.limitedSeason||info.limitedPlayer)$('simResult').textContent=info.limitedPlayer?'보호 제외 대상 선수이지만 보호 가능합니다.':`${S.player[2]} 시즌은 보호 제외 대상이지만 보호 가능합니다.`});
 $('simOpen').onclick=()=>{const start=Math.min(12,S.level);$('simStart').value=String(start);$('simTarget').value=String(Math.min(13,start+1));renderSimStage('simStart');renderSimStage('simTarget');document.querySelectorAll('.sim-stage-grid').forEach(g=>g.classList.remove('show'));$('simGauge').value=String(S.gauge||5);renderSimGauge();const info=protectionInfo();$('simProtect').checked=S.gradeProtect&&!info.excluded;$('simResult').textContent=S.player?(info.limitedPlayer?'보호 제외 대상 선수이지만 보호 가능합니다.':info.limitedSeason?`${S.player[2]} 시즌은 보호 제외 대상이지만 보호 가능합니다.`:'조건을 선택하고 실행하세요.'):'먼저 대상 선수를 선택하세요.';$('simRun').textContent='목표까지 돌리기';$('simModal').classList.add('show')};
 $('simClose').onclick=()=>$('simModal').classList.remove('show');$('simModal').onclick=e=>{if(e.target===$('simModal'))$('simModal').classList.remove('show')};
-$('simRun').onclick=async()=>{
-  const out=$('simResult'),button=$('simRun'),start=Number($('simStart').value),target=Number($('simTarget').value),gauge=Number($('simGauge').value),protect=$('simProtect').checked;
-  if(!S.player){out.textContent='먼저 대상 선수를 선택하세요.';return}if(protect&&protectionInfo().excluded){$('simProtect').checked=false;out.textContent='강화 등급 보호 제외 대상 선수입니다.';return}if(!rareMaterials.ready){out.textContent='생성 제한 재료 데이터가 로드되지 않았습니다.';return}if(target<=start){out.textContent='목표 강화단계는 현재 단계보다 높아야 합니다.';return}
-  button.disabled=true;out.textContent='단계별 재료와 비용을 계산하고 있습니다…';
-  const previous={level:S.level,gauge:S.gauge,materials:S.materials,players:S.materialPlayers,gradeProtect:S.gradeProtect};
-  try{
-    const plans=new Map();S.gauge=gauge;
-    for(let level=1;level<target;level++){
-      S.level=level;selectMaterialsForGauge();
-      if(!S.materialPlayers.length)throw new Error(`${level}강 재료 조합을 찾지 못했습니다.`);
-      const protection=protectionInfo(),ratio=Math.min(1,materialGaugeRatio()*(1+S.boostEffect/100));
-      plans.set(level,{chance:(base[level-1]||0)*ratio,cost:materialCost()+(protect&&protection.eligible?protectionCost(protection):0),protected:protect&&protection.eligible,ratio});
-      if(level%3===0)await new Promise(resolve=>setTimeout(resolve,0));
-    }
-    let level=start,attempts=0,spent=0,failed=0;const maxAttempts=100000;
-    while(level<target&&attempts<maxAttempts){const plan=plans.get(level);spent+=plan.cost;attempts++;if(Math.random()<plan.chance){level++}else{failed++;if(!plan.protected)level=rollRecovery(level)}}
-    out.innerHTML=level>=target?`<div>목표 <strong>${target}강 달성</strong></div><div>사용 예산 <strong>${money(spent)} BP</strong></div><div>강화 시도 <strong>${attempts.toLocaleString('ko-KR')}회</strong> · 실패 ${failed.toLocaleString('ko-KR')}회</div><small>사용 예산 = 매 시도 재료비 + 강화등급 보호 선택 시 적용 가능한 단계의 보호비. 선수 재구매 비용은 포함하지 않습니다. 무작위 1회 결과입니다.</small>`:`${maxAttempts.toLocaleString('ko-KR')}회 안에 목표에 도달하지 못했습니다. 조건을 바꿔 다시 시도하세요.`;
-  }catch(e){out.textContent=e.message}finally{S.level=previous.level;S.gauge=previous.gauge;S.materialPlayers=previous.players;S.materials=previous.materials;S.gradeProtect=previous.gradeProtect;render();button.disabled=false;button.textContent='다시 돌리기'}
-};
+ function showSimulationOutcome({start,target,gauge,protect,spent,attempts,failed}){
+   const previousLevel=S.level;S.level=target;
+   $('motionCard').innerHTML=face(S.player,'motion-cardface');
+   $('motionCard').querySelector('.ovr').textContent=currentOvr(S.player,target);
+   S.level=previousLevel;
+   $('motionResult').textContent='강화 성공';
+   $('motionName').textContent=`${S.player[2]} · ${S.player[1]}`;
+   $('motionDetail').innerHTML=`<div class="sim-outcome-summary"><div class="sim-outcome-total">목표 <strong>${target}강 달성</strong> · 사용 예산 <strong>${money(spent)} BP</strong></div><div>강화 시도 <strong>${attempts.toLocaleString('ko-KR')}회</strong></div><div>실패 <strong>${failed.toLocaleString('ko-KR')}회</strong></div></div><div class="sim-outcome-title">결과 조정</div><div class="sim-outcome-fields"><label>현재 강화단계<select id="simOutcomeStart">${simOptions(1,12)}</select></label><label>목표 강화단계<select id="simOutcomeTarget">${simOptions(2,13)}</select></label></div><div class="sim-outcome-gauge-label">확률 부스트 게이지</div><div class="sim-outcome-gauge" id="simOutcomeGauge">${Array.from({length:5},(_,i)=>`<button type="button" data-g="${i+1}">${i+1}</button>`).join('')}</div><label class="sim-outcome-protect"><input id="simOutcomeProtect" type="checkbox">강화 등급 보호 사용</label><button id="simOutcomeRun" class="sim-outcome-run" type="button">다시 돌리기</button>`;
+   $('simOutcomeStart').value=String(start);$('simOutcomeTarget').value=String(target);
+   $('simOutcomeProtect').checked=protect;$('simOutcomeProtect').disabled=protectionInfo().excluded;
+   let selectedGauge=gauge;
+   const paint=()=>document.querySelectorAll('#simOutcomeGauge button').forEach(button=>button.classList.toggle('on',Number(button.dataset.g)<=selectedGauge));
+   document.querySelectorAll('#simOutcomeGauge button').forEach(button=>button.onclick=()=>{selectedGauge=Number(button.dataset.g);paint()});paint();
+   $('simOutcomeRun').onclick=async()=>{
+     $('simStart').value=$('simOutcomeStart').value;$('simTarget').value=$('simOutcomeTarget').value;
+     $('simGauge').value=String(selectedGauge);$('simProtect').checked=$('simOutcomeProtect').checked;
+     renderSimStage('simStart');renderSimStage('simTarget');renderSimGauge();
+     await runSimulation();
+   };
+   $('simModal').classList.remove('show');$('motion').className='motion show success sim-outcome';resultShownAt=performance.now();
+ }
+ async function runSimulation(){
+   const out=$('simResult'),button=$('simRun'),start=Number($('simStart').value),target=Number($('simTarget').value),gauge=Number($('simGauge').value),protect=$('simProtect').checked;
+   const reject=message=>{out.textContent=message;const summary=document.querySelector('#motionDetail .sim-outcome-summary');if(summary)summary.textContent=message};
+   if(!S.player)return reject('먼저 대상 선수를 선택하세요.');
+   if(protect&&protectionInfo().excluded){$('simProtect').checked=false;return reject('강화 등급 보호 제외 대상 선수입니다.')}
+   if(!rareMaterials.ready)return reject('생성 제한 재료 데이터가 로드되지 않았습니다.');
+   if(target<=start)return reject('목표 강화단계는 현재 단계보다 높아야 합니다.');
+   button.disabled=true;const dockButton=$('simOutcomeRun');if(dockButton){dockButton.disabled=true;dockButton.textContent='계산 중…'}out.textContent='단계별 재료와 비용을 계산하고 있습니다…';
+   const previous={level:S.level,gauge:S.gauge,materials:S.materials,players:S.materialPlayers,gradeProtect:S.gradeProtect,officialRecipe:S.officialRecipe};
+   try{
+     const plans=new Map();S.gauge=gauge;
+     for(let level=1;level<target;level++){
+       S.level=level;selectMaterialsForGauge();
+       if(!S.materialPlayers.length)throw new Error(`${level}강 재료 조합을 찾지 못했습니다.`);
+       const protection=protectionInfo(),ratio=Math.min(1,materialGaugeRatio()*(1+S.boostEffect/100));
+       plans.set(level,{chance:(base[level-1]||0)*ratio,cost:materialCost()+(protect&&protection.eligible?protectionCost(protection):0),protected:protect&&protection.eligible,ratio});
+       if(level%3===0)await new Promise(resolve=>setTimeout(resolve,0));
+     }
+     let level=start,attempts=0,spent=0,failed=0;const maxAttempts=100000;
+     while(level<target&&attempts<maxAttempts){const plan=plans.get(level);spent+=plan.cost;attempts++;if(Math.random()<plan.chance){level++}else{failed++;if(!plan.protected)level=rollRecovery(level)}}
+     if(level>=target){out.innerHTML=`<div>목표 <strong>${target}강 달성</strong></div><div>사용 예산 <strong>${money(spent)} BP</strong></div><div>강화 시도 <strong>${attempts.toLocaleString('ko-KR')}회</strong> · 실패 ${failed.toLocaleString('ko-KR')}회</div><small>사용 예산 = 매 시도 재료비 + 강화등급 보호 선택 시 적용 가능한 단계의 보호비. 선수 재구매 비용은 포함하지 않습니다. 무작위 1회 결과입니다.</small>`;showSimulationOutcome({start,target,gauge,protect,spent,attempts,failed})}
+     else reject(`${maxAttempts.toLocaleString('ko-KR')}회 안에 목표에 도달하지 못했습니다. 조건을 바꿔 다시 시도하세요.`);
+   }catch(e){reject(e.message)}finally{S.level=previous.level;S.gauge=previous.gauge;S.materialPlayers=previous.players;S.materials=previous.materials;S.gradeProtect=previous.gradeProtect;S.officialRecipe=previous.officialRecipe;render();button.disabled=false;button.textContent='다시 돌리기';const currentDock=$('simOutcomeRun');if(currentDock){currentDock.disabled=false;currentDock.textContent='다시 돌리기'}}
+ }
+ $('simRun').onclick=runSimulation;
   document.getElementById('autoMaterials').textContent='공홈 추천 재료 자동선택';
   document.getElementById('autoMaterials').onclick=selectOfficialRecommendation;
   fetch(`material_reference.json?v=${Date.now()}`,{cache:'no-store'})
