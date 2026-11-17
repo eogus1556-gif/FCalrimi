@@ -258,16 +258,20 @@ html.ios-webapp body{padding-top:var(--webapp-top-safe)}
 .cardface .player-img{z-index:1}
 .cardface .card-right{z-index:3}
 .cardface .card-bottom{z-index:2}
-.motion .motion-card{width:37cqw;height:43.53cqw}
+.motion .motion-card{width:min(340px,40svh,calc(100vw - 24px));height:auto;aspect-ratio:17/20}
 .motion .motion-card .cardface{width:100%;height:100%}
 .motion .cardface{clip-path:none;border:0;border-radius:0;box-shadow:none;background:transparent;overflow:visible}
 .motion .cardface .player-img{left:31%;top:23%;width:53%;height:45%;transform:none;object-fit:contain;object-position:center bottom}
-.motion .cardface .ovr{left:21%;top:22.5%;font-size:4.4cqw;line-height:1}
-.motion .cardface .pos{left:21%;top:32.5%;font-size:2.5cqw;line-height:1}
-.motion .cardface .card-pay{left:21%;top:39.5%;font-size:2.5cqw}
+.motion .cardface .ovr{left:21%;top:22.5%;font-size:clamp(24px,5svh,40px);line-height:1}
+.motion .cardface .pos{left:21%;top:32.5%;font-size:clamp(12px,2.4svh,19px);line-height:1}
+.motion .cardface .card-pay{left:21%;top:39.5%;font-size:clamp(11px,2svh,16px)}
 .motion .cardface .card-right{left:21%;right:auto;top:59%}
-.motion .cardface .upgrade{width:29px;height:18px;font-size:2.7cqw;line-height:18px}
+.motion .cardface .upgrade{width:min(58px,7svh);height:min(36px,4.4svh);font-size:clamp(20px,3.8svh,30px);line-height:1}
 .motion .cardface .card-bottom{left:19%;right:19%;bottom:8%}
+.motion .cardface .card-name{font-size:clamp(14px,2.4svh,19px)}
+.motion .cardface .season img{width:clamp(20px,4svh,34px);height:clamp(20px,4svh,34px)}
+@keyframes referenceSettle{0%,50%{top:44%;opacity:1;transform:translate(-50%,-50%)}100%{top:24.5%;opacity:1;transform:translate(-50%,-50%)}}
+@keyframes referenceRestore{0%,35%{top:44%;opacity:1;filter:grayscale(1);transform:translate(-50%,-50%)}55%{filter:brightness(3)}70%,100%{top:24.5%;opacity:1;filter:none;transform:translate(-50%,-50%)}}
 </style>
 <script>document.documentElement.classList.toggle('ios-webapp',navigator.standalone===true);</script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8019320351145896" crossorigin="anonymous"></script>
