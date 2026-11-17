@@ -150,6 +150,11 @@ let D, AB, W, GROW, P, TC, WAVE, TRAIT, AB_IDX;
 fetch('data.json').then(r=>r.json()).then(d=>{
   D=d; AB=d.AB; W=d.W; GROW=d.GROW; P=d.P; TC=d.TC; WAVE=d.WAVE; TRAIT=d.TRAIT||{};
   AB_IDX=Object.fromEntries(AB.map((k,i)=>[k,i]));
+  const params=new URLSearchParams(location.search),spid=params.get('spid');
+  if(/^\d+$/.test(spid||'')){
+    const player=P.find(row=>String(row[0])===spid);
+    if(player)select(player,params.get('en'));
+  }
 }).catch(e=>{document.getElementById('main').innerHTML='<div class="panel"><div class="empty">데이터(data.json)를 못 불러왔습니다. 로컬은 서버로 열어주세요 (python -m http.server).</div></div>';});
 const TRAITURL=id=>`https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_${id}.png`;
 const COLLECT_EN=1, MAX_PER=2;
@@ -199,7 +204,7 @@ results.addEventListener('click',e=>{
   select(P[+it.dataset.i]); results.classList.remove('show'); q.value='';
 });
 
-function select(row){ cur=row; pos=row[3]; en=COLLECT_EN; boost={}; trainOn=true;
+function select(row,level=COLLECT_EN){ cur=row; pos=row[3]; en=Math.max(1,Math.min(13,Number(level)||COLLECT_EN)); boost={}; trainOn=true;
   socSel=''; socLv=1; relSel=''; relLv=1; waveSel=''; render(); }
 
 // 케미 보너스 계산 → 34칸 배열
