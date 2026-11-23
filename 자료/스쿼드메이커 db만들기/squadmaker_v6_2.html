@@ -1284,7 +1284,7 @@ let TCPICK=null; // tc_pickrate.json: 팀컬러+포지션별 실제 랭커 선�
 fetch('tc_pickrate.json').then(r=>r.json()).then(d=>{TCPICK=d;}).catch(()=>{TCPICK=null;});
 
 /* 공용 data.json 로드 → CHEM(케미·능력치)·TCFULL(팀컬러 발동표) 채워 자동케미/집중훈련 활성화 */
-fetch('data.json').then(r=>r.json()).then(d=>{
+async function loadSquadDetails(){try{let d,lastError;for(let attempt=0;attempt<2;attempt++){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),45000);try{const response=await fetch('data.json',{cache:'no-cache',signal:controller.signal});if(!response.ok)throw Error(`HTTP ${response.status}`);d=await response.json();break}catch(error){lastError=error}finally{clearTimeout(timer)}if(!attempt)await new Promise(resolve=>setTimeout(resolve,800))}if(!d)throw lastError||Error('데이터 응답 없음');
   DAB=d.AB; DW=d.W;
   const TR=d.TRAIT||{}; TRAITS=TR;
   GOLDIDS=new Set(Object.keys(TR).filter(id=>TR[id]&&TR[id].g));   // 금빛 특성 id
@@ -1312,7 +1312,8 @@ fetch('data.json').then(r=>r.json()).then(d=>{
   }
   renderBoard();
   if(typeof renderTcFilter==='function') renderTcFilter();   // 데이터 로드 후 팀컬러 검색 필터 활성화(잠김 해제)
-}).catch(()=>{});   // 데이터 없으면 강화만 동작(기존 유지)
+}catch(error){console.warn('스쿼드 세부 데이터 로드 실패',error);toast('데이터를 불러오지 못했습니다. 새로고침해 주세요.')}}
+loadSquadDetails();
 
 /* ===== 집중훈련 (스쿼드 발동 케미 반영) — 계산기와 동일 로직 ===== */
 function dabIdx(name){ return DAB?DAB.indexOf(name):-1; }
@@ -2573,7 +2574,7 @@ function renderPanel(){
     const c=CHEM&&CHEM[s.spid];
     if(!c||!c.ab||!DAB){
       panel.className='cardPanel abilityPanel on';
-      panel.innerHTML='<div class="panelHint">세부능력치 데이터를 불러오는 중입니다.</div>';
+      panel.innerHTML='<div class="panelHint">데이터 불러오는 중…</div>';
     }else{
       const st=menuIdx<N_START, pos=posOf(menuIdx,p);
       const chem=st?playerChem(s,pos):new Array(34).fill(0);
@@ -3913,7 +3914,7 @@ function toggleJersey(){
   document.getElementById('btnJersey').classList.toggle('on',showJersey);
   save();
   if(!showJersey){renderBoard();return;}
-  if(!JERSEY)toast('등번호 데이터 불러오는 중…');
+  if(!JERSEY)toast('데이터 불러오는 중…');
   jerseyLoad().then(d=>{if(!Object.keys((d&&d.by_korean_name)||{}).length)toast('jersey_numbers.json을 찾지 못했어요');renderBoard();});
 }
 /* 미페 자동맞춤 (표시 얼굴만 목표색 시즌으로; 스탯·카드 불변) */
@@ -3928,7 +3929,7 @@ function toggleUni(){
   if(autoUni) clearAutoFaces();                              // 켤 때 전체 자동 적용
   save();
   if(autoUni){
-    if(!UNIQ)toast('유니폼 색 데이터 불러오는 중…');
+    if(!UNIQ)toast('데이터 불러오는 중…');
     uniLoad().then(()=>keepMenu(()=>{}));
   }else keepMenu(()=>{});
 }
@@ -3943,7 +3944,7 @@ function resetUniAuto(){                                      // 스쿼드 대�
   document.getElementById('uniAuto').classList.add('on');
   clearAutoFaces();
   save();
-  if(!UNIQ)toast('유니폼 색 데이터 불러오는 중…');
+  if(!UNIQ)toast('데이터 불러오는 중…');
   uniLoad().then(()=>keepMenu(()=>{}));
 }
 
@@ -4142,7 +4143,7 @@ function renderSavedSquads(){
   document.getElementById('savedSquadDelete').disabled=!selected.size||savedSquadState.loading;
   document.getElementById('savedSquadLoad').disabled=selected.size!==1||savedSquadState.loading;
   const box=document.getElementById('savedSquadList');
-  if(savedSquadState.loading){box.innerHTML='<div class="savedSquadEmpty">저장된 스쿼드를 불러오는 중입니다…</div>';}
+  if(savedSquadState.loading){box.innerHTML='<div class="savedSquadEmpty">데이터 불러오는 중…</div>';}
   else if(!rows.length){box.innerHTML='<div class="savedSquadEmpty">저장된 스쿼드가 없습니다.<br>스쿼드를 만든 뒤 저장 버튼을 눌러보세요.</div>';}
   else box.innerHTML=rows.map(x=>{
     const id=esc(String(x.id)),d=x.data||{},cards=(Array.isArray(d.squad)?d.squad:[]).filter(Boolean);
@@ -4256,7 +4257,7 @@ function refreshAfterPlayers(){
   try{renderResults();}catch(e){}
   try{renderBoard();}catch(e){}
 }
-const _getJson=u=>fetch(u,{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error(u);return r.json();}).catch(()=>null);
+const _getJson=async u=>{for(let attempt=0;attempt<2;attempt++){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),30000);try{const response=await fetch(u,{cache:'no-cache',signal:controller.signal});if(!response.ok)throw Error(`HTTP ${response.status}`);return await response.json()}catch(error){if(attempt)console.warn('선수·시세 데이터 로드 실패',u,error)}finally{clearTimeout(timer)}if(!attempt)await new Promise(resolve=>setTimeout(resolve,800))}return null};
 // players.json(목록 추가분, 가끔 갱신) → prices.json(가격, 매일 갱신) 순으로 적용. 없는 파일은 건너뜀
 Promise.all([_getJson('players.json'),_getJson('prices.json')]).then(([pl,pr])=>{
   if(pl){ applyPlayerRows(Array.isArray(pl)?pl:pl.rows); }

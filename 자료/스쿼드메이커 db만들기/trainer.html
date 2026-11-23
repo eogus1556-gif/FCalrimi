@@ -142,12 +142,13 @@ body{padding-bottom:110px}
   <h1>집중 훈련 계산기 <a class="trainer-home" href="/index.html">FC알리미</a></h1>
   <div class="searchbar"><input id="q" placeholder="선수 이름 검색 (예: 음바페, 지단)" autocomplete="off"></div>
   <div class="results" id="results"></div>
-  <div id="main"><div class="panel"><div class="empty">선수를 검색해서 선택하세요.</div></div></div>
+  <div id="main"><div class="panel"><div class="empty">데이터 불러오는 중…</div></div></div>
 </div>
 
 <script>
-let D, AB, W, GROW, P, TC, WAVE, TRAIT, AB_IDX;
-fetch('data.json').then(r=>r.json()).then(d=>{
+let D, AB, W, GROW, P, TC, WAVE, TRAIT, AB_IDX, trainerLoadFailed=false;
+async function loadTrainerData(){let d,lastError;for(let attempt=0;attempt<2;attempt++){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),45000);try{const response=await fetch('data.json',{cache:'no-cache',signal:controller.signal});if(!response.ok)throw Error(`HTTP ${response.status}`);d=await response.json();break}catch(error){lastError=error}finally{clearTimeout(timer)}if(!attempt)await new Promise(resolve=>setTimeout(resolve,800))}
+  if(!d){trainerLoadFailed=true;document.getElementById('main').innerHTML='<div class="panel"><div class="empty">데이터를 불러오지 못했습니다. 잠시 후 새로고침해 주세요.</div></div>';console.warn('집중훈련 데이터 로드 실패',lastError);return}
   D=d; AB=d.AB; W=d.W; GROW=d.GROW; P=d.P; TC=d.TC; WAVE=d.WAVE; TRAIT=d.TRAIT||{};
   AB_IDX=Object.fromEntries(AB.map((k,i)=>[k,i]));
   const params=new URLSearchParams(location.search),spid=params.get('spid');
@@ -155,7 +156,10 @@ fetch('data.json').then(r=>r.json()).then(d=>{
     const player=P.find(row=>String(row[0])===spid);
     if(player)select(player,params.get('en'));
   }
-}).catch(e=>{document.getElementById('main').innerHTML='<div class="panel"><div class="empty">데이터(data.json)를 못 불러왔습니다. 로컬은 서버로 열어주세요 (python -m http.server).</div></div>';});
+  if(!cur)document.getElementById('main').innerHTML='<div class="panel"><div class="empty">선수를 검색해서 선택하세요.</div></div>';
+  if(document.getElementById('q').value.trim())document.getElementById('q').dispatchEvent(new Event('input'));
+}
+loadTrainerData();
 const TRAITURL=id=>`https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/traits/trait_icon_${id}.png`;
 const COLLECT_EN=1, MAX_PER=2;
 const $=s=>document.querySelector(s);
@@ -184,6 +188,7 @@ const q=$('#q'), results=$('#results');
 q.addEventListener('input',()=>{
   const t=q.value.trim();
   if(!t){ results.classList.remove('show'); return; }
+  if(!P){results.innerHTML=`<div class="rItem">${trainerLoadFailed?'데이터를 불러오지 못했습니다. 새로고침해 주세요.':'데이터 불러오는 중…'}</div>`;results.classList.add('show');return}
   const hit=P.filter(r=>r[1].includes(t)).slice(0,30);
   results.innerHTML=hit.map(r=>{const i=P.indexOf(r);
     const gids=(r[19]||[]).filter(id=>(TRAIT[id]||{}).g);   // 금빛 특성 id만
