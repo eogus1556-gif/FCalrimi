@@ -522,11 +522,21 @@ function updateReady(){$('enhance').disabled=!(S.player&&S.materials>0&&S.level<
 function renderMaterials(){document.querySelectorAll('.material').forEach((b,i)=>{const p=S.materialPlayers[i];b.classList.toggle('filled',!!p);b.classList.toggle('active',!!p);if(p){const urls=playerFaceCandidates(p[0]),level=p.materialLevel||1,ovr=currentOvr(p,level);b.innerHTML=`<span class="mat-card"><img class="mat-photo" src="${urls[0]}" data-fb="${urls.slice(1).join('|')}" onerror="fallbackFace(this)" alt=""><b class="mat-ovr">${ovr}</b><span class="mat-stage ${stageClass(level)}" role="button" tabindex="0" aria-label="${i+1}번 재료 강화단계 변경">+${level}</span><span class="mat-footer"><span class="mat-title"><img class="mat-season" src="${seasonImage(p[2])}" onerror="this.style.display='none'" alt=""><span class="mat-name">${esc(p[1])}</span></span><span class="mat-price">${money(playerPrice(p))} BP</span></span></span>`;b.setAttribute('aria-label',`${p[2]} ${p[1]} OVR ${ovr} +${level} ${money(playerPrice(p))} BP`);const stage=b.querySelector('.mat-stage');stage.onclick=e=>{e.stopPropagation();openMaterialStage(i)};stage.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();openMaterialStage(i)}}}else{b.innerHTML='<span class="plus">＋</span>';b.setAttribute('aria-label',`${i+1}번 재료 선택`)}b.onclick=e=>{if(e.target.closest('.mat-stage'))return;if(p){S.materialPlayers.splice(i,1);S.materials=S.materialPlayers.length;render()}else if(S.player){const next=materialCandidates().find(x=>!S.materialPlayers.some(y=>Number(y[0])===Number(x[0])));if(next){S.materialPlayers.push(next);S.materials=S.materialPlayers.length;render()}}};});}
 function openMaterialStage(index){const p=S.materialPlayers[index],box=$('materialStagePicker');if(!p)return;box.innerHTML=Array.from({length:11},(_,i)=>`<button type="button" data-level="${i+1}" class="${stageClass(i+1)} ${(p.materialLevel||1)===i+1?'selected':''}">+${i+1}</button>`).join('');box.classList.add('show');box.querySelectorAll('button').forEach(b=>b.onclick=()=>{p.materialLevel=Number(b.dataset.level);box.classList.remove('show');render()})}
 function isAdAreaClick(e){
-  if(e.target.closest?.('.fc-tool-ad'))return true;
-  return [...document.querySelectorAll('.fc-tool-ad.adReady')].some(ad=>{
+  if(e.target.closest?.('.fc-tool-ad,.google-auto-placed,[data-anchor-status]'))return true;
+  if([...document.querySelectorAll('.fc-tool-ad.adReady')].some(ad=>{
     const r=ad.getBoundingClientRect(),pad=12;
     return r.width>0&&r.height>0&&e.clientX>=r.left-pad&&e.clientX<=r.right+pad&&e.clientY>=r.top-pad&&e.clientY<=r.bottom+pad;
-  });
+  }))return true;
+  // Google의 하단 고정 광고는 지정 광고 칸 밖에 별도 iframe으로 생성된다.
+  const vw=innerWidth,vh=innerHeight;
+  if([...document.querySelectorAll('ins.adsbygoogle,iframe[id*="google_ads"],iframe[id^="aswift_"],.google-auto-placed,[data-anchor-status]')].some(ad=>{
+    const r=ad.getBoundingClientRect();
+    return r.width>180&&r.height>20&&r.top<vh&&r.bottom>vh-30
+      &&e.clientX>=r.left-80&&e.clientX<=r.right+80
+      &&e.clientY>=r.top-40&&e.clientY<=r.bottom+20;
+  }))return true;
+  const hasGoogleAd=!!document.querySelector('.fc-tool-ad.adReady,ins.adsbygoogle[data-ad-status="filled"],iframe[id*="google_ads"],iframe[id^="aswift_"]');
+  return hasGoogleAd&&e.clientY>=vh-165&&(vw<=780||(e.clientX>=vw*.18&&e.clientX<=vw*.82));
 }
 document.addEventListener('click',e=>{if(isAdAreaClick(e))return;const box=$('materialStagePicker');if(!box.classList.contains('show')||box.contains(e.target))return;box.classList.remove('show');e.preventDefault();e.stopImmediatePropagation()},true);
 document.addEventListener('keydown',e=>{if(e.key==='Escape')$('materialStagePicker').classList.remove('show')});
