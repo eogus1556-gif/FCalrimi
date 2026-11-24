@@ -54,7 +54,7 @@
     </div>
     <div class="options">
       <span class="optionLine"><label title="이 페이지는 갱신시간이 없는 선수만 조회합니다."><input id="missingOnly" type="checkbox" checked disabled aria-disabled="true"> 갱신시간 없는 선수만</label><button id="helpOpen" class="helpBtn" type="button" aria-label="갱신시간 유추 원리 보기" aria-haspopup="dialog">?</button></span>
-      <span id="loadState" class="loadState">선수 데이터를 불러오는 중...</span>
+      <span id="loadState" class="loadState">데이터 불러오는 중…</span>
     </div>
   </section>
 
@@ -315,9 +315,17 @@
 
   async function load() {
     try {
-      const response = await fetch(DATA_URL, {cache: 'no-cache'});
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const raw = await response.json();
+      let raw, lastError;
+      for(let attempt=0;attempt<2;attempt++){
+        const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),30000);
+        try{
+          const response=await fetch(DATA_URL,{cache:'no-cache',signal:controller.signal});
+          if(!response.ok)throw new Error(`HTTP ${response.status}`);
+          raw=await response.json();break;
+        }catch(error){lastError=error}finally{clearTimeout(timer)}
+        if(!attempt)await new Promise(resolve=>setTimeout(resolve,800));
+      }
+      if(!raw)throw lastError||new Error('데이터 응답 없음');
       state.rows = prepare(raw);
       state.ready = true;
       const seasons = [...new Set(state.rows.map(row => row.season).filter(Boolean))].sort((a,b) => a.localeCompare(b,'ko',{numeric:true}));
@@ -331,7 +339,7 @@
       findMatches();
     } catch (error) {
       $('loadState').textContent = `데이터 불러오기 실패: ${error.message}`;
-      $('results').innerHTML = '<div class="empty">pdb_v3f9k2a7.json 파일을 불러오지 못했습니다.</div>';
+      $('results').innerHTML = '<div class="empty">데이터를 불러오지 못했습니다. 잠시 후 새로고침해 주세요.</div>';
     }
   }
 
