@@ -286,6 +286,9 @@ html.ios-webapp body{padding-top:var(--webapp-top-safe)}
 .sim-outcome-summary strong{color:#baff86;font-size:15px}
 .sim-outcome-summary .sim-outcome-total{grid-column:1/-1}
 .sim-outcome-note{grid-column:1/-1;margin-top:3px;color:#b7c8bb;font-size:11px}
+.sim-benchmark{margin-top:9px;padding:9px 10px;border:1px solid #456b53;border-radius:6px;background:#102017;color:#d9e9dc;font-size:12px;line-height:1.55}
+.sim-benchmark b{color:#baff86}.sim-benchmark small{display:block;color:#aebfaf;font-size:11px}
+.sim-outcome-summary .sim-benchmark{grid-column:1/-1}
 .sim-outcome-title{margin:9px 0 7px;color:#d9f5dc;font-size:13px;font-weight:900}
 .sim-outcome-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .sim-outcome-fields label,.sim-outcome-gauge-label{display:block;color:#b7c8bb;font-size:11px}
@@ -720,7 +723,43 @@ $('simProtect').addEventListener('click',e=>{const info=protectionInfo();if(info
 $('trainingOpen').onclick=()=>{const destination=new URL('trainer.html',location.href);if(S.player){destination.searchParams.set('spid',String(S.player[0]));destination.searchParams.set('en',String(S.level))}location.assign(destination.href)};
 $('simOpen').onclick=()=>{const start=Math.min(12,S.level);$('simStart').value=String(start);$('simTarget').value=String(Math.min(13,start+1));renderSimStage('simStart');renderSimStage('simTarget');document.querySelectorAll('.sim-stage-grid').forEach(g=>g.classList.remove('show'));$('simGauge').value=String(S.gauge||5);renderSimGauge();const info=protectionInfo();$('simProtect').checked=S.gradeProtect&&!info.excluded;$('simResult').textContent=S.player?(info.limitedPlayer?'보호 제외 대상 선수이지만 보호 가능합니다.':info.limitedSeason?`${S.player[2]} 시즌은 보호 제외 대상이지만 보호 가능합니다.`:'조건을 선택하고 실행하세요.'):'먼저 대상 선수를 선택하세요.';$('simRun').textContent='목표까지 돌리기';$('simModal').classList.add('show')};
 $('simClose').onclick=()=>$('simModal').classList.remove('show');$('simModal').onclick=e=>{if(e.target===$('simModal'))$('simModal').classList.remove('show')};
- function showSimulationOutcome({start,target,gauge,protect,spent,attempts,failed}){
+ function simulatePlannedRun(plans,start,target){
+   let level=start,attempts=0,spent=0,failed=0;
+   const maxAttempts=100000;
+   while(level<target&&attempts<maxAttempts){
+     const plan=plans.get(level);
+     spent+=plan.cost;attempts++;
+     if(Math.random()<plan.chance)level++;
+     else{failed++;if(!plan.protected)level=rollRecovery(level)}
+   }
+   return{completed:level>=target,attempts,spent,failed};
+ }
+ async function benchmarkSimulation(plans,start,target,currentSpent,out,dockButton){
+   const costs=[];
+   for(let i=0;i<1000;i++){
+     const run=simulatePlannedRun(plans,start,target);
+     if(run.completed)costs.push(run.spent);
+     if((i+1)%50===0){
+       const progress=`동일 조건 1,000회 비교 중… ${i+1}/1,000`;
+       out.textContent=progress;
+       if(dockButton)dockButton.textContent=progress;
+       await new Promise(resolve=>setTimeout(resolve,0));
+     }
+   }
+   if(!costs.length)return{completed:0,average:null,rankLabel:''};
+   const average=costs.reduce((sum,cost)=>sum+cost,0)/costs.length;
+   const cheaper=costs.filter(cost=>cost<currentSpent).length;
+   const equal=costs.filter(cost=>cost===currentSpent).length;
+   const position=(cheaper+equal/2)/costs.length*100;
+   const rankLabel=position>=45&&position<=55?'비용 분포의 중간 수준'
+     :position<50?`저렴한 순 상위 ${Math.max(1,Math.round(position))}%`
+     :`비용 높은 순 상위 ${Math.max(1,Math.round(100-position))}%`;
+   return{completed:costs.length,average,rankLabel};
+ }
+ function benchmarkHtml(benchmark){
+   return `<div class="sim-benchmark"><b>동일 조건 1,000회 추가 비교</b><div>목표 달성 ${benchmark.completed.toLocaleString('ko-KR')}회 / 1,000회</div>${benchmark.average==null?'<div>달성 표본이 없어 평균을 계산할 수 없습니다.</div>':`<div>달성한 결과의 평균 사용 예산 <b>${money(benchmark.average)} BP</b></div><div>이번 1회 결과: <b>${benchmark.rankLabel}</b></div>`}<small>비용이 낮을수록 저렴한 순위입니다. 1회당 최대 100,000번 시도하며, 미달성 표본은 평균·순위에서 제외합니다.</small></div>`;
+ }
+ function showSimulationOutcome({start,target,gauge,protect,spent,attempts,failed,benchmark}){
    const previousLevel=S.level;S.level=target;
    $('motionCard').innerHTML=face(S.player,'motion-cardface');
    $('motionCard').querySelector('.ovr').textContent=currentOvr(S.player,target);
@@ -728,6 +767,7 @@ $('simClose').onclick=()=>$('simModal').classList.remove('show');$('simModal').o
    $('motionResult').textContent='강화 성공';
    $('motionName').textContent=`${S.player[2]} · ${S.player[1]}`;
    $('motionDetail').innerHTML=`<div class="sim-outcome-summary"><div class="sim-outcome-total">목표 <strong>${target}강 달성</strong> · 사용 예산 <strong>${money(spent)} BP</strong></div><div>강화 시도 <strong>${attempts.toLocaleString('ko-KR')}회</strong></div><div>실패 <strong>${failed.toLocaleString('ko-KR')}회</strong></div><div class="sim-outcome-note">확률 기반 시뮬레이션의 1회 결과입니다. 실행할 때마다 달라질 수 있습니다.</div></div><div class="sim-outcome-title">결과 조정</div><div class="sim-outcome-fields"><label>현재 강화단계<select id="simOutcomeStart">${simOptions(1,12)}</select><button id="simOutcomeStartButton" class="sim-stage-trigger" type="button"></button></label><label>목표 강화단계<select id="simOutcomeTarget">${simOptions(2,13)}</select><button id="simOutcomeTargetButton" class="sim-stage-trigger" type="button"></button></label></div><div class="sim-outcome-gauge-label">확률 부스트 게이지</div><div class="sim-outcome-gauge" id="simOutcomeGauge">${Array.from({length:5},(_,i)=>`<button type="button" data-g="${i+1}">${i+1}</button>`).join('')}</div><label class="sim-outcome-protect"><input id="simOutcomeProtect" type="checkbox">강화 등급 보호 사용</label><button id="simOutcomeRun" class="sim-outcome-run" type="button">다시 돌리기</button>`;
+   $('motionDetail').querySelector('.sim-outcome-summary').insertAdjacentHTML('beforeend',benchmarkHtml(benchmark));
    $('simOutcomeStart').value=String(start);$('simOutcomeTarget').value=String(target);
    for(const kind of ['simOutcomeStart','simOutcomeTarget']){renderSimStage(kind);$(`${kind}Button`).onclick=()=>toggleSimStage(kind);$(`${kind}Grid`).classList.remove('show')}
    $('simOutcomeProtect').checked=protect;$('simOutcomeProtect').disabled=protectionInfo().excluded;
@@ -760,10 +800,13 @@ $('simClose').onclick=()=>$('simModal').classList.remove('show');$('simModal').o
        plans.set(level,{chance:(base[level-1]||0)*ratio,cost:materialCost()+(protect&&protection.eligible?protectionCost(protection):0),protected:protect&&protection.eligible,ratio});
        if(level%3===0)await new Promise(resolve=>setTimeout(resolve,0));
      }
-     let level=start,attempts=0,spent=0,failed=0;const maxAttempts=100000;
-     while(level<target&&attempts<maxAttempts){const plan=plans.get(level);spent+=plan.cost;attempts++;if(Math.random()<plan.chance){level++}else{failed++;if(!plan.protected)level=rollRecovery(level)}}
-     if(level>=target){out.innerHTML=`<div>목표 <strong>${target}강 달성</strong></div><div>사용 예산 <strong>${money(spent)} BP</strong></div><div>강화 시도 <strong>${attempts.toLocaleString('ko-KR')}회</strong> · 실패 ${failed.toLocaleString('ko-KR')}회</div><small>사용 예산 = 매 시도 재료비 + 강화등급 보호 선택 시 적용 가능한 단계의 보호비. 선수 재구매 비용은 포함하지 않습니다. 무작위 1회 결과입니다.</small>`;showSimulationOutcome({start,target,gauge,protect,spent,attempts,failed})}
-     else reject(`${maxAttempts.toLocaleString('ko-KR')}회 안에 목표에 도달하지 못했습니다. 조건을 바꿔 다시 시도하세요.`);
+     const result=simulatePlannedRun(plans,start,target);
+     if(result.completed){
+       const {spent,attempts,failed}=result;
+       const benchmark=await benchmarkSimulation(plans,start,target,spent,out,dockButton);
+       out.innerHTML=`<div>목표 <strong>${target}강 달성</strong></div><div>사용 예산 <strong>${money(spent)} BP</strong></div><div>강화 시도 <strong>${attempts.toLocaleString('ko-KR')}회</strong> · 실패 ${failed.toLocaleString('ko-KR')}회</div><small>사용 예산 = 매 시도 재료비 + 강화등급 보호 선택 시 적용 가능한 단계의 보호비. 선수 재구매 비용은 포함하지 않습니다. 무작위 1회 결과입니다.</small>${benchmarkHtml(benchmark)}`;
+       showSimulationOutcome({start,target,gauge,protect,spent,attempts,failed,benchmark});
+     }else reject('100,000회 안에 목표에 도달하지 못했습니다. 조건을 바꿔 다시 시도하세요.');
    }catch(e){reject(e.message)}finally{S.level=previous.level;S.gauge=previous.gauge;S.materialPlayers=previous.players;S.materials=previous.materials;S.gradeProtect=previous.gradeProtect;S.officialRecipe=previous.officialRecipe;render();button.disabled=false;button.textContent='다시 돌리기';const currentDock=$('simOutcomeRun');if(currentDock){currentDock.disabled=false;currentDock.textContent='다시 돌리기'}}
  }
  $('simRun').onclick=runSimulation;
