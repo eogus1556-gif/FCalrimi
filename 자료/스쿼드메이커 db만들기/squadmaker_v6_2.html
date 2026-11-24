@@ -584,6 +584,7 @@ button{cursor:pointer;}
 .prow .nm{overflow:visible;}
 .prow .meta{font-size:11px;color:var(--text-dim);margin-top:1px;}
 .prow .physicalMeta{font-size:11px;color:var(--text-dim2);margin-top:3px;}
+.footRatings b{color:#fff;font-weight:900;}
 .prow .right{text-align:right;flex-shrink:0;}
 .prow .ovr{font-size:17px;font-weight:900;color:var(--lime);line-height:1.1;letter-spacing:-.02em;}
 .prow .bp{font-size:10.5px;color:var(--text-dim);}
@@ -1639,10 +1640,12 @@ function enClass(g){return g<=1?'en-gray':g<=4?'en-bronze':g<=7?'en-silver':g<=1
 function footTxt(r){const s=r[I.strong],w=r[I.weak];   // 주발(5)만 진하게, L-R 순서 고정
   if(!s||w==null)return '';
   return s==='L'?`<b>L5</b> · R${w}`:`L${w} · <b>R5</b>`;}
-function footDetailTxt(r){
+function footDetailHtml(r){
   const strong=r[I.strong], weak=r[I.weak];
   if((strong!=='L'&&strong!=='R')||weak==null)return '';
-  return strong==='L'?`왼발5/오른발${weak} (왼발 주발)`:`왼발${weak}/오른발5 (오른발 주발)`;
+  const left=strong==='L'?5:Number(weak),right=strong==='R'?5:Number(weak);
+  if(!Number.isFinite(left)||!Number.isFinite(right))return '';
+  return `<span class="footRatings"><b>${left}/${right}</b>(${strong==='L'?'왼발':'오른발'})</span>`;
 }
 function tier(code){
   if(code==='ICONTM')return 't-icontm';
@@ -2596,12 +2599,12 @@ function renderPanel(){
       panel.className='cardPanel abilityPanel on';
       const traitIds=[...(c.tr||[])];
       const summary=groups.slice(0,6).map(([title,ids])=>[title,Math.round(ids.reduce((a,i)=>a+(+vals[i]||0),0)/ids.length)]);
-      const careers=abilityCareerRows(p),footDetail=footDetailTxt(p);
-      const physical=[c.birth||'',c.h?`${c.h}cm`:'',c.w?`${c.w}kg`:'',c.body||'',footDetail].filter(Boolean);
+      const careers=abilityCareerRows(p),footDetail=footDetailHtml(p);
+      const physical=[c.birth||'',c.h?`${c.h}cm`:'',c.w?`${c.w}kg`:'',c.body||''].filter(Boolean);
       panel.innerHTML=`<div class="abilityLayout"><section class="abilityMain">
         <div class="abilityProfile">${faceImg('abilityPortrait',s.spid,false,'','auto')}<div class="abilityIdentity">
           <div class="abilityNameLine"><span class="abilitySeason">${esc(p[I.season])}</span><strong>${esc(p[I.name])}</strong><div class="abilityOvr"><small>OVR</small>${finalOvr(s,menuIdx)}</div></div>
-          <div class="abilityPos"><span class="fc-pos" style="--pos-color:${positionColor(p[I.pos])}">${esc(p[I.pos])}</span> ${ovrAt(p,s.g)}</div><div class="abilityMeta">${physical.map(x=>`<span>${esc(x)}</span>`).join('')}${c.nation?`<span>${esc(c.nation)}</span>`:''}</div>
+          <div class="abilityPos"><span class="fc-pos" style="--pos-color:${positionColor(p[I.pos])}">${esc(p[I.pos])}</span> ${ovrAt(p,s.g)}</div><div class="abilityMeta">${physical.map(x=>`<span>${esc(x)}</span>`).join('')}${footDetail?`<span>${footDetail}</span>`:''}${c.nation?`<span>${esc(c.nation)}</span>`:''}</div>
           <div class="abilityTraits"><span>특성</span>${traitIds.length?traitIds.map(id=>`<div class="abilityTrait" title="${esc(TRAITS&&TRAITS[id]?TRAITS[id].n:'특성')}"><img src="${TRAIT_ICON(id)}" onerror="this.style.display='none'"><span>${esc(TRAITS&&TRAITS[id]?TRAITS[id].n:'특성')}</span></div>`).join(''):'<small class="careerEmpty">등록된 특성 없음</small>'}</div>
         </div></div>
         <div class="abilitySummary">${summary.map(([title,v])=>`<div><span>${title}</span><b class="${statTone(v)}">${v}</b></div>`).join('')}</div>
@@ -2938,9 +2941,8 @@ function renderResults(){
     const badge=(n&&n>1)?`<span class="dupBadge">+${n-1}</span>`:'';
     const ub=isUsed?`<span class="usedBadge">보유</span>`:'';
     const physical=CHEM&&CHEM[p[I.spid]];
-    const physicalOvr=physical?.ab?.length>=28
-      ?Math.round([24,25,26,27].reduce((sum,i)=>sum+(+physical.ab[i]||0),0)/4+GROW[g]-GROW[1]):null;
-    const physicalText=[physical?.h?`키 ${physical.h}cm`:'',physical?.w?`몸무게 ${physical.w}kg`:'',physicalOvr!=null?`피지컬 ${physicalOvr}`:'',physical?.body?`체형 ${physical.body}`:'',footDetailTxt(p)].filter(Boolean).join(' · ');
+    const physicalText=[physical?.h?`키 ${physical.h}cm`:'',physical?.w?`몸무게 ${physical.w}kg`:'',physical?.body?`체형 ${physical.body}`:''].filter(Boolean).join(' · ');
+    const footDetail=footDetailHtml(p);
     return `<div class="prow ${isUsed?'used':''}" onclick="pick(${p[I.spid]},${isUsed})">
       <div class="thumb"><img src="${MINI(p[I.spid])}"
         onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'ini',textContent:'${initial(p[I.name])}'}))"></div>
@@ -2948,7 +2950,7 @@ function renderResults(){
         <div class="nm"><img src="${SEASON(p[I.season])}" onerror="this.style.display='none'">
           <span class="t">${esc(p[I.name])}</span>${badge}${ub}</div>
         <div class="meta">${esc(p[I.season])} · <span class="fc-pos" style="--pos-color:${positionColor(p[I.pos])}">${esc(p[I.pos])}</span> · 급여 <span class="payW${(isStartSlot&&(startPaySum-curSlotPay+(p[I.pay]||0)>PAY_LIMIT))?' payX':''}">${p[I.pay]??'-'}</span>${wrTag(p[I.spid])}</div>
-        ${physicalText?`<div class="physicalMeta">${esc(physicalText)}</div>`:''}
+        ${physicalText||footDetail?`<div class="physicalMeta">${esc(physicalText)}${physicalText&&footDetail?' · ':''}${footDetail}</div>`:''}
       </div>
       <div class="rowGold">${goldIconsHtml(p[I.spid])}</div>
       <div class="right"><div class="ovr">${ovr}</div><div class="bp">${bp!=null?won(bp)+' BP':'-'}</div></div>
