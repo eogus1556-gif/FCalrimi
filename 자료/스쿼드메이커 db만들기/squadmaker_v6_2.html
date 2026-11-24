@@ -583,6 +583,7 @@ button{cursor:pointer;}
 .prow .nm .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .prow .nm{overflow:visible;}
 .prow .meta{font-size:11px;color:var(--text-dim);margin-top:1px;}
+.prow .physicalMeta{font-size:11px;color:var(--text-dim2);margin-top:3px;}
 .prow .right{text-align:right;flex-shrink:0;}
 .prow .ovr{font-size:17px;font-weight:900;color:var(--lime);line-height:1.1;letter-spacing:-.02em;}
 .prow .bp{font-size:10.5px;color:var(--text-dim);}
@@ -1289,7 +1290,7 @@ async function loadSquadDetails(){try{let d,lastError;for(let attempt=0;attempt<
   const TR=d.TRAIT||{}; TRAITS=TR;
   GOLDIDS=new Set(Object.keys(TR).filter(id=>TR[id]&&TR[id].g));   // 금빛 특성 id
   CHEM={};
-  for(const p of d.P){ CHEM[p[0]]={tc:p[6],sp:p[7],tr:p[19],gt:p[10],ab:p[5],wr:p[9],nation:p[11],foot:p[12],h:p[15],w:p[16],body:p[17],birth:p[18]}; }
+  for(const p of d.P){ CHEM[p[0]]={tc:p[6],sp:p[7],tr:p[19],gt:p[10],ab:p[5],wr:p[9],nation:p[11],foot:p[12],weak:p[13],h:p[15],w:p[16],body:p[17],birth:p[18]}; }
   TCFULL={};
   for(const no in d.TC){ const t=d.TC[no];
     TCFULL[no]={n:t.n,img:t.img,levels:t.eff.map((e,i)=>({lv:i+1,need:(t.need||[])[i],eff:e}))}; }
@@ -1312,6 +1313,7 @@ async function loadSquadDetails(){try{let d,lastError;for(let attempt=0;attempt<
   }
   renderBoard();
   if(typeof renderTcFilter==='function') renderTcFilter();   // 데이터 로드 후 팀컬러 검색 필터 활성화(잠김 해제)
+  if(document.getElementById('searchPopup')?.classList.contains('on')) renderResults();
 }catch(error){console.warn('스쿼드 세부 데이터 로드 실패',error);toast('데이터를 불러오지 못했습니다. 새로고침해 주세요.')}}
 loadSquadDetails();
 
@@ -1637,6 +1639,11 @@ function enClass(g){return g<=1?'en-gray':g<=4?'en-bronze':g<=7?'en-silver':g<=1
 function footTxt(r){const s=r[I.strong],w=r[I.weak];   // 주발(5)만 진하게, L-R 순서 고정
   if(!s||w==null)return '';
   return s==='L'?`<b>L5</b> · R${w}`:`L${w} · <b>R5</b>`;}
+function footDetailTxt(r){
+  const strong=r[I.strong], weak=r[I.weak];
+  if((strong!=='L'&&strong!=='R')||weak==null)return '';
+  return strong==='L'?`왼발5/오른발${weak} (왼발 주발)`:`왼발${weak}/오른발5 (오른발 주발)`;
+}
 function tier(code){
   if(code==='ICONTM')return 't-icontm';
   if(code==='ICON'||code==='ICON_M')return 't-icon';
@@ -2589,8 +2596,7 @@ function renderPanel(){
       panel.className='cardPanel abilityPanel on';
       const traitIds=[...(c.tr||[])];
       const summary=groups.slice(0,6).map(([title,ids])=>[title,Math.round(ids.reduce((a,i)=>a+(+vals[i]||0),0)/ids.length)]);
-      const careers=abilityCareerRows(p),foot=p[I.strong]==='L'?'왼발':'오른발';
-      const footDetail=p[I.weak]!=null?`5/${p[I.weak]} ${foot}`:foot;
+      const careers=abilityCareerRows(p),footDetail=footDetailTxt(p);
       const physical=[c.birth||'',c.h?`${c.h}cm`:'',c.w?`${c.w}kg`:'',c.body||'',footDetail].filter(Boolean);
       panel.innerHTML=`<div class="abilityLayout"><section class="abilityMain">
         <div class="abilityProfile">${faceImg('abilityPortrait',s.spid,false,'','auto')}<div class="abilityIdentity">
@@ -2931,14 +2937,18 @@ function renderResults(){
     const n=dupN?dupN.get(p[I.spid]):0;
     const badge=(n&&n>1)?`<span class="dupBadge">+${n-1}</span>`:'';
     const ub=isUsed?`<span class="usedBadge">보유</span>`:'';
-    const ft=footTxt(p);
+    const physical=CHEM&&CHEM[p[I.spid]];
+    const physicalOvr=physical?.ab?.length>=28
+      ?Math.round([24,25,26,27].reduce((sum,i)=>sum+(+physical.ab[i]||0),0)/4+GROW[g]-GROW[1]):null;
+    const physicalText=[physical?.h?`키 ${physical.h}cm`:'',physical?.w?`몸무게 ${physical.w}kg`:'',physicalOvr!=null?`피지컬 ${physicalOvr}`:'',physical?.body?`체형 ${physical.body}`:'',footDetailTxt(p)].filter(Boolean).join(' · ');
     return `<div class="prow ${isUsed?'used':''}" onclick="pick(${p[I.spid]},${isUsed})">
       <div class="thumb"><img src="${MINI(p[I.spid])}"
         onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'ini',textContent:'${initial(p[I.name])}'}))"></div>
       <div class="info">
         <div class="nm"><img src="${SEASON(p[I.season])}" onerror="this.style.display='none'">
           <span class="t">${esc(p[I.name])}</span>${badge}${ub}</div>
-        <div class="meta">${esc(p[I.season])} · <span class="fc-pos" style="--pos-color:${positionColor(p[I.pos])}">${esc(p[I.pos])}</span> · 급여 <span class="payW${(isStartSlot&&(startPaySum-curSlotPay+(p[I.pay]||0)>PAY_LIMIT))?' payX':''}">${p[I.pay]??'-'}</span>${ft?' · '+ft:''}${wrTag(p[I.spid])}</div>
+        <div class="meta">${esc(p[I.season])} · <span class="fc-pos" style="--pos-color:${positionColor(p[I.pos])}">${esc(p[I.pos])}</span> · 급여 <span class="payW${(isStartSlot&&(startPaySum-curSlotPay+(p[I.pay]||0)>PAY_LIMIT))?' payX':''}">${p[I.pay]??'-'}</span>${wrTag(p[I.spid])}</div>
+        ${physicalText?`<div class="physicalMeta">${esc(physicalText)}</div>`:''}
       </div>
       <div class="rowGold">${goldIconsHtml(p[I.spid])}</div>
       <div class="right"><div class="ovr">${ovr}</div><div class="bp">${bp!=null?won(bp)+' BP':'-'}</div></div>
