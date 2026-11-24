@@ -1645,7 +1645,9 @@ function footDetailHtml(r){
   if((strong!=='L'&&strong!=='R')||weak==null)return '';
   const left=strong==='L'?5:Number(weak),right=strong==='R'?5:Number(weak);
   if(!Number.isFinite(left)||!Number.isFinite(right))return '';
-  return `<span class="footRatings"><b>${left}/${right}</b>(${strong==='L'?'왼발':'오른발'})</span>`;
+  return strong==='L'
+    ?`<span class="footRatings"><b>${left}</b>/${right}(왼발)</span>`
+    :`<span class="footRatings">${left}/<b>${right}</b>(오른발)</span>`;
 }
 function tier(code){
   if(code==='ICONTM')return 't-icontm';
@@ -2941,7 +2943,7 @@ function renderResults(){
     const badge=(n&&n>1)?`<span class="dupBadge">+${n-1}</span>`:'';
     const ub=isUsed?`<span class="usedBadge">보유</span>`:'';
     const physical=CHEM&&CHEM[p[I.spid]];
-    const physicalText=[physical?.h?`키 ${physical.h}cm`:'',physical?.w?`몸무게 ${physical.w}kg`:'',physical?.body?`체형 ${physical.body}`:''].filter(Boolean).join(' · ');
+    const physicalText=[physical?.h?`${physical.h}cm`:'',physical?.w?`${physical.w}kg`:'',physical?.body||''].filter(Boolean).join(' · ');
     const footDetail=footDetailHtml(p);
     return `<div class="prow ${isUsed?'used':''}" onclick="pick(${p[I.spid]},${isUsed})">
       <div class="thumb"><img src="${MINI(p[I.spid])}"
