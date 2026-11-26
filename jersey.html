@@ -24,11 +24,11 @@
 @media(max-width:470px){.results{grid-template-columns:1fr}.playerHero{grid-template-columns:115px 1fr}.playerInfo{padding-left:12px}.playerInfo h2{font-size:21px}.playerEn{font-size:11px}.heroStat{min-width:54px}.source{max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
 @media(min-width:1440px){.sideAd{display:block}}
 .fc-pos{display:inline-block;border-left:3px solid var(--pos-color,transparent);padding-left:4px;line-height:1.1;white-space:nowrap}
-.squadImportLink{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;padding:8px 10px;border:1px solid var(--lime);border-radius:8px;color:var(--lime)}
+.squadImportLink{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;padding:8px 10px;border:1px solid var(--lime);border-radius:8px;background:var(--surface2);color:var(--lime);font-weight:800;cursor:pointer}.squadImportLink:hover,.squadImportLink:focus-visible{background:var(--lime);color:#091018;outline:none}
 .squadImportModal{position:fixed;inset:0;z-index:1200;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(3,6,10,.82)}.squadImportModal.on{display:flex}.squadImportBox{width:min(430px,100%);padding:22px;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:0 20px 60px rgba(0,0,0,.55)}.squadImportBox h2{margin:0 0 7px;font-size:19px}.squadImportBox p{margin:0 0 17px;color:var(--dim);font-size:12px;line-height:1.5}.squadImportBox input{width:100%;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--surface2);color:var(--text);font-size:16px;outline:none}.squadImportBox input:focus{border-color:var(--lime)}.squadImportActions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}.squadImportActions button{padding:10px 14px;border:1px solid var(--line);border-radius:8px;background:var(--surface2);color:var(--text);font-weight:800}.squadImportActions button[type=submit]{border-color:var(--lime);background:var(--lime);color:#091018}
 
 @media(max-width:780px){
-  .squadImportLink{display:inline-flex!important;padding:6px;font-size:10px}
+  .squadImportLink{display:inline-flex!important;max-width:145px;padding:6px 8px;font-size:11px;line-height:1.25;white-space:normal;text-align:center}
   .fc-mobile-bottom-nav{min-height:50px!important;padding:3px!important;border-radius:22px!important;bottom:max(8px,env(safe-area-inset-bottom,0px))!important}
   .fc-mobile-nav-item{min-height:42px!important;padding:3px 1px 2px!important;gap:2px!important;border-radius:17px!important}
   .fc-mobile-nav-item svg{width:20px!important;height:20px!important}
