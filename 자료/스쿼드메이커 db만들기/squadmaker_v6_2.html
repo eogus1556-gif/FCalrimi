@@ -707,10 +707,12 @@ button{cursor:pointer;}
   .smHeaderSpacer{display:none;}
   .smLogo{flex:1 1 auto;min-width:128px;font-size:15px;position:relative;z-index:1;}
   .smHeader>.btnGhost,.smHeader>.btnPrimary{padding:7px 10px;font-size:11.5px;touch-action:manipulation;}
+  .smHeader>.nexonTopBtn{display:none;}
   .smPageMenuBtn{display:inline-grid;place-items:center;width:36px;height:36px;flex:0 0 36px;padding:0;border:1px solid var(--line);border-radius:10px;background:var(--surface-2);color:var(--text);font-size:18px;line-height:1;}
   .smPageMenu{position:fixed;top:max(62px,calc(env(safe-area-inset-top,0px) + 52px));right:10px;z-index:150;min-width:190px;padding:8px;border:1px solid var(--line-2);border-radius:14px;background:rgba(18,25,35,.98);box-shadow:0 12px 34px rgba(0,0,0,.58);}
   .smPageMenu.show{display:block;}
   .smPageMenu a{display:block;padding:12px 14px;border-radius:9px;color:var(--text);font-size:13px;font-weight:750;text-decoration:none;}
+  .smPageMenu button{display:block;width:100%;padding:12px 14px;border:0;border-radius:9px;background:none;color:var(--text);text-align:left;font-size:13px;font-weight:750;cursor:pointer;}
   .smPageMenu a:hover{background:var(--surface-2);}
   .fc-mobile-bottom-nav{position:fixed;left:11px;right:11px;bottom:max(11px,env(safe-area-inset-bottom,0px));z-index:90;min-height:78px;padding:5px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:3px;border:1px solid rgba(124,139,156,.28);border-radius:28px;background:rgba(18,25,35,.94);box-shadow:0 14px 42px rgba(0,0,0,.52),0 1px 0 rgba(255,255,255,.04) inset;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);}
   .fc-mobile-nav-item{min-width:0;min-height:68px;padding:7px 3px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border:0;border-radius:22px;background:transparent;color:var(--text-dim);text-decoration:none;font-size:10.5px;font-weight:850;line-height:1;}
@@ -872,10 +874,12 @@ button{cursor:pointer;}
     <input type="hidden" id="squadTitle" value="">
     <button class="uToggle squadFavBtn" id="btnSquadFav" onclick="addSquadToRefreshFavorites()" title="선발과 후보의 현재 시즌 카드를 갱신시간 즐겨찾기에 한 번에 추가">★ 갱신시간 즐겨찾기</button>
     <button class="btnGhost squadResetBtn" onclick="resetSquad()">초기화</button>
+    <button class="btnGhost nexonTopBtn" onclick="openNexonLineup()">내 스쿼드 불러오기</button>
     <button class="btnPrimary" onclick="loadSquad()">불러오기</button>
     <button type="button" class="smPageMenuBtn" aria-label="메뉴" aria-expanded="false" onclick="toggleSmPageMenu(event)">☰</button>
   </header>
   <div id="smPageMenu" class="smPageMenu">
+    <button type="button" onclick="openNexonLineup();document.getElementById('smPageMenu').classList.remove('show')">내 스쿼드 불러오기</button>
     <a href="/index.html?view=guide">이용 방법</a>
     <a href="/자료/스쿼드메이커%20db만들기/trainer.html">집중 훈련 계산기</a>
     <a href="/index.html?view=achievement">시즌별 달성률</a>
@@ -993,7 +997,6 @@ button{cursor:pointer;}
       <div class="savedSquadStatus"><b id="savedSquadSelected">0개 선택</b><input class="savedSquadSearch" id="savedSquadSearch" type="search" maxlength="30" placeholder="스쿼드 제목 검색" aria-label="스쿼드 제목 검색"></div>
       <button class="savedDelete" id="savedSquadDelete" type="button" onclick="deleteSelectedSquads()" disabled>선택 삭제</button>
       <button class="savedLoadSelected" id="savedSquadLoad" type="button" onclick="loadSelectedSquad()" disabled>스쿼드 불러오기</button>
-      <button type="button" onclick="openNexonLineup()">내 스쿼드 불러오기</button>
     </div>
     <div class="savedSquadColumns"><span></span><span class="savedTitleHead"><input class="savedSelectAll" id="savedSquadSelectAll" type="checkbox" aria-label="현재 페이지 전체 선택">제목 · 전체선택</span><span>포메이션</span><span>미리보기</span><span style="text-align:right">저장일시</span></div>
     <div class="savedSquadList" id="savedSquadList"></div>
@@ -1004,10 +1007,9 @@ button{cursor:pointer;}
 <div class="nexonModal" id="nexonModal" onclick="if(event.target===this)closeNexonLineup()">
   <div class="nexonBox" role="dialog" aria-modal="true" aria-label="내 스쿼드 불러오기">
     <h3>내 스쿼드 불러오기</h3>
-    <p>넥슨 공개 경기 기록의 최근 선발 11명을 가져옵니다. 현재 보유 스쿼드와 다를 수 있으며, 닉네임만으로 계정 소유자를 확인하지는 않습니다.</p>
+    <p>넥슨 공식 스쿼드메이커에 공개된 게임 내 스쿼드를 닉네임으로 불러옵니다. 현재 작업 중인 스쿼드가 있으면 가져오기 전에 확인합니다.</p>
     <form class="nexonForm" id="nexonForm">
       <input id="nexonNickname" type="search" maxlength="16" placeholder="넥슨 닉네임" aria-label="넥슨 닉네임" required>
-      <select id="nexonMode" aria-label="경기 종류"><option value="official">공식경기</option><option value="manager">감독모드</option></select>
       <button id="nexonSearchBtn" type="submit">검색</button>
     </form>
     <div class="nexonStatus" id="nexonStatus" aria-live="polite">닉네임을 입력하고 검색해 주세요.</div>
@@ -1048,7 +1050,7 @@ button{cursor:pointer;}
       <div class="featureHelpItem"><b>딸깍 스쿼드</b><p>클릭 몇 번으로 랭커들이 검증한 선수만 골라 스쿼드를 완성시켜드려요.</p></div>
       <div class="featureHelpItem"><b>금빛 특성</b><p>토글을 활성화한 뒤 선수를 클릭하면 8강 이상 선수에게 금빛 특성을 추가할 수 있어요. 8강 미만은 시즌이 기본 보유한 금빛특성만 적용됩니다.</p></div>
       <div class="featureHelpItem"><b>집중훈련</b><p>선수를 클릭한 뒤 계산기 아이콘을 누르면 최고 OVR 조합을 추천받고, 집중훈련으로 가능한 최대 오버롤을 적용할 수 있어요.</p></div>
-      <div class="featureHelpItem"><b>등번호</b><p>등번호를 켠 뒤 선수를 클릭하면 ‘너의 등번호는’ 페이지에서 해당 선수의 팀·연도별 등번호 기록을 바로 볼 수 있어요.</p></div>
+      <div class="featureHelpItem"><b>등번호</b><p>등번호를 켠 뒤 선수를 클릭하면 ‘너의 등번호는’ 페이지에서 해당 선수의 팀·연도별 등번호 기록을 바로 볼 수 있어요. 등번호 데이터가 없거나 소속된 팀에서 경기를 뛰지 않았다면 등번호가 나오지 않을 수 있습니다.</p></div>
       <div class="featureHelpItem"><b>미페 자동맞춤</b><p>스쿼드에서 같은 색이 많은 유니폼으로 자동 보정돼요. 미세한 색 차이는 색상 선택으로 직접 조절할 수 있어요.</p></div>
       <div class="featureHelpItem"><b>미페 시즌</b><p>현재 미니페이스온 선수가 착용 중인 유니폼의 시즌을 알려줘요.</p></div>
     </div>
@@ -4125,8 +4127,7 @@ async function loadSquad(){
   }
   await fetchSavedSquadPage(1);
 }
-/* 넥슨 공개 경기의 선발 11명 가져오기. API 키는 Pages Function에만 저장한다. */
-const NEXON_POS=['GK','SW','RWB','RB','RCB','CB','LCB','LB','LWB','RDM','CDM','LDM','RM','RCM','CM','LCM','LM','RAM','CAM','LAM','RF','CF','LF','RW','RS','ST','LS','LW'];
+/* 넥슨 공식 스쿼드메이커의 게임 내 스쿼드 가져오기. */
 const NEXON_XY={GK:[.5,1],SW:[.5,.94],RWB:[.94,.78],RB:[.92,.87],RCB:[.64,.89],CB:[.5,.9],LCB:[.36,.89],LB:[.08,.87],LWB:[.06,.78],RDM:[.64,.70],CDM:[.5,.72],LDM:[.36,.70],RM:[.90,.5],RCM:[.64,.52],CM:[.5,.54],LCM:[.36,.52],LM:[.10,.5],RAM:[.66,.36],CAM:[.5,.35],LAM:[.34,.36],RF:[.75,.23],CF:[.5,.23],LF:[.25,.23],RW:[.88,.12],RS:[.64,.08],ST:[.5,.05],LS:[.36,.08],LW:[.12,.12]};
 let nexonLineup=null;
 let nexonImportJersey=false;
@@ -4143,12 +4144,21 @@ function closeNexonLineup(){
   document.getElementById('nexonModal').classList.remove('on');
   document.body.style.overflow='';
 }
+function nexonCard(item){
+  const known=byId(item.spid);if(known)return known;
+  if(!item.name||!item.season)return null;
+  const card=[item.spid,item.name,item.season,item.position||'ST',item.ovr||0,item.pay||0,'',0,item.prices||[]];
+  PMAP.set(item.spid,card);
+  if(!BY_PID.has(PID(item.spid)))BY_PID.set(PID(item.spid),[]);
+  BY_PID.get(PID(item.spid)).push(card);
+  return card;
+}
 function nexonPlacement(players){
   const count=players.length, full=(1<<count)-1;
   let best=null;
   for(const [formation,coords] of Object.entries(FORMATIONS)){
     const cost=players.map(item=>coords.map(([fx,fy])=>{
-      const label=NEXON_POS[item.position], target=NEXON_XY[label]||[.5,.5];
+      const label=item.position, target=NEXON_XY[label]||[.5,.5];
       const slot=zoneAt(fx,fy), keeper=(label==='GK')===(slot==='GK');
       const dist=(target[0]-fx)**2+(target[1]-fy)**2;
       return dist*10+(keeper?0:100)+(slot===label?0:BASE_POS[slot]===BASE_POS[label]?.15:.65);
@@ -4174,42 +4184,48 @@ function nexonPlacement(players){
 document.getElementById('nexonForm').addEventListener('submit',async event=>{
   event.preventDefault();nexonLineup=null;
   const nickname=document.getElementById('nexonNickname').value.trim();
-  const mode=document.getElementById('nexonMode').value;
   const status=document.getElementById('nexonStatus'),list=document.getElementById('nexonList');
   const search=document.getElementById('nexonSearchBtn'),importBtn=document.getElementById('nexonImportBtn');
   if(!nickname)return;
-  search.disabled=true;importBtn.disabled=true;list.innerHTML='';status.textContent='최근 경기 선수를 불러오는 중…';
+  search.disabled=true;importBtn.disabled=true;list.innerHTML='';status.textContent='게임 내 스쿼드를 불러오는 중…';
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
   try{
-    const response=await fetch(`/api/nexon-lineup?nickname=${encodeURIComponent(nickname)}&mode=${mode}`,{signal:controller.signal,cache:'no-store'});
+    const response=await fetch(`/api/nexon-lineup?nickname=${encodeURIComponent(nickname)}`,{signal:controller.signal,cache:'no-store'});
     if(!(response.headers.get('content-type')||'').includes('application/json'))throw new Error('넥슨 연결 기능을 배포한 뒤 다시 시도해 주세요.');
     const data=await response.json();
     if(!response.ok)throw new Error(data.error||`요청 오류 ${response.status}`);
-    const players=data.players.map(item=>({...item,card:byId(item.spid)}));
-    const missing=players.filter(item=>!item.card);
-    const duplicate=players.length!==new Set(players.map(item=>PID(item.spid))).size;
+    const players=data.players.map(item=>{const officialOnly=!byId(item.spid);return {...item,card:nexonCard(item),officialOnly};});
+    const missing=players.filter(item=>!item.card),partial=players.filter(item=>item.officialOnly);
+    const starters=players.filter(item=>item.starter),bench=players.filter(item=>!item.starter).slice(0,N_SUB);
     nexonLineup={...data,players};
-    let date='';try{if(data.matchDate)date=new Date(data.matchDate.replace(' ','T')).toLocaleString('ko-KR');}catch(_){}
-    status.textContent=`${data.nickname} · ${data.mode==='manager'?'감독모드':'공식경기'} · ${date||'경기 날짜 미확인'} · 선발 ${players.length}명`+(missing.length?` · 로컬 데이터에 없는 카드 ${missing.length}명`:'')+(duplicate?' · 중복 선수 있음':'');
-    list.innerHTML=players.map(item=>`<div class="nexonPlayer ${item.card?'':'missing'}">${esc(NEXON_POS[item.position]||'포지션 미확인')} · ${item.card?`${esc(item.card[I.season])} ${esc(item.card[I.name])}`:`선수 ID ${item.spid} (데이터 없음)`} · ${item.grade}강</div>`).join('');
-    importBtn.disabled=!!missing.length||duplicate||players.length!==11;
+    status.textContent=`${data.nickname} · 선발 ${starters.length}명 · 후보 ${bench.length}명`+(partial.length?` · ${partial.length}명은 공식 스쿼드 정보로 표시(세부 능력치 미제공)`:'')+(missing.length?` · 표시 정보 부족 ${missing.length}명`:'');
+    list.innerHTML=players.map(item=>`<div class="nexonPlayer ${item.card?'':'missing'}">${item.starter?'선발':'후보'} ${esc(item.position||'포지션 미확인')} · ${item.card?`${esc(item.card[I.season])} ${esc(item.card[I.name])}`:`선수 ID ${item.spid} (데이터 없음)`} · ${item.grade}강</div>`).join('');
+    importBtn.disabled=!!missing.length||starters.length!==11;
   }catch(error){status.textContent=error.name==='AbortError'?'응답 시간이 초과됐습니다. 다시 검색해 주세요.':error.message;}
   finally{clearTimeout(timer);search.disabled=false;}
 });
 function importNexonLineup(){
   const data=nexonLineup;
-  if(!data||data.players.length!==11||data.players.some(item=>!item.card))return;
-  if(squad.some(Boolean)&&!confirm('현재 작업 중인 스쿼드를 최근 경기 선발 11명으로 바꿀까요?'))return;
-  const placement=nexonPlacement(data.players);
+  if(!data||data.players.filter(item=>item.starter).length!==11||data.players.some(item=>!item.card))return;
+  if(squad.some(Boolean)&&!confirm('현재 작업 중인 스쿼드를 게임 내 스쿼드로 바꿀까요?'))return;
+  const starters=data.players.filter(item=>item.starter),bench=data.players.filter(item=>!item.starter).slice(0,N_SUB);
+  const placement=nexonPlacement(starters);
   if(!placement)return;
   squad=new Array(N_ALL).fill(null);
-  curForm=placement.formation;formSel.value=curForm;
-  layout=FORMATIONS[curForm].map(([fx,fy])=>({fx,fy}));
-  data.players.forEach((item,i)=>{squad[placement.slots[i]]={spid:item.spid,g:Math.max(0,Math.min(13,item.grade||1))};});
-  const title=`${data.nickname} 최근 경기`;
+  curForm=FORMATIONS[data.formation]?data.formation:placement.formation;formSel.value=curForm;
+  const hasOfficialCoords=starters.every(item=>Number.isFinite(item.x)&&Number.isFinite(item.y)&&item.x>=0&&item.x<=100&&item.y>=0&&item.y<=100);
+  if(hasOfficialCoords){
+    layout=starters.map(item=>({fx:Math.max(.04,Math.min(.96,item.x/100)),fy:Math.max(.04,Math.min(.98,1-item.y/100))}));
+    starters.forEach((item,i)=>{squad[i]={spid:item.spid,g:Math.max(0,Math.min(13,item.grade||1))};});
+  }else{
+    layout=FORMATIONS[curForm].map(([fx,fy])=>({fx,fy}));
+    starters.forEach((item,i)=>{squad[placement.slots[i]]={spid:item.spid,g:Math.max(0,Math.min(13,item.grade||1))};});
+  }
+  bench.forEach((item,i)=>{squad[N_START+i]={spid:item.spid,g:Math.max(0,Math.min(13,item.grade||1))};});
+  const title=`${data.nickname} 스쿼드`;
   document.getElementById('squadTitle').value=title;
   const mobileTitle=document.getElementById('squadTitleMobile');if(mobileTitle)mobileTitle.value=title;
-  closeNexonLineup();closeMenu();save();renderBoard();toast('최근 경기 선발 11명을 불러왔어요');
+  closeNexonLineup();closeMenu();save();renderBoard();toast('게임 내 스쿼드를 불러왔어요');
   if(nexonImportJersey&&!showJersey)toggleJersey();
   nexonImportJersey=false;
 }
