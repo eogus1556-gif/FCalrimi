@@ -1555,14 +1555,11 @@
     <div class="modal" style="text-align:center;">
       <button class="modal-close" onclick="closeNotice()">&times;</button>
       <h2 style="margin-bottom:10px;">신규 시즌 갱신시간 업데이트</h2>
-      <p class="modal-sub" style="line-height:1.7;">DR · 26KB 시즌의 선수별 갱신시간을 추가했습니다.</p>
-      <div style="margin:14px 0 4px; padding:14px 15px; border:1px solid rgba(196,255,61,.35); border-radius:12px; background:rgba(196,255,61,.06); text-align:left;">
-        <b style="display:block; color:var(--lime); margin-bottom:10px;">갱신시간 확인하기</b>
-        <div style="display:flex; gap:12px; flex-wrap:wrap;">
-          <a href="/refresh/dr.html" onclick="noticeGoRefresh()" style="display:inline-flex; align-items:center; gap:7px; color:var(--text); font-weight:800;"><img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/DR.png" alt="" style="width:35px; height:25px; object-fit:contain;">DR 시즌 →</a>
-          <a href="/refresh/26kb.html" onclick="noticeGoRefresh()" style="display:inline-flex; align-items:center; gap:7px; color:var(--text); font-weight:800;"><img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/26KB.png" alt="" style="width:35px; height:25px; object-fit:contain;">26KB 시즌 →</a>
-        </div>
+      <div style="display:flex; justify-content:center; gap:24px; margin:20px 0 14px;">
+        <div style="display:grid; justify-items:center; gap:6px; font-weight:800;"><img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/DR.png" alt="DR 시즌" style="width:54px; height:40px; object-fit:contain;">DR</div>
+        <div style="display:grid; justify-items:center; gap:6px; font-weight:800;"><img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/26KB.png" alt="26KB 시즌" style="width:54px; height:40px; object-fit:contain;">26KB</div>
       </div>
+      <p class="modal-sub" style="line-height:1.7;">신규 시즌 갱신시간이 업데이트되었습니다.</p>
       <button class="auth-submit" onclick="closeNotice()">닫기</button>
     </div>
   </div>
@@ -3634,10 +3631,6 @@
     if(ov) ov.classList.remove('show');
     setTimeout(function(){ try{ maybeShowLaunchNotice(); }catch(e){} }, 180);
   }
-  function noticeGoRefresh(){
-    try{ localStorage.setItem(NOTICE_ID, '1'); }catch(e){}
-  }
-
   // ── 스쿼드메이커 출시 안내 ──
   // 일반 닫기는 다음 접속 때 다시 표시하며, '일주일 동안 그만보기'만 7일간 숨깁니다.
   const LAUNCH_NOTICE_KEY = 'fc_squadmaker_launch_hide_until_v1';
