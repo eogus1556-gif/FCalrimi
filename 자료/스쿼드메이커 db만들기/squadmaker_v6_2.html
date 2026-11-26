@@ -364,6 +364,7 @@ button{cursor:pointer;}
 .aiRow.on{background:rgba(196,255,61,.12);outline:1px solid rgba(196,255,61,.4);}
 .aiRow img{width:22px;height:22px;object-fit:contain;flex-shrink:0;}
 .aiRow .t{flex:1;font-size:13px;font-weight:700;}
+.pickMeta{display:block;margin-top:3px;color:var(--text-dim2);font-size:10px;font-weight:600;line-height:1.3;}
 .aiRow .n{font-size:11px;color:var(--text-dim);}
 .aiGoldPosOpen{width:min(560px,92vw);margin-top:12px;padding:12px;border:1px solid var(--gold);border-radius:11px;background:rgba(255,198,77,.09);color:var(--gold);font-size:13px;font-weight:900;cursor:pointer;}
 .aiGoldPosOpen:hover{background:rgba(255,198,77,.17);}
@@ -423,11 +424,11 @@ button{cursor:pointer;}
 .cardPanel{min-width:230px;}
 .goldTraitPanel{min-width:260px;max-width:min(330px,88vw);}
 .goldTraitHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px;font-size:12px;font-weight:800;color:var(--gold);}
-.goldTraitGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;}
+.goldTraitGrid{display:grid;grid-template-columns:1fr;gap:5px;}
 .goldTraitPick{display:flex;align-items:center;gap:6px;min-width:0;padding:6px 7px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);color:var(--text);cursor:pointer;text-align:left;font-size:10.5px;font-weight:700;}
 .goldTraitPick:hover,.goldTraitPick.on{border-color:var(--gold);background:rgba(255,198,77,.14);}
 .goldTraitPick img{width:22px;height:22px;object-fit:contain;flex-shrink:0;}
-.goldTraitPick span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.goldTraitPick span{overflow:hidden;text-overflow:ellipsis;white-space:normal;}
 .goldTraitClear{grid-column:1/-1;padding:6px;border:1px dashed var(--line-2);border-radius:8px;background:none;color:var(--text-dim);font-size:10px;font-weight:800;cursor:pointer;}
 .goldTraitClear:hover{color:var(--red);border-color:var(--red);}
 .trWrap{font-size:12px;color:var(--text);}
@@ -860,6 +861,23 @@ button{cursor:pointer;}
   .fc-mobile-nav-item{min-height:42px!important;padding:3px 1px 2px!important;gap:2px!important;border-radius:17px!important}
   .fc-mobile-nav-item svg{width:20px!important;height:20px!important}
 }
+
+.coachRecPopup{position:fixed;inset:0;z-index:360;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(3,7,11,.82)}
+.coachRecPopup.on{display:flex}
+.coachRecBox{width:min(880px,100%);max-height:min(90vh,850px);overflow:auto;background:var(--surface);border:1px solid var(--line-2);border-radius:16px;padding:22px;color:var(--text);box-shadow:0 20px 60px #0009}
+.coachRecHead{display:flex;align-items:center;gap:12px;justify-content:space-between}
+.coachRecHead strong{font-size:20px}.coachRecHead button{border:1px solid var(--line-2);border-radius:8px;background:var(--surface-2);color:var(--text);padding:6px 11px;cursor:pointer}
+.coachRecSub{color:var(--text-dim);font-size:12px;margin:8px 0 15px;line-height:1.5}
+.coachRecPositions{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}
+.coachRecPositions button{border:1px solid var(--line-2);border-radius:8px;padding:8px 12px;background:var(--surface-2);color:var(--text);font-weight:800;cursor:pointer}
+.coachRecPositions button.on{border-color:var(--lime);color:var(--lime)}
+.coachRecSections{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.coachRecSection{min-width:0;border:1px solid var(--line);border-radius:12px;padding:13px;background:var(--bg)}
+.coachRecSection h3{font-size:14px;margin:0 0 4px}.coachRecSection p{font-size:11px;color:var(--text-dim);margin:0 0 8px}
+.coachRecRow{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;border-top:1px solid var(--line);padding:8px 0;font-size:12px}
+.coachRecRow:first-of-type{border-top:0}.coachRecRow span{line-height:1.45}.coachRecRow b{color:var(--lime);white-space:nowrap}
+.coachRecEmpty{color:var(--text-dim);font-size:13px;padding:18px 0}
+@media(max-width:650px){.coachRecBox{padding:15px}.coachRecSections{grid-template-columns:1fr}}
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8019320351145896" crossorigin="anonymous"></script>
 </head>
@@ -941,6 +959,7 @@ button{cursor:pointer;}
           <button class="uToggle on" id="uniAuto" onclick="resetUniAuto()" title="스쿼드 대표색으로 자동 통일">자동</button>
         </span>
         <button class="uToggle" id="btnFaceSn" onclick="toggleFaceSn()" title="지금 보이는 얼굴이 어느 시즌 카드인지 표시">미페 시즌</button>
+        <button class="uToggle" id="btnCoachRec" onclick="openCoachRec()" title="포지션별 획득 특성·훈련코치 추천">특성 추천</button>
         <button type="button" class="utilsHelpBtn" onclick="openFeatureHelp()" title="기능 설명" aria-label="기능 설명">?</button>
       </div>
 
@@ -1007,7 +1026,7 @@ button{cursor:pointer;}
 <div class="nexonModal" id="nexonModal" onclick="if(event.target===this)closeNexonLineup()">
   <div class="nexonBox" role="dialog" aria-modal="true" aria-label="내 스쿼드 불러오기">
     <h3>내 스쿼드 불러오기</h3>
-    <p>넥슨 공식 스쿼드메이커에 공개된 게임 내 스쿼드를 닉네임으로 불러옵니다. 현재 작업 중인 스쿼드가 있으면 가져오기 전에 확인합니다.</p>
+    <p>넥슨 공식 스쿼드메이커에 공개된 게임 내 대표팀 스쿼드를 닉네임으로 불러옵니다. 현재 작업 중인 스쿼드가 있으면 가져오기 전에 확인합니다.</p>
     <form class="nexonForm" id="nexonForm">
       <input id="nexonNickname" type="search" maxlength="16" placeholder="닉네임" aria-label="닉네임" required>
       <button id="nexonSearchBtn" type="submit">검색</button>
@@ -1054,6 +1073,15 @@ button{cursor:pointer;}
       <div class="featureHelpItem"><b>미페 자동맞춤</b><p>스쿼드에서 같은 색이 많은 유니폼으로 자동 보정돼요. 미세한 색 차이는 색상 선택으로 직접 조절할 수 있어요.</p></div>
       <div class="featureHelpItem"><b>미페 시즌</b><p>현재 미니페이스온 선수가 착용 중인 유니폼의 시즌을 알려줘요.</p></div>
     </div>
+  </div>
+</div>
+
+<div class="coachRecPopup" id="coachRecPopup" onclick="if(event.target===this)closeCoachRec()">
+  <div class="coachRecBox" role="dialog" aria-modal="true" aria-labelledby="coachRecTitle">
+    <div class="coachRecHead"><strong id="coachRecTitle">포지션별 특성 추천</strong><button type="button" onclick="closeCoachRec()">닫기</button></div>
+    <p class="coachRecSub" id="coachRecSub">FC온라인 코치헬퍼의 포지션별 인기 획득 특성과 훈련코치 조합입니다.</p>
+    <div class="coachRecPositions" id="coachRecPositions"></div>
+    <div class="coachRecSections" id="coachRecSections"></div>
   </div>
 </div>
 
@@ -1254,7 +1282,52 @@ function uniSquadTarget(){         // '가장 많은 선수가 맞출 수 있는
 
 /* 픽률 데이터(공홈 랭커 스쿼드 기준) — 딸깍스쿼드(AI)에서 사용. 없으면 AI 모드 비활성 안내 */
 let PICK=null;
-fetch('pickrate.json').then(r=>r.json()).then(d=>{PICK=d;}).catch(()=>{PICK=null;});
+fetch('pickrate.json').then(r=>r.json()).then(d=>{
+  PICK=d;
+  if(document.getElementById('searchPopup')?.classList.contains('on'))renderResults();
+  if(document.getElementById('aiWiz')?.classList.contains('on')){
+    if(AI_STEPS[aiIdx]?.key==='gold')renderAiStep();
+    else if(AI_STEPS[aiIdx]?.key==='lock')renderAiLockResults();
+  }
+  if(document.getElementById('aiGoldPosModal')?.classList.contains('on'))renderAiGoldPositions();
+  if(menuMode==='gold'&&document.getElementById('cardPanel')?.classList.contains('on'))renderPanel();
+}).catch(()=>{PICK=null;});
+function rankPickRows(mode,group){return PICK?.[mode]?.[group]||[];}
+function rankPickPercent(count,total){return total>0?(count/total*100).toFixed(1)+'%':null;}
+function playerPickPercent(spid,mode,group){
+  const rows=rankPickRows(mode,group),total=rows.reduce((sum,item)=>sum+(+item.cnt||0),0);
+  const hit=rows.find(item=>+item.spid===+spid);
+  return hit?rankPickPercent(+hit.cnt||0,total):null;
+}
+function playerPickLabel(spid,group){
+  if(!PICK)return '픽률 불러오는 중';
+  const official=playerPickPercent(spid,'official',group),manager=playerPickPercent(spid,'manager',group);
+  return `상위 30 카드 픽 비중 · 공경 ${official||'미집계'} · 감모 ${manager||'미집계'}`;
+}
+function playerBestPickLabel(spid,mode){
+  if(!PICK)return '픽률 불러오는 중';
+  let best=null;
+  for(const group of Object.keys(PICK[mode]||{})){
+    const percent=playerPickPercent(spid,mode,group);
+    if(percent&&(!best||+percent.slice(0,-1)>best.value))best={group,value:+percent.slice(0,-1)};
+  }
+  return best?`상위 30 카드 픽 비중 · ${best.group} ${best.value.toFixed(1)}%`:'상위 30 카드 픽률 미집계';
+}
+function traitPickPercent(traitId,mode,group){
+  if(!PICK||!CHEM)return null;
+  const groups=group?[group]:Object.keys(PICK[mode]||{});
+  let total=0,matched=0;
+  for(const key of groups)for(const item of rankPickRows(mode,key)){
+    const count=+item.cnt||0,traits=CHEM[item.spid]?.tr||[];
+    total+=count;
+    if(traits.some(id=>String(id)===String(traitId)))matched+=count;
+  }
+  return rankPickPercent(matched,total);
+}
+function traitPickLabel(traitId,mode,group){
+  const percent=traitPickPercent(traitId,mode,group);
+  return percent?`기본 특성 픽 비중 ${percent}`:'기본 특성 픽 비중 미집계';
+}
 let RANK=null;   // rankmeta.json: 랭커 인기 포메이션·팀컬러 (모드: 1vs1 / 감모)
 fetch('rankmeta.json').then(r=>r.json()).then(d=>{RANK=d;}).catch(()=>{RANK=null;});
 let TCB=null, _tcbLoading=null;   // tc_bucket.json: 스쿼드 가치 구간별 랭커 픽률 (예산 넣었을 때만 사용 · 지연 로드)
@@ -1337,6 +1410,9 @@ async function loadSquadDetails(){try{let d,lastError;for(let attempt=0;attempt<
   renderBoard();
   if(typeof renderTcFilter==='function') renderTcFilter();   // 데이터 로드 후 팀컬러 검색 필터 활성화(잠김 해제)
   if(document.getElementById('searchPopup')?.classList.contains('on')) renderResults();
+   if(document.getElementById('aiWiz')?.classList.contains('on')&&AI_STEPS[aiIdx]?.key==='gold')renderAiStep();
+   if(document.getElementById('aiGoldPosModal')?.classList.contains('on'))renderAiGoldPositions();
+   if(menuMode==='gold'&&document.getElementById('cardPanel')?.classList.contains('on'))renderPanel();
 }catch(error){console.warn('스쿼드 세부 데이터 로드 실패',error);toast('데이터를 불러오지 못했습니다. 새로고침해 주세요.')}}
 loadSquadDetails();
 
@@ -2595,8 +2671,8 @@ function renderPanel(){
      const goldEligible=canAddGoldTrait(s),current=(goldEligible&&s.goldTrait!=null)?String(s.goldTrait):'';
      panel.className='cardPanel goldTraitPanel on';
      panel.innerHTML=`<div class="goldTraitHead"><span>금빛특성 선택</span><small>${goldEligible?'8강 이상 · 1개 추가':'8강부터 추가 가능'}</small></div>
-       <div class="goldTraitGrid">${goldEligible?`<button class="goldTraitClear" data-gold="clear">추가 특성 해제</button>`:''}${gold.map(id=>`<button class="goldTraitPick ${current===String(id)?'on':''}" data-gold="${id}"><img src="${TRAIT_ICON(id)}" onerror="this.style.visibility='hidden'"><span>${esc(defs[id].n||('특성 '+id))}</span></button>`).join('')}</div>
-       <div class="panelHint">기존 금빛특성이 있으면 기존 특성과 함께 표시됩니다.</div>`;
+        <div class="goldTraitGrid">${goldEligible?`<button class="goldTraitClear" data-gold="clear">추가 특성 해제</button>`:''}${gold.map(id=>`<button class="goldTraitPick ${current===String(id)?'on':''}" data-gold="${id}"><img src="${TRAIT_ICON(id)}" onerror="this.style.visibility='hidden'"><span>${esc(defs[id].n||('특성 '+id))}<small class="pickMeta">공경 ${traitPickPercent(id,'official')||'미집계'} · 감모 ${traitPickPercent(id,'manager')||'미집계'}</small></span></button>`).join('')}</div>
+        <div class="panelHint">상위 30개 픽 카드의 기본 특성 비중입니다. 기존 금빛특성이 있으면 추가 특성과 함께 표시됩니다.</div>`;
      panel.classList.add('on');
      const r=anchorRect(); if(!r)return;
      const w=panel.offsetWidth,h=panel.offsetHeight,gap=10; let left=r.right+gap+w<innerWidth-8?r.right+gap:r.left-gap-w>8?r.left-gap-w:r.left+r.width/2-w/2; let top=r.top+r.height/2-h/2;
@@ -2745,10 +2821,47 @@ function openSearch(idx){
 }
 function closeSearch(){document.getElementById('searchPopup').classList.remove('on');document.documentElement.classList.remove('searchOpen');activeIdx=null;}
 document.getElementById('searchPopup').addEventListener('click',e=>{if(e.target.id==='searchPopup')closeSearch();});
+
+let coachRecData=null,coachRecPromise=null,coachRecPos=null;
+function coachRecRate(value){return Number.isFinite(+value)?(+value*100).toFixed(1)+'%':'-';}
+function coachRecRows(rows,combo){
+  if(!rows?.length)return '<div class="coachRecEmpty">집계된 추천이 없습니다.</div>';
+  return rows.map(row=>`<div class="coachRecRow"><span>${combo?(row.ids||[]).map(item=>esc(item.name)).join(' · '):esc(row.name||'')}</span><b>${coachRecRate(row.ratio)}</b></div>`).join('');
+}
+function coachRecSection(title,note,rows,combo=false){
+  return `<section class="coachRecSection"><h3>${title}</h3><p>${note}</p>${coachRecRows(rows,combo)}</section>`;
+}
+function renderCoachRec(){
+  const positions=[...new Set(layout.slice(0,N_START).map((_,i)=>slotLabel(i)))];
+  if(!positions.includes(coachRecPos))coachRecPos=positions[0]||'ST';
+  document.getElementById('coachRecPositions').innerHTML=positions.map(pos=>`<button type="button" class="${pos===coachRecPos?'on':''}" onclick="coachRecPos='${pos}';renderCoachRec()">${pos}</button>`).join('');
+  const box=document.getElementById('coachRecSections'),data=coachRecData?.positions?.[coachRecPos];
+  if(!coachRecData){box.innerHTML='<div class="coachRecEmpty">추천 데이터를 불러오는 중입니다.</div>';return;}
+  if(!data){box.innerHTML='<div class="coachRecEmpty">이 포지션의 추천 데이터가 없습니다.</div>';return;}
+  const date=coachRecData.updatedAt?.slice(0,10)||coachRecData.collectedAt?.slice(0,10)||'';
+  document.getElementById('coachRecSub').textContent=`FC온라인 코치헬퍼 · ${coachRecPos} 포지션 · ${date} 기준 픽률`;
+  box.innerHTML=coachRecSection('훈련코치 특성 조합','인기 3특성 조합',data.GroupList,true)
+    +coachRecSection('훈련코치 단일 특성','특성별 인기 순위',data.SingleList)
+    +coachRecSection('획득 추천 · 5강','5강 획득 특성 픽률',data.TraitList_5)
+    +coachRecSection('획득 추천 · 8강','8강 획득 특성 픽률',data.TraitList_8)
+    +coachRecSection('획득 추천 · 11강','11강 획득 특성 픽률',data.TraitList_11);
+}
+function openCoachRec(){
+  coachRecPos=menuIdx!=null&&menuIdx<N_START?slotLabel(menuIdx):null;
+  document.getElementById('coachRecPopup').classList.add('on');
+  renderCoachRec();
+  if(coachRecData||coachRecPromise)return;
+  coachRecPromise=fetch('coach_recommend.json').then(response=>{if(!response.ok)throw Error(response.status);return response.json()})
+    .then(data=>{if(!data?.positions)throw Error('invalid data');coachRecData=data;renderCoachRec()})
+    .catch(()=>{document.getElementById('coachRecSections').innerHTML='<div class="coachRecEmpty">추천 데이터를 불러오지 못했습니다.</div>'})
+    .finally(()=>{coachRecPromise=null});
+}
+function closeCoachRec(){document.getElementById('coachRecPopup').classList.remove('on')}
 function openFeatureHelp(){document.getElementById('featureHelpPopup')?.classList.add('on');}
 function closeFeatureHelp(){document.getElementById('featureHelpPopup')?.classList.remove('on');}
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape')return;
+  if(document.getElementById('coachRecPopup')?.classList.contains('on'))return closeCoachRec();
   if(document.getElementById('featureHelpPopup')?.classList.contains('on'))return closeFeatureHelp();
   if(menuIdx!=null)return closeMenu();
   if(document.getElementById('quickSearch').classList.contains('on'))return qsClose();
@@ -2975,6 +3088,7 @@ function renderResults(){
           <span class="t">${esc(p[I.name])}</span>${badge}${ub}</div>
         <div class="meta">${esc(p[I.season])} · <span class="fc-pos" style="--pos-color:${positionColor(p[I.pos])}">${esc(p[I.pos])}</span> · 급여 <span class="payW${(isStartSlot&&(startPaySum-curSlotPay+(p[I.pay]||0)>PAY_LIMIT))?' payX':''}">${p[I.pay]??'-'}</span>${wrTag(p[I.spid])}</div>
         ${physicalText||footDetail?`<div class="physicalMeta">${esc(physicalText)}${physicalText&&footDetail?' · ':''}${footDetail}</div>`:''}
+         <div class="pickMeta">${playerPickLabel(p[I.spid],grpOf(activeIdx!=null&&activeIdx<N_START?slotLabel(activeIdx):p[I.pos]))}</div>
       </div>
       <div class="rowGold">${goldIconsHtml(p[I.spid])}</div>
       <div class="right"><div class="ovr">${ovr}</div><div class="bp">${bp!=null?won(bp)+' BP':'-'}</div></div>
@@ -3283,11 +3397,11 @@ function renderAiStep(){
       .sort((a,b)=>(TRAITS[a].n||'').localeCompare(TRAITS[b].n||'','ko'));
     const selected=aiState.goldTraits||[],positionMode=aiHasPositionGold();
     body.innerHTML=`<div class="aiQ">금빛특성 우선순위를 고르세요</div>
-      <div class="aiHint">자동 배치용 특성을 최대 4개까지 순서대로 선택하세요. 포지션별 특성을 하나라도 선택하면 공통 1~4순위는 적용되지 않습니다. 포지션별 선택은 딸깍 스쿼드 생성 후 이 브라우저에 저장됩니다.</div>
+       <div class="aiHint">자동 배치용 특성을 최대 4개까지 순서대로 선택하세요. 포지션별 특성을 하나라도 선택하면 공통 1~4순위는 적용되지 않습니다. 포지션별 선택은 딸깍 스쿼드 생성 후 이 브라우저에 저장됩니다. 아래 비중은 상위 30개 픽 카드가 기본 보유한 특성 기준입니다.</div>
       <div class="aiWrapList" style="max-height:48vh;">
         <div class="aiRow ${selected.length?'':'on'}" data-ai-gold=""><span class="t">선택 안 함</span><span class="n">전체 해제</span></div>
         ${gold.map(id=>{const rank=selected.findIndex(x=>String(x)===String(id));return `<div class="aiRow ${rank>=0&&!positionMode?'on':''}" data-ai-gold="${id}">
-          <img src="${TRAIT_ICON(id)}" onerror="this.style.visibility='hidden'"><span class="t">${esc(TRAITS[id].n||('특성 '+id))}</span><span class="n">${rank>=0?positionMode?'포지션별 선택 중 미적용':`${rank+1}순위`:'선택'}</span></div>`;}).join('')}
+           <img src="${TRAIT_ICON(id)}" onerror="this.style.visibility='hidden'"><span class="t">${esc(TRAITS[id].n||('특성 '+id))}<small class="pickMeta">${traitPickLabel(id,aiState.mode)}</small></span><span class="n">${rank>=0?positionMode?'포지션별 선택 중 미적용':`${rank+1}순위`:'선택'}</span></div>`;}).join('')}
       </div>
       <button type="button" class="aiGoldPosOpen" data-ai-gold-pos>포지션별 선택하기</button>`;
   }
@@ -3394,7 +3508,7 @@ function renderAiGoldPositions(){
 }
 function aiGoldDropdownHtml(coords){
   const L=coords[aiGoldActiveSlot]||[.5,.5],pos=zoneAt(L[0],L[1]),left=Math.max(22,Math.min(78,4+L[0]*92)),top=9+Math.min(1,L[1])*84,raw=aiState.goldSlots[aiGoldActiveSlot],choices=(Array.isArray(raw)?raw:[raw]).filter(v=>v!=null),gold=Object.keys(TRAITS||{}).filter(id=>TRAITS[id]&&TRAITS[id].g).sort((a,b)=>(TRAITS[a].n||'').localeCompare(TRAITS[b].n||'','ko'));
-  return `<div class="aiGoldDropdown" style="left:${left}%;top:calc(${top}% + 28px)" onclick="event.stopPropagation()"><div class="aiGoldDropdownTitle">${pos} · 특성을 누른 순서대로 1·2순위</div>${gold.map(id=>{const rank=choices.findIndex(x=>String(x)===String(id));return `<button type="button" class="${rank>=0?'on':''}" onmousedown="event.preventDefault()" onclick="aiPickGoldSlotTrait(${+id})"><img src="${TRAIT_ICON(id)}" onerror="this.style.display='none'"><span>${esc((TRAITS[id]||{}).n||('특성 '+id))}</span>${rank>=0?`<b>${rank+1}순위</b>`:''}</button>`;}).join('')}<button type="button" class="clear" onmousedown="event.preventDefault()" onclick="aiClearGoldSlot()">선택 해제</button></div>`;
+  return `<div class="aiGoldDropdown" style="left:${left}%;top:calc(${top}% + 28px)" onclick="event.stopPropagation()"><div class="aiGoldDropdownTitle">${pos} · 특성을 누른 순서대로 1·2순위 · 상위 30 카드 기준</div>${gold.map(id=>{const rank=choices.findIndex(x=>String(x)===String(id));return `<button type="button" class="${rank>=0?'on':''}" onmousedown="event.preventDefault()" onclick="aiPickGoldSlotTrait(${+id})"><img src="${TRAIT_ICON(id)}" onerror="this.style.display='none'"><span>${esc((TRAITS[id]||{}).n||('특성 '+id))}<small class="pickMeta">${traitPickLabel(id,aiState.mode,grpOf(pos))}</small></span>${rank>=0?`<b>${rank+1}순위</b>`:''}</button>`;}).join('')}<button type="button" class="clear" onmousedown="event.preventDefault()" onclick="aiClearGoldSlot()">선택 해제</button></div>`;
 }
 document.getElementById('aiGoldPosModal').addEventListener('click',event=>{
   if(aiGoldActiveSlot==null||event.target.closest('.aiGoldSlot,.aiGoldDropdown'))return;
@@ -3446,7 +3560,7 @@ function renderAiLockResults(){
     const noChem=aiState.tc&&!aiHasTc(p[I.spid]);   // 선택 팀컬러 케미 미적용
     return `<div class="aiRow ${on?'on':''} ${noChem?'noChem':''}" data-lockadd="${p[I.spid]}" ${noChem?'title="선택한 팀컬러 케미 미적용"':''}>
       <img src="${SEASON(p[I.season])}" onerror="this.style.visibility='hidden'">
-      <span class="t">${esc(p[I.name])} <small style="color:var(--text-dim)">${esc(p[I.season])} · ${p[I.pos]}</small> ${goldIconsHtml(p[I.spid])}${noChem?' <small style="color:var(--red);font-weight:800;">케미X</small>':''}</span>
+       <span class="t">${esc(p[I.name])} <small style="color:var(--text-dim)">${esc(p[I.season])} · ${p[I.pos]}</small> ${goldIconsHtml(p[I.spid])}${noChem?' <small style="color:var(--red);font-weight:800;">케미X</small>':''}<small class="pickMeta">${playerBestPickLabel(p[I.spid],aiState.mode)}</small></span>
       <span class="n">OVR ${ovrAt(p,8)}${on?' ✓':''}</span></div>`; }).join('')
     : `<div class="aiHint" style="padding:8px 4px;">검색 결과 없음.</div>`;
 }
@@ -4187,7 +4301,7 @@ document.getElementById('nexonForm').addEventListener('submit',async event=>{
   const status=document.getElementById('nexonStatus'),list=document.getElementById('nexonList');
   const search=document.getElementById('nexonSearchBtn'),importBtn=document.getElementById('nexonImportBtn');
   if(!nickname)return;
-  search.disabled=true;importBtn.disabled=true;list.innerHTML='';status.textContent='게임 내 스쿼드를 불러오는 중…';
+  search.disabled=true;importBtn.disabled=true;list.innerHTML='';status.textContent='게임 내 대표팀 스쿼드를 불러오는 중…';
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
   try{
     const response=await fetch(`/api/nexon-lineup?nickname=${encodeURIComponent(nickname)}`,{signal:controller.signal,cache:'no-store'});
@@ -4198,7 +4312,7 @@ document.getElementById('nexonForm').addEventListener('submit',async event=>{
     const missing=players.filter(item=>!item.card),partial=players.filter(item=>item.officialOnly);
     const starters=players.filter(item=>item.starter),bench=players.filter(item=>!item.starter).slice(0,N_SUB);
     nexonLineup={...data,players};
-    status.textContent=`${data.nickname} · 선발 ${starters.length}명 · 후보 ${bench.length}명`+(partial.length?` · ${partial.length}명은 공식 스쿼드 정보로 표시(세부 능력치 미제공)`:'')+(missing.length?` · 표시 정보 부족 ${missing.length}명`:'');
+    status.textContent=`${data.nickname} 대표팀 · 선발 ${starters.length}명 · 후보 ${bench.length}명`+(partial.length?` · ${partial.length}명은 공식 스쿼드 정보로 표시(세부 능력치 미제공)`:'')+(missing.length?` · 표시 정보 부족 ${missing.length}명`:'');
     list.innerHTML=players.map(item=>`<div class="nexonPlayer ${item.card?'':'missing'}">${item.starter?'선발':'후보'} ${esc(item.position||'포지션 미확인')} · ${item.card?`${esc(item.card[I.season])} ${esc(item.card[I.name])}`:`선수 ID ${item.spid} (데이터 없음)`} · ${item.grade}강</div>`).join('');
     importBtn.disabled=!!missing.length||starters.length!==11;
   }catch(error){status.textContent=error.name==='AbortError'?'응답 시간이 초과됐습니다. 다시 검색해 주세요.':error.message;}
@@ -4222,10 +4336,10 @@ function importNexonLineup(){
     starters.forEach((item,i)=>{squad[placement.slots[i]]={spid:item.spid,g:Math.max(0,Math.min(13,item.grade||1))};});
   }
   bench.forEach((item,i)=>{squad[N_START+i]={spid:item.spid,g:Math.max(0,Math.min(13,item.grade||1))};});
-  const title=`${data.nickname} 스쿼드`;
+  const title=`${data.nickname} 대표팀`;
   document.getElementById('squadTitle').value=title;
   const mobileTitle=document.getElementById('squadTitleMobile');if(mobileTitle)mobileTitle.value=title;
-  closeNexonLineup();closeMenu();save();renderBoard();toast('게임 내 스쿼드를 불러왔어요');
+  closeNexonLineup();closeMenu();save();renderBoard();toast('게임 내 대표팀 스쿼드를 불러왔어요');
   if(nexonImportJersey&&!showJersey)toggleJersey();
   nexonImportJersey=false;
 }
