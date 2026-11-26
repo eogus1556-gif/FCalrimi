@@ -1554,13 +1554,14 @@
     <div class="modal-overlay" id="noticeOverlay" onclick="if(event.target===this) closeNotice()">
     <div class="modal" style="text-align:center;">
       <button class="modal-close" onclick="closeNotice()">&times;</button>
-      <h2 style="margin-bottom:10px;">BP도둑 백금작</h2>
-      <p class="modal-sub" style="line-height:1.7;">클릭 몇 번으로 백금 강화 비용을<br>대략 알아볼 수 있어요.</p>
+      <h2 style="margin-bottom:10px;">신규 시즌 갱신시간 업데이트</h2>
+      <p class="modal-sub" style="line-height:1.7;">DR · 26KB 시즌의 선수별 갱신시간을 추가했습니다.</p>
       <div style="margin:14px 0 4px; padding:14px 15px; border:1px solid rgba(196,255,61,.35); border-radius:12px; background:rgba(196,255,61,.06); text-align:left;">
-        <b style="display:block; color:var(--lime); margin-bottom:6px;">딸깍 시뮬레이터</b>
-        <p style="margin:0; color:var(--text); font-size:13px; line-height:1.65;">선수와 목표 강화단계를 고르면 예상 비용과 시도 횟수를 볼 수 있어요. 결과는 매번 달라질 수 있습니다.</p>
-        <img src="/assets/squadmaker-launch/platinum-simulator-preview.png" alt="목표 강화 시뮬레이션에서 사용 예산과 시도 횟수를 보여주는 화면" style="display:block; width:auto; max-width:100%; height:auto; max-height:260px; margin:12px auto 0; border:1px solid var(--line); border-radius:8px; object-fit:contain;">
-        <a href="/자료/스쿼드메이커%20db만들기/강화시뮬레이터.html" onclick="noticeGoPlatinum()" style="display:inline-block; margin-top:9px; color:var(--lime); font-size:13px; font-weight:800; text-decoration:underline; text-underline-offset:3px;">백금작 바로가기 →</a>
+        <b style="display:block; color:var(--lime); margin-bottom:10px;">갱신시간 확인하기</b>
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+          <a href="/refresh/dr.html" onclick="noticeGoRefresh()" style="display:inline-flex; align-items:center; gap:7px; color:var(--text); font-weight:800;"><img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/DR.png" alt="" style="width:35px; height:25px; object-fit:contain;">DR 시즌 →</a>
+          <a href="/refresh/26kb.html" onclick="noticeGoRefresh()" style="display:inline-flex; align-items:center; gap:7px; color:var(--text); font-weight:800;"><img src="https://ssl.nexon.com/s2/game/fc/online/obt/externalAssets/new/season/26KB.png" alt="" style="width:35px; height:25px; object-fit:contain;">26KB 시즌 →</a>
+        </div>
       </div>
       <button class="auth-submit" onclick="closeNotice()">닫기</button>
     </div>
@@ -2529,11 +2530,12 @@
   // 페이지가 열릴 때 전체 선수 목록(약 2만 명)을 불러와 검색에 사용.
   // 네트워크/CORS 문제로 실패하면 위 내장 데이터로만 동작.
   let allPlayers = null;   // [{ id, name, season }]
+  let playersLoadState = 'loading';
   let seasonMap = {};
 
   // players.json 캐시 버전 — 선수 데이터(players.json)를 갱신해 배포할 때마다 이 값을 바꾸면
   // 브라우저·CDN이 옛 파일을 캐시하고 있어도 새 파일을 강제로 다시 받아옵니다.
-  const PLAYERS_VER = '20261101-1';
+  const PLAYERS_VER = '20261126-dr-26kb';
   // 크롤링 탐지용 표식(canary) — 실제로 존재하지 않는 선수. 화면엔 절대 노출하지 않음.
   const CANARY_SPIDS = new Set([863990001, 863990002, 863990003]);
   const PLAYERS_CACHE = 'fc-players-cache-v1';   // 선수데이터 로컬 캐시 (검색 즉시 로드용)
@@ -2563,10 +2565,12 @@
       const sa = Math.floor(a.id / 1000000), sb = Math.floor(b.id / 1000000);
       return sb !== sa ? sb - sa : b.ovr - a.ovr;
     });
+    playersLoadState = 'ready';
     animateNum(document.getElementById('statConfirmed'), allPlayers.filter(p => p.hj).length, '명');
     buildSeasonDropdown();
     applySeasonDeepLink();   // 시즌 랜딩페이지에서 ?season=로 넘어온 경우 해당 시즌 필터 미리 선택
     _playersReady = true; try{ maybeRunFavDeepLink(); }catch(_){}
+    try{ if(document.getElementById('playerSearch')?.value.trim()) runSearch(); }catch(_){}
   }
 
   // 시즌 랜딩페이지(정적) → 앱 ?season=CH 로 들어오면 홈 검색의 시즌 필터를 그 시즌으로 고정
@@ -2656,7 +2660,7 @@
   }
 
   async function loadAllPlayers(){
-    const url = '/api/players?v=' + PLAYERS_VER;
+    const url = '/pdb_v3f9k2a7.json?v=' + PLAYERS_VER;
     let usedCache = false;
 
     // 0순위: 로컬 캐시(Cache API) — 있으면 즉시 검색 가능 (네트워크 대기 0)
@@ -2672,18 +2676,27 @@
       }
     }catch(e){ /* 캐시 실패는 무시 */ }
 
-    // 1순위: /api/players (정적 JSON). 타임아웃 있어 무한정 안 매달림.
+    // 1순위: 실제 배포된 정적 선수 데이터. 모바일의 느린 응답도 본문까지 기다리고 재시도한다.
     //         캐시가 이미 있으면 백그라운드로 최신화(안 기다림).
     const netPromise = (async () => {
-      try{
-        const res = await fetchWithTimeout(url, 10000);
-        if(!res.ok) return false;
-        const data = (await res.json());
-        applyPlayersData(data);
-        if(!usedCache) restoreViewState();
-        try{ if(window.caches){ const c = await caches.open(PLAYERS_CACHE); await c.put(url, new Response(JSON.stringify(data), { headers: { 'content-type':'application/json' } })); } }catch(e){}
-        return true;
-      }catch(e){ return false; }
+      for(let attempt = 0; attempt < 2; attempt++){
+        const ctl = new AbortController();
+        const timer = setTimeout(() => ctl.abort(), attempt ? 30000 : 20000);
+        try{
+          const res = await fetch(url, { cache:'no-cache', signal:ctl.signal });
+          if(!res.ok) throw new Error('선수 데이터 HTTP ' + res.status);
+          const cacheCopy = res.clone();
+          const data = await res.json();
+          if(!Array.isArray(data) || !data.length) throw new Error('선수 데이터가 비어 있습니다.');
+          applyPlayersData(data);
+          if(!usedCache) restoreViewState();
+          if(window.caches) caches.open(PLAYERS_CACHE).then(c => c.put(url, cacheCopy)).catch(() => {});
+          return true;
+        }catch(e){ console.warn('선수 데이터 로드 재시도', attempt + 1, e); }
+        finally{ clearTimeout(timer); }
+        if(!attempt) await new Promise(resolve => setTimeout(resolve, 800));
+      }
+      return false;
     })();
 
     if(usedCache) return;              // 캐시로 이미 동작 → 네트워크는 백그라운드
@@ -2706,10 +2719,12 @@
         hj: '', min: -1, pos: '', ovr: 0,
       }));
       allPlayers.sort((a, b) => b.id - a.id);  // 최신 시즌 우선
+      playersLoadState = 'fallback';
       animateNum(document.getElementById('statConfirmed'), allPlayers.filter(p => p.hj).length, '명');
       buildSeasonDropdown();
       restoreViewState();
     }catch(e){
+      playersLoadState = 'failed';
       console.warn('전체 선수 데이터 로드 실패 — 내장 데이터로 동작합니다.', e);
       restoreViewState();
     }
@@ -3602,8 +3617,8 @@
 
   // ── 업데이트 안내 1회성 팝업 ──
   // 규칙: (1) 닫기를 누르면 그 기기(브라우저)에서 다시 안 뜸  (2) 공지 만료일이 지나면 아무에게도 안 뜸
-  const NOTICE_ID = 'fc_notice_platinum_simulator_v1';       // 새 공지를 낼 땐 이 값만 바꾸면 됩니다
-  const NOTICE_EXPIRE = new Date('2026-11-30T23:59:59+09:00').getTime();  // 이 시각 이후엔 표시 안 함
+  const NOTICE_ID = 'fc_notice_dr_26kb_refresh_v1';       // 새 공지를 낼 땐 이 값만 바꾸면 됩니다
+  const NOTICE_EXPIRE = new Date('2026-12-10T23:59:59+09:00').getTime();  // 이 시각 이후엔 표시 안 함
   function maybeShowNotice(){
     try{
       if(Date.now() > NOTICE_EXPIRE) return;                 // 공지 기간 종료
@@ -3619,7 +3634,7 @@
     if(ov) ov.classList.remove('show');
     setTimeout(function(){ try{ maybeShowLaunchNotice(); }catch(e){} }, 180);
   }
-  function noticeGoPlatinum(){
+  function noticeGoRefresh(){
     try{ localStorage.setItem(NOTICE_ID, '1'); }catch(e){}
   }
 
@@ -4032,10 +4047,9 @@
       return;
     }
 
-    // 폴백: 내장 인기 선수만 검색
-    const featured = players.filter(p => p.name.includes(q))
-      .map(p => ({ name: p.name, id: 0, position: p.position, ovr: 0, cards: 1, confirmed: 1 }));
-    renderResults(featured, 'results');
+    const box = document.getElementById('results');
+    box.innerHTML = `<div class="no-result">${playersLoadState === 'failed' ? '데이터를 불러오지 못했습니다. 페이지를 새로고침해 주세요.' : '데이터 불러오는 중…'}</div>`;
+    box.classList.add('show');
   }
 
   // ---------- 뷰 전환 ----------
@@ -4316,9 +4330,9 @@
     const boxId = inputId === 'playerSearch2' ? 'results2' : 'results';
     if(q || useSeason) track('player_search', { q: q || '', season: useSeason || '' });
     if(!allPlayers){
-      // 데이터 미로드 폴백: 내장 인기 선수 목록
-      if(q) renderResults(players.filter(p => p.name.includes(q))
-        .map(p => ({ name: p.name, id: 0, position: p.position, ovr: 0, cards: 1, confirmed: 1 })), boxId);
+      const box = document.getElementById(boxId);
+      box.innerHTML = `<div class="no-result">${playersLoadState === 'failed' ? '데이터를 불러오지 못했습니다. 페이지를 새로고침해 주세요.' : '데이터 불러오는 중…'}</div>`;
+      box.classList.add('show');
       return;
     }
     if(!q){
