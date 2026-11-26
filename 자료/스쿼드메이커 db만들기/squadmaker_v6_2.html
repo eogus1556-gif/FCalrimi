@@ -645,10 +645,14 @@ button{cursor:pointer;}
 .savedSquadEmpty{padding:56px 15px;text-align:center;color:var(--text-dim);font-size:12px;}
 .savedSquadFoot{display:flex;align-items:center;justify-content:center;gap:5px;min-height:52px;padding:9px 14px;border-top:1px solid var(--line);}
 .savedPageBtn{min-width:34px;height:32px;padding:0 8px;border:1px solid var(--line);border-radius:7px;background:var(--surface-2);color:var(--text-dim);font-size:11px;font-weight:900;cursor:pointer;}.savedPageBtn.on{border-color:var(--lime);background:var(--lime);color:#0b0f14;}.savedPageBtn:disabled{opacity:.3;cursor:not-allowed;}
+.nexonModal{position:fixed;inset:0;z-index:440;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(3,6,10,.85)}
+.nexonModal.on{display:flex}.nexonBox{width:min(570px,100%);max-height:90dvh;overflow:auto;padding:20px;background:var(--surface);border:1px solid var(--line-2);border-radius:15px;box-shadow:0 24px 70px rgba(0,0,0,.6)}
+.nexonBox h3{margin:0 0 8px;font-size:18px}.nexonBox p,.nexonStatus{color:var(--text-dim);font-size:12px;line-height:1.5}.nexonForm{display:flex;gap:7px;margin:15px 0}.nexonForm input,.nexonForm select{min-width:0;padding:10px;border:1px solid var(--line-2);border-radius:8px;background:var(--surface-2);color:var(--text)}.nexonForm input{flex:1}.nexonForm button,.nexonActions button{padding:10px 14px;border:1px solid var(--line-2);border-radius:8px;background:var(--surface-2);color:var(--text);font-weight:800;cursor:pointer}.nexonForm button,.nexonActions .primary{background:var(--lime);color:#0b0f14;border-color:var(--lime)}.nexonForm button:disabled,.nexonActions button:disabled{opacity:.45;cursor:default}.nexonList{margin:10px 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.nexonPlayer{padding:8px;border:1px solid var(--line);border-radius:7px;font-size:11px}.nexonPlayer.missing{color:var(--red)}.nexonActions{display:flex;justify-content:flex-end;gap:7px;margin-top:15px}
 @media(max-width:700px){
   .savedSquadModal{padding:0;align-items:flex-start;}.savedSquadBox{width:100%;height:var(--app-vh,100dvh);max-height:none;border:none;border-radius:0;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);}
   .savedSquadHead{padding:11px 12px}.savedSquadTabs{padding:8px 10px 0}.savedSquadTab{min-width:130px;padding:8px 12px}.savedSquadTools{padding:8px 10px;flex-wrap:wrap}.savedSquadStatus{width:100%}.savedSquadSearch{width:100%;max-width:none}
   .savedSquadColumns{display:none}.savedSquadList{padding:8px}.savedSquadRow{grid-template-columns:26px minmax(0,1fr) 100px;gap:7px;padding:9px 7px}.savedMode{display:none}.savedPreview{grid-column:2/3;width:100%;max-width:180px}.savedRowActions{grid-column:3;grid-row:1/3;align-self:stretch;align-items:flex-end}.savedOpen{min-width:68px}.savedSquadFoot{min-height:48px}
+  .nexonForm{flex-wrap:wrap}.nexonForm input{flex-basis:100%}.nexonList{grid-template-columns:1fr}
 }
 
 /* ---------- 갱신시간 즐겨찾기 선택 ---------- */
@@ -989,10 +993,26 @@ button{cursor:pointer;}
       <div class="savedSquadStatus"><b id="savedSquadSelected">0개 선택</b><input class="savedSquadSearch" id="savedSquadSearch" type="search" maxlength="30" placeholder="스쿼드 제목 검색" aria-label="스쿼드 제목 검색"></div>
       <button class="savedDelete" id="savedSquadDelete" type="button" onclick="deleteSelectedSquads()" disabled>선택 삭제</button>
       <button class="savedLoadSelected" id="savedSquadLoad" type="button" onclick="loadSelectedSquad()" disabled>스쿼드 불러오기</button>
+      <button type="button" onclick="openNexonLineup()">내 스쿼드 불러오기</button>
     </div>
     <div class="savedSquadColumns"><span></span><span class="savedTitleHead"><input class="savedSelectAll" id="savedSquadSelectAll" type="checkbox" aria-label="현재 페이지 전체 선택">제목 · 전체선택</span><span>포메이션</span><span>미리보기</span><span style="text-align:right">저장일시</span></div>
     <div class="savedSquadList" id="savedSquadList"></div>
     <div class="savedSquadFoot" id="savedSquadPages"></div>
+  </div>
+</div>
+
+<div class="nexonModal" id="nexonModal" onclick="if(event.target===this)closeNexonLineup()">
+  <div class="nexonBox" role="dialog" aria-modal="true" aria-label="내 스쿼드 불러오기">
+    <h3>내 스쿼드 불러오기</h3>
+    <p>넥슨 공개 경기 기록의 최근 선발 11명을 가져옵니다. 현재 보유 스쿼드와 다를 수 있으며, 닉네임만으로 계정 소유자를 확인하지는 않습니다.</p>
+    <form class="nexonForm" id="nexonForm">
+      <input id="nexonNickname" type="search" maxlength="16" placeholder="넥슨 닉네임" aria-label="넥슨 닉네임" required>
+      <select id="nexonMode" aria-label="경기 종류"><option value="official">공식경기</option><option value="manager">감독모드</option></select>
+      <button id="nexonSearchBtn" type="submit">검색</button>
+    </form>
+    <div class="nexonStatus" id="nexonStatus" aria-live="polite">닉네임을 입력하고 검색해 주세요.</div>
+    <div class="nexonList" id="nexonList"></div>
+    <div class="nexonActions"><button type="button" onclick="closeNexonLineup()">닫기</button><button type="button" class="primary" id="nexonImportBtn" onclick="importNexonLineup()" disabled>현재 스쿼드에 불러오기</button></div>
   </div>
 </div>
 
@@ -4105,6 +4125,94 @@ async function loadSquad(){
   }
   await fetchSavedSquadPage(1);
 }
+/* 넥슨 공개 경기의 선발 11명 가져오기. API 키는 Pages Function에만 저장한다. */
+const NEXON_POS=['GK','SW','RWB','RB','RCB','CB','LCB','LB','LWB','RDM','CDM','LDM','RM','RCM','CM','LCM','LM','RAM','CAM','LAM','RF','CF','LF','RW','RS','ST','LS','LW'];
+const NEXON_XY={GK:[.5,1],SW:[.5,.94],RWB:[.94,.78],RB:[.92,.87],RCB:[.64,.89],CB:[.5,.9],LCB:[.36,.89],LB:[.08,.87],LWB:[.06,.78],RDM:[.64,.70],CDM:[.5,.72],LDM:[.36,.70],RM:[.90,.5],RCM:[.64,.52],CM:[.5,.54],LCM:[.36,.52],LM:[.10,.5],RAM:[.66,.36],CAM:[.5,.35],LAM:[.34,.36],RF:[.75,.23],CF:[.5,.23],LF:[.25,.23],RW:[.88,.12],RS:[.64,.08],ST:[.5,.05],LS:[.36,.08],LW:[.12,.12]};
+let nexonLineup=null;
+let nexonImportJersey=false;
+function openNexonLineup(){
+  closeSavedSquads();nexonLineup=null;
+  document.getElementById('nexonModal').classList.add('on');
+  document.getElementById('nexonImportBtn').disabled=true;
+  document.getElementById('nexonStatus').textContent='닉네임을 입력하고 검색해 주세요.';
+  document.getElementById('nexonList').innerHTML='';
+  document.getElementById('nexonNickname').focus();
+  document.body.style.overflow='hidden';
+}
+function closeNexonLineup(){
+  document.getElementById('nexonModal').classList.remove('on');
+  document.body.style.overflow='';
+}
+function nexonPlacement(players){
+  const count=players.length, full=(1<<count)-1;
+  let best=null;
+  for(const [formation,coords] of Object.entries(FORMATIONS)){
+    const cost=players.map(item=>coords.map(([fx,fy])=>{
+      const label=NEXON_POS[item.position], target=NEXON_XY[label]||[.5,.5];
+      const slot=zoneAt(fx,fy), keeper=(label==='GK')===(slot==='GK');
+      const dist=(target[0]-fx)**2+(target[1]-fy)**2;
+      return dist*10+(keeper?0:100)+(slot===label?0:BASE_POS[slot]===BASE_POS[label]?.15:.65);
+    }));
+    const dp=new Float64Array(1<<count).fill(Infinity),prev=new Int16Array(1<<count),choice=new Int8Array(1<<count);
+    dp[0]=0;
+    for(let mask=0;mask<full;mask++){
+      if(!Number.isFinite(dp[mask]))continue;
+      const i=mask.toString(2).replace(/0/g,'').length;
+      for(let slot=0;slot<count;slot++)if(!(mask&(1<<slot))){
+        const next=mask|(1<<slot),value=dp[mask]+cost[i][slot];
+        if(value<dp[next]){dp[next]=value;prev[next]=mask;choice[next]=slot;}
+      }
+    }
+    if(!best||dp[full]<best.score){
+      const slots=new Array(count);let mask=full;
+      for(let i=count-1;i>=0;i--){slots[i]=choice[mask];mask=prev[mask];}
+      best={formation,slots,score:dp[full]};
+    }
+  }
+  return best;
+}
+document.getElementById('nexonForm').addEventListener('submit',async event=>{
+  event.preventDefault();nexonLineup=null;
+  const nickname=document.getElementById('nexonNickname').value.trim();
+  const mode=document.getElementById('nexonMode').value;
+  const status=document.getElementById('nexonStatus'),list=document.getElementById('nexonList');
+  const search=document.getElementById('nexonSearchBtn'),importBtn=document.getElementById('nexonImportBtn');
+  if(!nickname)return;
+  search.disabled=true;importBtn.disabled=true;list.innerHTML='';status.textContent='최근 경기 선수를 불러오는 중…';
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+  try{
+    const response=await fetch(`/api/nexon-lineup?nickname=${encodeURIComponent(nickname)}&mode=${mode}`,{signal:controller.signal,cache:'no-store'});
+    if(!(response.headers.get('content-type')||'').includes('application/json'))throw new Error('넥슨 연결 기능을 배포한 뒤 다시 시도해 주세요.');
+    const data=await response.json();
+    if(!response.ok)throw new Error(data.error||`요청 오류 ${response.status}`);
+    const players=data.players.map(item=>({...item,card:byId(item.spid)}));
+    const missing=players.filter(item=>!item.card);
+    const duplicate=players.length!==new Set(players.map(item=>PID(item.spid))).size;
+    nexonLineup={...data,players};
+    let date='';try{if(data.matchDate)date=new Date(data.matchDate.replace(' ','T')).toLocaleString('ko-KR');}catch(_){}
+    status.textContent=`${data.nickname} · ${data.mode==='manager'?'감독모드':'공식경기'} · ${date||'경기 날짜 미확인'} · 선발 ${players.length}명`+(missing.length?` · 로컬 데이터에 없는 카드 ${missing.length}명`:'')+(duplicate?' · 중복 선수 있음':'');
+    list.innerHTML=players.map(item=>`<div class="nexonPlayer ${item.card?'':'missing'}">${esc(NEXON_POS[item.position]||'포지션 미확인')} · ${item.card?`${esc(item.card[I.season])} ${esc(item.card[I.name])}`:`선수 ID ${item.spid} (데이터 없음)`} · ${item.grade}강</div>`).join('');
+    importBtn.disabled=!!missing.length||duplicate||players.length!==11;
+  }catch(error){status.textContent=error.name==='AbortError'?'응답 시간이 초과됐습니다. 다시 검색해 주세요.':error.message;}
+  finally{clearTimeout(timer);search.disabled=false;}
+});
+function importNexonLineup(){
+  const data=nexonLineup;
+  if(!data||data.players.length!==11||data.players.some(item=>!item.card))return;
+  if(squad.some(Boolean)&&!confirm('현재 작업 중인 스쿼드를 최근 경기 선발 11명으로 바꿀까요?'))return;
+  const placement=nexonPlacement(data.players);
+  if(!placement)return;
+  squad=new Array(N_ALL).fill(null);
+  curForm=placement.formation;formSel.value=curForm;
+  layout=FORMATIONS[curForm].map(([fx,fy])=>({fx,fy}));
+  data.players.forEach((item,i)=>{squad[placement.slots[i]]={spid:item.spid,g:Math.max(0,Math.min(13,item.grade||1))};});
+  const title=`${data.nickname} 최근 경기`;
+  document.getElementById('squadTitle').value=title;
+  const mobileTitle=document.getElementById('squadTitleMobile');if(mobileTitle)mobileTitle.value=title;
+  closeNexonLineup();closeMenu();save();renderBoard();toast('최근 경기 선발 11명을 불러왔어요');
+  if(nexonImportJersey&&!showJersey)toggleJersey();
+  nexonImportJersey=false;
+}
 async function fetchSavedSquadPage(page=1){
   const st=savedSquadState;
   st.page=Math.max(1,+page||1);st.loading=true;renderSavedSquads();
@@ -4273,12 +4381,25 @@ function refreshAfterPlayers(){
 }
 const _getJson=async u=>{for(let attempt=0;attempt<2;attempt++){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),30000);try{const response=await fetch(u,{cache:'no-cache',signal:controller.signal});if(!response.ok)throw Error(`HTTP ${response.status}`);return await response.json()}catch(error){if(attempt)console.warn('선수·시세 데이터 로드 실패',u,error)}finally{clearTimeout(timer)}if(!attempt)await new Promise(resolve=>setTimeout(resolve,800))}return null};
 // players.json(목록 추가분, 가끔 갱신) → prices.json(가격, 매일 갱신) 순으로 적용. 없는 파일은 건너뜀
-Promise.all([_getJson('players.json'),_getJson('prices.json')]).then(([pl,pr])=>{
+const squadPlayerLoadPromise=Promise.all([_getJson('players.json'),_getJson('prices.json')]).then(([pl,pr])=>{
   if(pl){ applyPlayerRows(Array.isArray(pl)?pl:pl.rows); }
   if(pr){ const P=pr.prices||pr; PRICE_DATE=pr.date||null;
     for(const k in P){ const p=PMAP.get(+k); if(p&&Array.isArray(P[k]))p[I.bp]=P[k]; } }
   if(pl||pr) refreshAfterPlayers();
 });   // 둘 다 없으면 내장 데이터 유지
+const incomingNexon=new URLSearchParams(location.search);
+const incomingNickname=(incomingNexon.get('nexonNickname')||'').trim();
+if(incomingNickname&&incomingNickname.length<=16){
+  nexonImportJersey=incomingNexon.get('source')==='jersey';
+  incomingNexon.delete('nexonNickname');incomingNexon.delete('source');
+  const remainingQuery=incomingNexon.toString();
+  history.replaceState(null,'',location.pathname+(remainingQuery?'?'+remainingQuery:'')+location.hash);
+  squadPlayerLoadPromise.finally(()=>{
+    openNexonLineup();
+    document.getElementById('nexonNickname').value=incomingNickname;
+    document.getElementById('nexonForm').requestSubmit();
+  });
+}
 </script>
 <nav class="fc-mobile-bottom-nav" aria-label="모바일 주요 메뉴">
   <a class="fc-mobile-nav-item" href="/index.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5.5 9.5V21h13V9.5"/><path d="M9.5 21v-6h5v6"/></svg><span>홈</span></a>
