@@ -39,7 +39,7 @@ export async function onRequestGet({ request }) {
     const sn = Number(owner.sn);
     if (!Number.isSafeInteger(sn) || sn <= 0) return json({ error: '해당 닉네임을 찾지 못했습니다.' }, 404);
     const result = await official('getingameinfo', {
-      n1TeamType: 0, n1TeamPart: 0, n4TeamSeq: 0, n8TargetNexonSN: sn
+      n1TeamType: 1, n1TeamPart: 0, n4TeamSeq: 0, n8TargetNexonSN: sn
     });
     const squad = result.Squadinfo || {};
     const players = (Array.isArray(squad.players) ? squad.players : []).map(player => ({
