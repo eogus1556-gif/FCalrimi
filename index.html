@@ -1089,6 +1089,9 @@
   #adHome{ margin-top:56px; min-height:100px; padding-bottom:16px; }
   #adTop{ display:none; }                       /* 모바일 상단 배너 전용 */
   #adBottom{ max-width:1000px; margin:24px auto 0; padding:0 12px; }
+  .search-inline-ad{ grid-column:1/-1; width:100%; max-width:560px; min-height:90px; margin:24px auto; text-align:center; }
+  .search-inline-ad:has(ins[data-ad-status="unfilled"]){ display:none; }
+  body.search-inline-ad-active #adBottom{ display:none !important; }
   .ad-rail{ display:none; }                      /* 데스크톱 양옆 세로 배너 */
   @media (min-width: 1440px){
     .ad-rail{ display:block; position:fixed; top:120px; width:160px; min-height:600px; z-index:40; }
@@ -4054,6 +4057,7 @@
     document.getElementById('results2').classList.remove('show');
     document.getElementById('playerSearch2').value = '';
     currentView = id;
+    document.body.classList.toggle('search-inline-ad-active', id === 'viewPlayer' && !!document.getElementById('searchInlineAd'));
     updateMobileBottomNav(id);
     window.scrollTo(0, 0);
     saveViewState();
@@ -4305,6 +4309,7 @@
         ${reportChipHtml(c.id)}
       </div>
     `).join('');
+    document.body.classList.remove('search-inline-ad-active');
     switchView('viewPlayer');
   }
 
@@ -4415,6 +4420,13 @@
       holder.innerHTML = cards.slice(idx, idx + CHUNK).map(c => multiCardHtml(c, favs)).join('');
       while(holder.firstChild) box.appendChild(holder.firstChild);
       idx += CHUNK;
+      if(idx === CHUNK && cards.length >= 15){
+        const ad = document.createElement('div');
+        ad.id = 'searchInlineAd';
+        ad.className = 'search-inline-ad';
+        const fifteenthCard = box.querySelectorAll('.p-card')[14];
+        fifteenthCard.after(ad);
+      }
       if(idx < cards.length){
         const b = document.createElement('button');
         b.id = 'moreCardsBtn';
@@ -4437,6 +4449,7 @@
       window.addEventListener('scroll', _cardsScrollHandler);
     }
     switchView('viewPlayer');
+    if(cards.length >= 15) requestAnimationFrame(() => mountAd('searchInlineAd'));
   }
 
   // ---------- 시즌 선택 드롭다운 (which: '' = 홈 검색, '2' = 갱신시간 페이지) ----------
@@ -7690,6 +7703,7 @@
     adTop:    '2995181614',   // 모바일 상단 배너
     adHome:   '2995181614',   // 홈 첫 화면 하단 광고 (슬롯 재사용)
     adBottom: '5429773263',   // 하단 배너 (모바일·PC 공통)
+    searchInlineAd: '5429773263', // 검색 결과 15번째 카드 뒤 광고
     adLeft:   '4782493315',   // PC 왼쪽 세로 배너
     adRight:  '8648596453',   // PC 오른쪽 세로 배너
   };
