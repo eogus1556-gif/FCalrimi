@@ -618,6 +618,8 @@
     font-size:12px; padding:6px 12px; border-radius:100px; cursor:pointer;
   }
   .fav-remove:hover{ color:var(--red); border-color:var(--red); }
+  .fav-turn-toggle{ border-color:var(--lime); color:var(--lime); }
+  .fav-turn-toggle.is-muted{ border-color:var(--text-dim); color:var(--text-dim); }
 
   /* ---------- HEADER ---------- */
   header{
@@ -3173,10 +3175,57 @@
     if(n < 0) return { now: false, blink: false, soon: false, text: '' };
     return { now: false, blink: false, soon: n <= 10, text: formatTimer(n) + ' 후 갱신' };
   }
-  function timerChip(hj, min, cls){
+  // 즐겨찾기에서 이번 갱신 구간만 숨긴다. 다음 2시간 주기에는 자동으로 해제된다.
+  const FAVORITE_TURN_MUTES_KEY = 'fc_favorite_turn_mutes';
+  const favoriteTurnMutes = (() => {
+    try{
+      const saved = JSON.parse(localStorage.getItem(FAVORITE_TURN_MUTES_KEY) || '{}');
+      return saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : {};
+    }catch(_){ return {}; }
+  })();
+  function saveFavoriteTurnMutes(){
+    try{ localStorage.setItem(FAVORITE_TURN_MUTES_KEY, JSON.stringify(favoriteTurnMutes)); }catch(_){}
+  }
+  function isFavoriteTurnMuted(spid, hj, min){
+    const mute = favoriteTurnMutes[spid];
+    if(!mute) return false;
+    const until = Number(mute.until);
+    if(mute.time !== `${hj}:${min}` || !Number.isFinite(until) || nowDate().getTime() >= until){
+      delete favoriteTurnMutes[spid];
+      saveFavoriteTurnMutes();
+      return false;
+    }
+    return true;
+  }
+  function favoriteTimerStatus(hj, min, spid){
     const st = timerStatus(hj, min);
+    if(spid && st.now && isFavoriteTurnMuted(spid, hj, min)){
+      const next = nextInMin(hj, min) || 120;
+      return { now: false, blink: false, soon: false, text: formatTimer(next) + ' 후 갱신' };
+    }
+    return st;
+  }
+  function toggleFavoriteTurn(spid){
+    const btn = document.querySelector(`.fav-turn-toggle[data-spid="${Number(spid)}"]`);
+    if(!btn) return;
+    const hj = btn.dataset.hj;
+    const min = Number(btn.dataset.min);
+    if(isFavoriteTurnMuted(spid, hj, min)){
+      delete favoriteTurnMutes[spid];
+    }else{
+      const elapsed = sinceRefreshMin(hj, min);
+      if(elapsed < 0 || elapsed >= 20) return;
+      const now = nowDate();
+      const cycleStart = now.getTime() - elapsed * 60000 - now.getSeconds() * 1000 - now.getMilliseconds();
+      favoriteTurnMutes[spid] = { time: `${hj}:${min}`, until: cycleStart + 120 * 60000 };
+    }
+    saveFavoriteTurnMutes();
+    tickTimers();
+  }
+  function timerChip(hj, min, cls, spid){
+    const st = spid ? favoriteTimerStatus(hj, min, spid) : timerStatus(hj, min);
     // 갱신 구간(20분) 내내 반짝임 유지, 15초 카운트는 0~15초 구간에만 표시
-    return `<span class="live-timer ${cls || ''}${st.soon ? ' timer-soon' : ''}${st.now ? ' timer-now' : ''}" data-hj="${hj}" data-min="${min}">${st.text}</span>`;
+    return `<span class="live-timer ${cls || ''}${st.soon ? ' timer-soon' : ''}${st.now ? ' timer-now' : ''}" data-hj="${hj}" data-min="${min}"${spid ? ` data-spid="${spid}"` : ''}>${st.text}</span>`;
   }
 
   function tickTimers(){
@@ -3184,10 +3233,20 @@
     document.querySelectorAll('.live-timer').forEach(el => {
       const hj = el.getAttribute('data-hj');
       const min = parseInt(el.getAttribute('data-min'), 10);
-      const st = timerStatus(hj, min);
+      const spid = Number(el.getAttribute('data-spid')) || null;
+      const st = spid ? favoriteTimerStatus(hj, min, spid) : timerStatus(hj, min);
       if(el.textContent !== st.text) el.textContent = st.text;
       el.classList.toggle('timer-soon', st.soon);
       el.classList.toggle('timer-now', st.now);   // 갱신 구간 20분 내내 반짝임
+    });
+    document.querySelectorAll('.fav-turn-toggle').forEach(btn => {
+      const spid = Number(btn.dataset.spid);
+      const hj = btn.dataset.hj;
+      const min = Number(btn.dataset.min);
+      const muted = isFavoriteTurnMuted(spid, hj, min);
+      btn.hidden = !muted && !timerStatus(hj, min).now;
+      btn.textContent = muted ? '다시 켜기' : '이번 턴 종료';
+      btn.classList.toggle('is-muted', muted);
     });
     // 즐겨찾기 상단 실시간 시계: 항상 현재 시각 표시, 0~15초 구간에는 안내 문구 + 반짝임
     const fc = document.getElementById('favClock');
@@ -4888,7 +4947,7 @@
     listEl.innerHTML = rows.map(r => {
       let rightHtml;
       if(r.confirmed){
-        rightHtml = `${timerChip(r.hj, r.min, 'f-timer')}<span class="f-refresh">${r.refresh}</span>`;
+        rightHtml = `${timerChip(r.hj, r.min, 'f-timer', r.id)}<span class="f-refresh">${r.refresh}</span>`;
       }else if(r.custom && r.estimated){
         const range = (() => {
           const low = Number(r.estimated.low), high = Number(r.estimated.high);
@@ -4896,22 +4955,26 @@
           if(low === high) return `${lp} ${String(low % 60).padStart(2,'0')}분`;
           return lp === hp ? `${lp} ${String(low % 60).padStart(2,'0')}~${String(high % 60).padStart(2,'0')}분` : `짝수 ${String(low % 60).padStart(2,'0')}~59분 또는 홀수 00~${String(high % 60).padStart(2,'0')}분`;
         })();
-        rightHtml = `<span class="f-refresh" title="유추 범위의 가장 빠른 시간으로 알림 예약">${esc(range)}<br><span style="color:var(--text-dim); font-size:11px;">${timerChip(r.hj, r.min, 'f-timer')} 알림예약 ${r.refresh}</span></span>`
+        rightHtml = `<span class="f-refresh" title="유추 범위의 가장 빠른 시간으로 알림 예약">${esc(range)}<br><span style="color:var(--text-dim); font-size:11px;">${timerChip(r.hj, r.min, 'f-timer', r.id)} 알림예약 ${r.refresh}</span></span>`
           + `<button class="fav-remove" onclick="event.stopPropagation(); openCustomTime(${r.id})">수정</button>`;
       }else if(r.custom){
         // 유저가 직접 설정한 커스텀 시간: 시계 표시 + 내 설정 표기 + 수정/삭제
-        rightHtml = `${timerChip(r.hj, r.min, 'f-timer')}`
+        rightHtml = `${timerChip(r.hj, r.min, 'f-timer', r.id)}`
           + `<span class="f-refresh" title="내가 직접 설정한 갱신시간">⏰ ${r.refresh} <span style="color:var(--text-dim)">(내 설정)</span></span>`
           + `<button class="fav-remove" onclick="event.stopPropagation(); openCustomTime(${r.id})">수정</button>`;
       }else if(r.report){
         // 미확인이지만 유저 제보 대표시간 있음: 주황색 시간 + '유저 제보' 딱지 (+ 내 커스텀 설정 가능)
-        rightHtml = `${timerChip(r.hj, r.min, 'f-timer')}`
+        rightHtml = `${timerChip(r.hj, r.min, 'f-timer', r.id)}`
           + `<span class="f-refresh" style="color:var(--report);">${r.refresh} <span class="report-stamp"><span>유저</span><span>제보</span></span>${suspectHtml(r.repFlags)}</span>`
           + `<button class="fav-remove" style="border-color:var(--lime); color:var(--lime);" onclick="event.stopPropagation(); openCustomTime(${r.id})">⏰ 갱신시간 설정</button>`;
       }else{
         // 미확인 + 커스텀 미설정: 설정 버튼 제공
         rightHtml = `<span class="f-refresh">갱신 시간 미확인</span>`
           + `<button class="fav-remove" style="border-color:var(--lime); color:var(--lime);" onclick="event.stopPropagation(); openCustomTime(${r.id})">⏰ 갱신시간 설정</button>`;
+      }
+      if(r.hj && r.min >= 0){
+        const muted = isFavoriteTurnMuted(r.id, r.hj, r.min);
+        rightHtml += `<button class="fav-remove fav-turn-toggle${muted ? ' is-muted' : ''}" data-spid="${r.id}" data-hj="${r.hj}" data-min="${r.min}"${muted || timerStatus(r.hj, r.min).now ? '' : ' hidden'} onclick="event.stopPropagation(); toggleFavoriteTurn(${r.id})">${muted ? '다시 켜기' : '이번 턴 종료'}</button>`;
       }
       return `
       <div class="fav-row" onclick="showPlayer('${esc(r.name)}')">
