@@ -1180,6 +1180,7 @@ button{cursor:pointer;}
           <div class="sortTabs">
             <button id="sortOvr" class="on" onclick="setSort('ovr')">OVR</button>
             <button id="sortBp" onclick="setSort('bp')">높은 가치순</button>
+            <button id="sortPick" onclick="setSort('pick')">픽률 높은 순</button>
           </div>
           <label class="dupChk"><input type="checkbox" id="chkDup"><span>동일 선수 접기</span></label>
           <div class="uSel"><select id="gPick" title="추가 시 적용할 강화"></select></div>
@@ -1312,9 +1313,10 @@ function playerPickPercent(spid,mode,group){
   return hit?rankPickPercent(+hit.cnt||0,total):null;
 }
 function playerPickLabel(spid,group){
-  if(!PICK)return '픽률 불러오는 중';
+  if(!PICK)return '';
   const official=playerPickPercent(spid,'official',group),manager=playerPickPercent(spid,'manager',group);
-  return `상위 30 카드 픽 비중 · 공경 ${official||'미집계'} · 감모 ${manager||'미집계'}`;
+  const modes=[official&&`공경 ${official}`,manager&&`감모 ${manager}`].filter(Boolean);
+  return modes.length?`상위 30 카드 픽 비중 · ${modes.join(' · ')}`:'';
 }
 function playerBestPickLabel(spid,mode){
   if(!PICK)return '픽률 불러오는 중';
@@ -3062,12 +3064,27 @@ function setSort(m){
   sortMode=m;
   document.getElementById('sortOvr').classList.toggle('on',m==='ovr');
   document.getElementById('sortBp').classList.toggle('on',m==='bp');
+  document.getElementById('sortPick').classList.toggle('on',m==='pick');
   showN=SHOW_STEP; renderResults();
 }
 document.getElementById('chkDup').addEventListener('change',e=>{
   collapseDup=e.target.checked; showN=SHOW_STEP; renderResults();
 });
 function showMore(){showN+=SHOW_STEP;renderResults();}
+function searchPickScores(){
+  const scores=new Map();
+  if(!PICK)return scores;
+  for(const mode of ['official','manager'])for(const [group,rows] of Object.entries(PICK[mode]||{})){
+    const total=rows.reduce((sum,row)=>sum+(+row.cnt||0),0);
+    if(!total)continue;
+    for(const row of rows){
+      const key=`${group}:${row.spid}`,entry=scores.get(key)||{sum:0,modes:0};
+      entry.sum+=(+row.cnt||0)/total;entry.modes++;
+      scores.set(key,entry);
+    }
+  }
+  return scores;
+}
 
 function filterList(){
   const g=+gPick.value;
@@ -3108,9 +3125,17 @@ function renderResults(){
     for(const v of best.values()){dupN.set(v.p[I.spid],v.n);kept.push(v.p);}
     list=kept;
   }
+  const pickScores=sortMode==='pick'?searchPickScores():null;
+  const activeGroup=activeIdx!=null&&activeIdx<N_START?grpOf(slotLabel(activeIdx)):null;
+  const pickScore=p=>{
+    const entry=pickScores?.get(`${activeGroup||grpOf(p[I.pos])}:${p[I.spid]}`);
+    return entry?entry.sum/entry.modes:-1;
+  };
   list=list.slice().sort(sortMode==='bp'
     ? (a,b)=>(bpAt(b,g)??-1)-(bpAt(a,g)??-1)
-    : (a,b)=>ovrAt(b,g)-ovrAt(a,g)||(b[I.pay]||0)-(a[I.pay]||0));
+    : sortMode==='pick'
+      ? (a,b)=>pickScore(b)-pickScore(a)||ovrAt(b,g)-ovrAt(a,g)
+      : (a,b)=>ovrAt(b,g)-ovrAt(a,g)||(b[I.pay]||0)-(a[I.pay]||0));
 
   const total=list.length, view=list.slice(0,showN);
   document.getElementById('resCount').textContent=
@@ -3134,7 +3159,7 @@ function renderResults(){
           <span class="t">${esc(p[I.name])}</span>${badge}${ub}</div>
         <div class="meta"><span class="fc-pos" style="--pos-color:${positionColor(p[I.pos])}">${esc(p[I.pos])}</span> · 급여 <span class="payW">${p[I.pay]??'-'}</span>${wrTag(p[I.spid])}</div>
         ${physicalText||footDetail?`<div class="physicalMeta">${esc(physicalText)}${physicalText&&footDetail?' · ':''}${footDetail}</div>`:''}
-         <div class="pickMeta">${playerPickLabel(p[I.spid],grpOf(activeIdx!=null&&activeIdx<N_START?slotLabel(activeIdx):p[I.pos]))}</div>
+         ${(()=>{const label=playerPickLabel(p[I.spid],activeGroup||grpOf(p[I.pos]));return label?`<div class="pickMeta">${label}</div>`:'';})()}
       </div>
       <div class="rowGold">${goldIconsHtml(p[I.spid])}</div>
       <div class="right"><div class="ovr">${ovr}</div><div class="bp">${bp!=null?won(bp)+' BP':'-'}</div></div>
