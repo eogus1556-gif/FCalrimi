@@ -649,6 +649,8 @@ button{cursor:pointer;}
 .nexonModal{position:fixed;inset:0;z-index:440;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(3,6,10,.85)}
 .nexonModal.on{display:flex}.nexonBox{width:min(570px,100%);max-height:90dvh;overflow:auto;padding:20px;background:var(--surface);border:1px solid var(--line-2);border-radius:15px;box-shadow:0 24px 70px rgba(0,0,0,.6)}
 .nexonBox h3{margin:0 0 8px;font-size:18px}.nexonBox p,.nexonStatus{color:var(--text-dim);font-size:12px;line-height:1.5}.nexonForm{display:flex;gap:7px;margin:15px 0}.nexonForm input,.nexonForm select{min-width:0;padding:10px;border:1px solid var(--line-2);border-radius:8px;background:var(--surface-2);color:var(--text)}.nexonForm input{flex:1}.nexonForm button,.nexonActions button{padding:10px 14px;border:1px solid var(--line-2);border-radius:8px;background:var(--surface-2);color:var(--text);font-weight:800;cursor:pointer}.nexonForm button,.nexonActions .primary{background:var(--lime);color:#0b0f14;border-color:var(--lime)}.nexonForm button:disabled,.nexonActions button:disabled{opacity:.45;cursor:default}.nexonList{margin:10px 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.nexonPlayer{padding:8px;border:1px solid var(--line);border-radius:7px;font-size:11px}.nexonPlayer.missing{color:var(--red)}.nexonActions{display:flex;justify-content:flex-end;gap:7px;margin-top:15px}
+.nexonLoading{position:fixed;inset:0;z-index:450;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(3,7,11,.74)}.nexonLoading.on{display:flex}.nexonLoadingBox{width:min(390px,100%);padding:30px 24px;border:1px solid rgba(186,255,50,.55);border-radius:20px;background:#111923;text-align:center;box-shadow:0 24px 70px #0008}.nexonLoadingSpin{width:68px;height:68px;margin:0 auto 18px;border:3px solid rgba(186,255,50,.16);border-top-color:var(--lime);border-radius:50%;animation:nexonSpin 1s linear infinite}.nexonLoadingBox h3{margin:0;font-size:22px}.nexonLoadingBox p{margin:10px 0 0;color:var(--text-dim);font-size:12px}.nexonLoadingProgress{height:5px;margin-top:22px;border-radius:99px;background:#202c38;overflow:hidden}.nexonLoadingProgress i{display:block;width:0;height:100%;background:var(--lime);animation:nexonProgress 5s linear forwards}@keyframes nexonSpin{to{transform:rotate(360deg)}}@keyframes nexonProgress{to{width:100%}}
+.prow .payW,.qsRow .payW{color:inherit;font-weight:inherit}.prow .payW.payX{color:inherit}.prow .footRatings b{color:inherit;font-weight:inherit}
 @media(max-width:700px){
   .savedSquadModal{padding:0;align-items:flex-start;}.savedSquadBox{width:100%;height:var(--app-vh,100dvh);max-height:none;border:none;border-radius:0;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);}
   .savedSquadHead{padding:11px 12px}.savedSquadTabs{padding:8px 10px 0}.savedSquadTab{min-width:130px;padding:8px 12px}.savedSquadTools{padding:8px 10px;flex-wrap:wrap}.savedSquadStatus{width:100%}.savedSquadSearch{width:100%;max-width:none}
@@ -1043,6 +1045,8 @@ button{cursor:pointer;}
     <div class="nexonActions"><button type="button" onclick="closeNexonLineup()">닫기</button><button type="button" class="primary" id="nexonImportBtn" onclick="importNexonLineup()" disabled>현재 스쿼드에 불러오기</button></div>
   </div>
 </div>
+
+<div class="nexonLoading" id="nexonLoading" role="status" aria-live="polite" aria-label="스쿼드 데이터 불러오는 중"><div class="nexonLoadingBox"><div class="nexonLoadingSpin" aria-hidden="true"></div><h3>스쿼드 데이터 불러오는 중</h3><p><strong id="nexonLoadingName"></strong> 대표팀 선수 정보를 확인하고 있습니다.</p><div class="nexonLoadingProgress" aria-hidden="true"><i></i></div></div></div>
 
 <!-- ===== 딸깍스쿼드 (AI 모드) 마법사 ===== -->
 <div class="aiWiz" id="aiWiz">
@@ -3090,9 +3094,6 @@ function renderResults(){
   const box=document.getElementById('resList');
   const g=+gPick.value;
   const used=usedPids(activeIdx);
-  const isStartSlot=activeIdx!=null&&activeIdx<N_START;   // 급여 초과 판정(선발 자리만)
-  const startPaySum=squad.slice(0,N_START).filter(Boolean).reduce((a,x)=>a+((byId(x.spid)||[])[I.pay]||0),0);
-  const curSlotPay=(activeIdx!=null&&squad[activeIdx])?((byId(squad[activeIdx].spid)||[])[I.pay]||0):0;
   let list=filterList();
 
   let dupN=null;
@@ -3131,7 +3132,7 @@ function renderResults(){
       <div class="info">
         <div class="nm"><img src="${SEASON(p[I.season])}" onerror="this.style.display='none'">
           <span class="t">${esc(p[I.name])}</span>${badge}${ub}</div>
-        <div class="meta">${esc(p[I.season])} · <span class="fc-pos" style="--pos-color:${positionColor(p[I.pos])}">${esc(p[I.pos])}</span> · 급여 <span class="payW${(isStartSlot&&(startPaySum-curSlotPay+(p[I.pay]||0)>PAY_LIMIT))?' payX':''}">${p[I.pay]??'-'}</span>${wrTag(p[I.spid])}</div>
+        <div class="meta"><span class="fc-pos" style="--pos-color:${positionColor(p[I.pos])}">${esc(p[I.pos])}</span> · 급여 <span class="payW">${p[I.pay]??'-'}</span>${wrTag(p[I.spid])}</div>
         ${physicalText||footDetail?`<div class="physicalMeta">${esc(physicalText)}${physicalText&&footDetail?' · ':''}${footDetail}</div>`:''}
          <div class="pickMeta">${playerPickLabel(p[I.spid],grpOf(activeIdx!=null&&activeIdx<N_START?slotLabel(activeIdx):p[I.pos]))}</div>
       </div>
@@ -3195,7 +3196,7 @@ function qsRender(){
       <div class="qInfo">
         <div class="qNm"><img class="qSn" src="${SEASON(p[I.season])}" onerror="this.style.display='none'">
           <span>${esc(p[I.name])}</span>${isUsed?'<span class="qUsed">보유</span>':''}</div>
-        <div class="qMeta">${esc(p[I.season])} · <span class="fc-pos" style="--pos-color:${positionColor(p[I.pos])}">${esc(p[I.pos])}</span> · 급여 <span class="payW">${p[I.pay]??'-'}</span></div>
+        <div class="qMeta"><span class="fc-pos" style="--pos-color:${positionColor(p[I.pos])}">${esc(p[I.pos])}</span> · 급여 <span class="payW">${p[I.pay]??'-'}</span></div>
       </div>
       <div class="rowGold">${goldIconsHtml(p[I.spid])}</div>
       <div class="qOvr">${ovr}</div>
@@ -4305,6 +4306,7 @@ function openNexonLineup(){
 }
 function closeNexonLineup(){
   document.getElementById('nexonModal').classList.remove('on');
+  document.getElementById('nexonLoading').classList.remove('on');
   document.body.style.overflow='';
 }
 function nexonCard(item){
@@ -4324,7 +4326,7 @@ function nexonPlacement(players){
       const label=item.position, target=NEXON_XY[label]||[.5,.5];
       const slot=zoneAt(fx,fy), keeper=(label==='GK')===(slot==='GK');
       const dist=(target[0]-fx)**2+(target[1]-fy)**2;
-      return dist*10+(keeper?0:100)+(slot===label?0:BASE_POS[slot]===BASE_POS[label]?.15:.65);
+      return dist*10+(keeper?0:1000000)+(slot===label?0:BASE_POS[slot]===BASE_POS[label]?.15:.65);
     }));
     const dp=new Float64Array(1<<count).fill(Infinity),prev=new Int16Array(1<<count),choice=new Int8Array(1<<count);
     dp[0]=0;
@@ -4350,6 +4352,9 @@ document.getElementById('nexonForm').addEventListener('submit',async event=>{
   const status=document.getElementById('nexonStatus'),list=document.getElementById('nexonList');
   const search=document.getElementById('nexonSearchBtn'),importBtn=document.getElementById('nexonImportBtn');
   if(!nickname)return;
+  const loading=document.getElementById('nexonLoading'),started=Date.now();
+  document.getElementById('nexonLoadingName').textContent=nickname;
+  loading.classList.remove('on');void loading.offsetWidth;loading.classList.add('on');
   search.disabled=true;importBtn.disabled=true;list.innerHTML='';status.textContent='게임 내 대표팀 스쿼드를 불러오는 중…';
   const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
   try{
@@ -4365,7 +4370,11 @@ document.getElementById('nexonForm').addEventListener('submit',async event=>{
     list.innerHTML=players.map(item=>`<div class="nexonPlayer ${item.card?'':'missing'}">${item.starter?'선발':'후보'} ${esc(item.position||'포지션 미확인')} · ${item.card?`${esc(item.card[I.season])} ${esc(item.card[I.name])}`:`선수 ID ${item.spid} (데이터 없음)`} · ${item.grade}강</div>`).join('');
     importBtn.disabled=!!missing.length||starters.length!==11;
   }catch(error){status.textContent=error.name==='AbortError'?'응답 시간이 초과됐습니다. 다시 검색해 주세요.':error.message;}
-  finally{clearTimeout(timer);search.disabled=false;}
+  finally{
+    clearTimeout(timer);
+    await new Promise(resolve=>setTimeout(resolve,Math.max(0,5000-(Date.now()-started))));
+    loading.classList.remove('on');search.disabled=false;
+  }
 });
 function importNexonLineup(){
   const data=nexonLineup;
@@ -4378,7 +4387,14 @@ function importNexonLineup(){
   curForm=FORMATIONS[data.formation]?data.formation:placement.formation;formSel.value=curForm;
   const hasOfficialCoords=starters.every(item=>Number.isFinite(item.x)&&Number.isFinite(item.y)&&item.x>=0&&item.x<=100&&item.y>=0&&item.y<=100);
   if(hasOfficialCoords){
-    layout=starters.map(item=>({fx:Math.max(.04,Math.min(.96,item.x/100)),fy:Math.max(.04,Math.min(.98,1-item.y/100))}));
+    layout=starters.map(item=>{
+      const label=item.position||item.card?.[I.pos]||'ST';
+      if(label==='GK')return {fx:.5,fy:1};
+      const fx=Math.max(.04,Math.min(.96,item.x/100));
+      let fy=Math.max(.04,Math.min(.98,1-item.y/100));
+      if(zoneAt(fx,fy)==='GK')fy=(NEXON_XY[label]||[.5,.9])[1];
+      return {fx,fy};
+    });
     starters.forEach((item,i)=>{squad[i]={spid:item.spid,g:Math.max(0,Math.min(13,item.grade||1))};});
   }else{
     layout=FORMATIONS[curForm].map(([fx,fy])=>({fx,fy}));
