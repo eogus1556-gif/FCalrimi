@@ -300,6 +300,7 @@
   .back-btn:hover{ color:var(--text); border-color:var(--text-dim); }
   .subpage h1{ font-family:var(--font-display); font-size:34px; margin-bottom:6px; }
   .subpage .page-sub{ color:var(--text-dim); font-size:14px; margin-bottom:30px; }
+  .search-result-progress{ display:inline-flex; align-items:center; padding:4px 11px; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--lime); font-family:var(--font-mono); font-size:12px; font-weight:700; white-space:nowrap; }
   .card-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; }
   .p-card{
     background:var(--surface); border:1px solid var(--line); border-radius:14px;
@@ -4047,7 +4048,6 @@
 
   function applyView(id){
     if(id !== 'viewPlayer'){
-      try{ detachCardsScroll(); }catch(e){}
       try{ resetSeason2(); }catch(e){}   // 갱신시간 페이지를 벗어나면 클래스 선택 초기화
     }
     for(const v of ALL_VIEWS){
@@ -4362,35 +4362,23 @@
       </div>`;
   }
 
-  // 카드 페이지 자동 이어보기(스크롤) 리스너 관리
-  let _cardsScrollHandler = null;
-  function detachCardsScroll(){
-    if(_cardsScrollHandler){
-      try{ window.removeEventListener('scroll', _cardsScrollHandler); }catch(e){}
-      _cardsScrollHandler = null;
-    }
-  }
-
   // q가 비어 있고 season만 있으면 '해당 시즌 전체 갱신시간 페이지'로 동작
   async function showSearchCards(q, season){
     if(!allPlayers) return;
     if(!q && !season) return;
     lastSearchQ = q || ''; lastSearchSeason = season || '';
     lastPlayerName = null; lastPlayerSeason = ''; lastPlayerBaseId = null;
-    detachCardsScroll();
     await loadServerBoards();   // 제보 집계(유저 제보 N건 표시)에 필요
     const favs = (await favApi.list()) || {};
     // 일치 선수 전원의 카드 수집. 동명이인은 같은 시즌이어도 선수 ID로 구분한다.
     const cards = [];
     const qIsCho = q ? isChosungQuery(q) : false;
     const seenIds = new Set();
-    const seenPlayerIds = new Set();
     for(const p of allPlayers){
       if(season && p.season !== season) continue;
       if(q && !nameMatches(p.name, q, qIsCho)) continue;
       if(seenIds.has(p.id)) continue;
       seenIds.add(p.id);
-      seenPlayerIds.add(p.id % 1000000);
       const rep = (!p.hj) ? publicReport(p.id) : null;
       cards.push({
         id: p.id, name: p.name, season: p.season, seasonId: Math.floor(p.id / 1000000),
@@ -4403,12 +4391,15 @@
     const titleEl = document.getElementById('playerTitle');
     titleEl.textContent = q ? `"${q}" 검색 결과` : `${season} 갱신시간`;
     titleEl.style.cursor = ''; titleEl.title = ''; titleEl.onclick = null;
-    document.getElementById('playerSub').textContent =
-      `일치 선수 ${seenPlayerIds.size.toLocaleString()}명 · 카드 ${cards.length.toLocaleString()}장`
-      + (q && season ? ` · ${season} 카드만 표시` : '') + (_cardSort === 'time' ? ' · 빠른 시간순' : ' · OVR 높은 순')
-      + (cards.length > 60 ? ' · 아래로 스크롤하면 계속 표시됩니다' : '');
+    const subEl = document.getElementById('playerSub');
+    const updateSearchProgress = shown => {
+      const percent = cards.length ? Math.round(shown / cards.length * 100) : 0;
+      subEl.innerHTML = `일치 선수 <span class="search-result-progress" title="표시된 카드 / 전체 검색 카드">${shown.toLocaleString()}/${cards.length.toLocaleString()} · ${percent}%</span>`
+        + (q && season ? ` · ${esc(season)} 카드만 표시` : '')
+        + (_cardSort === 'time' ? ' · 빠른 시간순' : ' · OVR 높은 순');
+    };
 
-    // 카드가 많으면 60장씩 나눠 '더 보기'로 이어서 표시 (브라우저 멈춤 방지)
+    // 카드는 60장씩 표시하고, 다음 묶음은 '더 보기'를 눌렀을 때만 추가한다.
     const box = document.getElementById('playerCards');
     box.innerHTML = '';
     const CHUNK = 60;
@@ -4420,6 +4411,8 @@
       holder.innerHTML = cards.slice(idx, idx + CHUNK).map(c => multiCardHtml(c, favs)).join('');
       while(holder.firstChild) box.appendChild(holder.firstChild);
       idx += CHUNK;
+      idx = Math.min(idx, cards.length);
+      updateSearchProgress(idx);
       if(idx === CHUNK && cards.length >= 15){
         const ad = document.createElement('div');
         ad.id = 'searchInlineAd';
@@ -4438,16 +4431,6 @@
       }
     };
     appendChunk();
-    // 페이지 하단 근처까지 스크롤하면 자동으로 다음 60장 로드 ('더 보기' 버튼은 예비용)
-    if(cards.length > CHUNK){
-      _cardsScrollHandler = () => {
-        try{
-          if(currentView !== 'viewPlayer' || idx >= cards.length){ detachCardsScroll(); return; }
-          if(window.innerHeight + window.scrollY >= document.body.scrollHeight - 600) appendChunk();
-        }catch(e){}
-      };
-      window.addEventListener('scroll', _cardsScrollHandler);
-    }
     switchView('viewPlayer');
     if(cards.length >= 15) requestAnimationFrame(() => mountAd('searchInlineAd'));
   }
