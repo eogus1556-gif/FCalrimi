@@ -116,6 +116,17 @@
     z-index: 100;
   }
   .modal-overlay.show{ display: flex; }
+  /* 광고를 덮거나 어둡게 하지 않는 팝업 공통 스타일. 새 안내 팝업에도 사용한다. */
+  .modal-overlay.adClearModal{
+    inset:max(76px,calc(env(safe-area-inset-top,0px) + 68px)) auto auto 50%;
+    width:min(390px,calc(100vw - 32px)); height:auto; padding:0;
+    transform:translateX(-50%); background:transparent;
+    backdrop-filter:none; -webkit-backdrop-filter:none; pointer-events:none;
+  }
+  .modal-overlay.adClearModal.show{ display:block; }
+  .modal-overlay.adClearModal .modal{ width:100%; max-width:none; margin:0; pointer-events:auto; box-shadow:0 18px 55px rgba(0,0,0,.58); }
+  #jerseyNoticeOverlay .modal{ padding:20px 22px; }
+  #jerseyNoticeOverlay .jersey-notice-shot{ display:block; width:100%; max-height:180px; margin:0 auto 12px; object-fit:contain; border-radius:10px; }
   /* PC 갱신 알림은 페이지와 광고를 가리지 않는 상단 비차단 카드로 표시한다. */
   @media (min-width:721px){
     #alarmOverlay{
@@ -1556,8 +1567,19 @@
     </div>
   </div>
 
+  <!-- 등번호 안내를 먼저 표시하고, 닫으면 신규 시즌 갱신시간 안내를 표시한다. -->
+  <div class="modal-overlay adClearModal" id="jerseyNoticeOverlay">
+    <div class="modal" style="text-align:center;">
+      <button class="modal-close" onclick="closeJerseyNotice()" aria-label="닫기">&times;</button>
+      <h2 style="margin-bottom:12px;">내 스쿼드 등번호 불러오기</h2>
+      <img class="jersey-notice-shot" src="/assets/squadmaker-launch/jersey-import-preview.png" alt="등번호가 표시된 스쿼드메이커 화면">
+      <p class="modal-sub" style="line-height:1.7;">등번호 고증을 위해 닉네임 입력 후 현재 팀컬러에 맞는 팀에서 달고 뛰었던 등번호만 확인해보세요.</p>
+      <button class="auth-submit" onclick="closeJerseyNotice()">닫기</button>
+      <a href="/jersey.html" onclick="try{localStorage.setItem(JERSEY_NOTICE_ID,'1')}catch(e){}" style="display:inline-block; margin-top:12px; color:var(--lime); font-size:13px;">등번호 페이지 열기</a>
+    </div>
+  </div>
   <!-- 업데이트 안내 1회성 팝업 (닫으면 그 기기에서 다시 안 뜸 · 공지 기간 지나면 자동 종료) -->
-    <div class="modal-overlay" id="noticeOverlay" onclick="if(event.target===this) closeNotice()">
+    <div class="modal-overlay adClearModal" id="noticeOverlay">
     <div class="modal" style="text-align:center;">
       <button class="modal-close" onclick="closeNotice()">&times;</button>
       <h2 style="margin-bottom:10px; white-space:nowrap; font-size:clamp(16px,4vw,22px);">신규 시즌 갱신시간 업데이트</h2>
@@ -3697,16 +3719,25 @@
 
   // ── 업데이트 안내 1회성 팝업 ──
   // 규칙: (1) 닫기를 누르면 그 기기(브라우저)에서 다시 안 뜸  (2) 공지 만료일이 지나면 아무에게도 안 뜸
-  const NOTICE_ID = 'fc_notice_dr_26kb_refresh_v1';       // 새 공지를 낼 땐 이 값만 바꾸면 됩니다
+  const JERSEY_NOTICE_ID = 'fc_notice_jersey_import_v1';
+  const NOTICE_ID = 'fc_notice_dr_26kb_refresh_v2';       // 새 공지를 낼 땐 이 값만 바꾸면 됩니다
   const NOTICE_EXPIRE = new Date('2026-12-10T23:59:59+09:00').getTime();  // 이 시각 이후엔 표시 안 함
   function maybeShowNotice(){
     try{
       if(Date.now() > NOTICE_EXPIRE) return;                 // 공지 기간 종료
-      if(localStorage.getItem(NOTICE_ID)) return;            // 이미 닫은 기기
       var home = document.getElementById('viewHome');
       if(home && home.style.display === 'none') return;      // 홈 화면일 때만 표시
-      document.getElementById('noticeOverlay').classList.add('show');
+      if(!localStorage.getItem(JERSEY_NOTICE_ID)){
+        document.getElementById('jerseyNoticeOverlay').classList.add('show');
+        return;
+      }
+      if(!localStorage.getItem(NOTICE_ID)) document.getElementById('noticeOverlay').classList.add('show');
     }catch(e){ /* localStorage 불가 시 조용히 무시 */ }
+  }
+  function closeJerseyNotice(){
+    try{ localStorage.setItem(JERSEY_NOTICE_ID, '1'); }catch(e){}
+    document.getElementById('jerseyNoticeOverlay').classList.remove('show');
+    setTimeout(maybeShowNotice, 180);
   }
   function closeNotice(){
     try{ localStorage.setItem(NOTICE_ID, '1'); }catch(e){}    // 다시 안 뜨게 기록

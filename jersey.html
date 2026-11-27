@@ -33,6 +33,9 @@
   .fc-mobile-nav-item{min-height:42px!important;padding:3px 1px 2px!important;gap:2px!important;border-radius:17px!important}
   .fc-mobile-nav-item svg{width:20px!important;height:20px!important}
 }
+/* 갱신 알림과 같은 비차단 팝업: 광고는 어둡게 하거나 덮지 않는다. */
+.adClearModal{background:transparent!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;pointer-events:none!important;align-items:flex-start!important;padding-top:max(78px,calc(env(safe-area-inset-top,0px) + 68px))!important}
+.adClearModal>.squadImportBox{pointer-events:auto;max-height:calc(100dvh - 190px);overflow:auto}
 </style>
 </head>
 <body>
@@ -70,10 +73,10 @@
   </section>
   <div id="jerseyBottomAd" class="mobileBottomAd" aria-label="광고"></div>
 </main>
-<div class="squadImportModal" id="squadImportModal" onclick="if(event.target===this)closeSquadImport()">
+<div class="squadImportModal adClearModal" id="squadImportModal" onclick="if(event.target===this)closeSquadImport()">
   <form class="squadImportBox" id="squadImportForm">
     <h2>내 스쿼드 등번호 불러오기</h2>
-    <p>닉네임을 입력하면 스쿼드 메이커에서 게임 내 스쿼드를 불러와 등번호를 표시합니다.</p>
+    <p>닉네임을 입력하면 스쿼드 메이커에서 게임 내 대표팀 스쿼드를 불러와 등번호를 표시합니다.</p>
     <input id="squadImportNickname" type="search" maxlength="16" placeholder="닉네임" aria-label="닉네임" required>
     <div class="squadImportActions"><button type="button" onclick="closeSquadImport()">취소</button><button type="submit">계속</button></div>
   </form>
