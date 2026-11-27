@@ -4392,12 +4392,11 @@
     titleEl.textContent = q ? `"${q}" 검색 결과` : `${season} 갱신시간`;
     titleEl.style.cursor = ''; titleEl.title = ''; titleEl.onclick = null;
     const subEl = document.getElementById('playerSub');
-    const updateSearchProgress = shown => {
-      const percent = cards.length ? Math.round(shown / cards.length * 100) : 0;
-      subEl.innerHTML = `일치 선수 <span class="search-result-progress" title="표시된 카드 / 전체 검색 카드">${shown.toLocaleString()}/${cards.length.toLocaleString()} · ${percent}%</span>`
-        + (q && season ? ` · ${esc(season)} 카드만 표시` : '')
-        + (_cardSort === 'time' ? ' · 빠른 시간순' : ' · OVR 높은 순');
-    };
+    const registeredCount = cards.filter(c => c.hj || c.report).length;
+    const registeredPercent = cards.length ? Math.round(registeredCount / cards.length * 100) : 0;
+    subEl.innerHTML = `일치 선수 <span class="search-result-progress" title="갱신시간 등록 카드 / 전체 검색 카드">${registeredCount.toLocaleString()}/${cards.length.toLocaleString()} · ${registeredPercent}%</span>`
+      + (q && season ? ` · ${esc(season)} 카드만 표시` : '')
+      + (_cardSort === 'time' ? ' · 빠른 시간순' : ' · OVR 높은 순');
 
     // 카드는 60장씩 표시하고, 다음 묶음은 '더 보기'를 눌렀을 때만 추가한다.
     const box = document.getElementById('playerCards');
@@ -4412,7 +4411,6 @@
       while(holder.firstChild) box.appendChild(holder.firstChild);
       idx += CHUNK;
       idx = Math.min(idx, cards.length);
-      updateSearchProgress(idx);
       if(idx === CHUNK && cards.length >= 15){
         const ad = document.createElement('div');
         ad.id = 'searchInlineAd';
