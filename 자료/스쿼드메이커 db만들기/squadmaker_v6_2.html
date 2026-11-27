@@ -895,6 +895,9 @@ button{cursor:pointer;}
 .coachRecGroup{padding:11px 18px;border-bottom:1px solid #d9deea;text-align:left}.coachRecGroup strong{float:right;color:#04bd83;font-size:13px}.coachRecGroup .icons{display:flex;gap:8px;margin-top:6px}.coachRecGroup .icons figure{width:33.33%;margin:0;text-align:center;font-size:11px}.coachRecGroup .icons img{width:43px;height:43px;object-fit:contain;display:block;margin:auto}.coachRecGroup .icons figcaption{line-height:1.3}
 .coachRecEmpty{padding:25px;color:#687083;text-align:center}
 @media(max-width:760px){.coachRecBody{grid-template-columns:1fr}.coachRecLeft{padding:18px}.coachRecPitch{max-width:300px}.coachRecSpot{width:34px;height:34px;font-size:9px}.coachRecRight{padding-top:4px}.coachRecTiles{gap:3px}.coachRecTile img{width:43px;height:43px}.coachRecTile{font-size:10px}}
+/* 갱신 알림과 같은 비차단 팝업: 새 안내·로딩 팝업에도 이 클래스를 사용한다. */
+.adClearModal{background:transparent!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;pointer-events:none!important;align-items:flex-start!important;padding-top:max(78px,calc(env(safe-area-inset-top,0px) + 68px))!important}
+.adClearModal>.nexonBox,.adClearModal>.nexonLoadingBox{pointer-events:auto;max-height:calc(100dvh - 190px);overflow:auto}
 </style>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8019320351145896" crossorigin="anonymous"></script>
 </head>
@@ -1040,8 +1043,8 @@ button{cursor:pointer;}
   </div>
 </div>
 
-<div class="nexonModal" id="nexonModal" onclick="if(event.target===this)closeNexonLineup()">
-  <div class="nexonBox" role="dialog" aria-modal="true" aria-label="내 스쿼드 불러오기">
+<div class="nexonModal adClearModal" id="nexonModal" onclick="if(event.target===this)closeNexonLineup()">
+  <div class="nexonBox" role="dialog" aria-modal="false" aria-label="내 스쿼드 불러오기">
     <h3>내 스쿼드 불러오기</h3>
     <p>넥슨 공식 스쿼드메이커에 공개된 게임 내 대표팀 스쿼드를 닉네임으로 불러옵니다. 현재 작업 중인 스쿼드가 있으면 가져오기 전에 확인합니다.</p>
     <form class="nexonForm" id="nexonForm">
@@ -1054,7 +1057,7 @@ button{cursor:pointer;}
   </div>
 </div>
 
-<div class="nexonLoading" id="nexonLoading" role="status" aria-live="polite" aria-label="스쿼드 데이터 불러오는 중"><div class="nexonLoadingBox"><div class="nexonLoadingSpin" aria-hidden="true"></div><h3>스쿼드 데이터 불러오는 중</h3><p><strong id="nexonLoadingName"></strong> 대표팀 선수 정보를 확인하고 있습니다.</p><div class="nexonLoadingProgress" aria-hidden="true"><i></i></div></div></div>
+<div class="nexonLoading adClearModal" id="nexonLoading" role="status" aria-live="polite" aria-label="스쿼드 데이터 불러오는 중"><div class="nexonLoadingBox"><div class="nexonLoadingSpin" aria-hidden="true"></div><h3>스쿼드 데이터 불러오는 중</h3><p><strong id="nexonLoadingName"></strong> 대표팀 선수 정보를 확인하고 있습니다.</p><div class="nexonLoadingProgress" aria-hidden="true"><i></i></div></div></div>
 
 <!-- ===== 딸깍스쿼드 (AI 모드) 마법사 ===== -->
 <div class="aiWiz" id="aiWiz">
