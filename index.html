@@ -4996,11 +4996,11 @@
         rightHtml += `<button class="fav-remove fav-turn-toggle${muted ? ' is-muted' : ''}" data-spid="${r.id}" data-hj="${r.hj}" data-min="${r.min}"${muted || timerStatus(r.hj, r.min).now ? '' : ' hidden'} onclick="event.stopPropagation(); toggleFavoriteTurn(${r.id})">${muted ? '다시 켜기' : '이번 턴 종료'}</button>`;
       }
       return `
-      <div class="fav-row" data-spid="${r.id}" data-hj="${r.hj}" data-min="${r.min}" onclick="showPlayer('${esc(r.name)}')">
+      <div class="fav-row" data-spid="${r.id}" data-hj="${r.hj}" data-min="${r.min}" onclick="showPlayer(${esc(JSON.stringify(r.name))}, '', ${r.id % 1000000})">
         <div class="f-left">
-          <div class="result-badge">-${faceImg(r.id)}</div>
-          <span class="class-chip" style="cursor:pointer;" title="유저 제보 보기" onclick="event.stopPropagation(); openReportDetail(${r.id})">${seasonIcon(r.seasonId)}${esc(r.season)}</span>
-          <span class="f-name" style="cursor:pointer;" title="유저 제보 보기" onclick="event.stopPropagation(); openReportDetail(${r.id})">${esc(r.name)}</span>
+          <div class="result-badge" style="cursor:pointer;" title="선수 게시판 열기" onclick="event.stopPropagation(); openReportDetail(${r.id})">-${faceImg(r.id)}</div>
+          <span class="class-chip" style="cursor:pointer;" title="${esc(r.season)} 시즌 갱신시간 보기" onclick="event.stopPropagation(); showSearchCards('', ${esc(JSON.stringify(r.season))})">${seasonIcon(r.seasonId)}${esc(r.season)}</span>
+          <span class="f-name" style="cursor:pointer;" title="동일 선수 전체 시즌 카드 보기" onclick="event.stopPropagation(); showPlayer(${esc(JSON.stringify(r.name))}, '', ${r.id % 1000000})">${esc(r.name)}</span>
         </div>
         <div class="f-right">
           ${rightHtml}
