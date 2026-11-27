@@ -874,9 +874,11 @@ button{cursor:pointer;}
 .coachRecPitch{position:relative;max-width:400px;aspect-ratio:4/5.5;margin:auto;border:16px solid #171717;border-bottom-width:40px;border-radius:12px;background:repeating-radial-gradient(ellipse at 50% 40%,#15171a 0 34px,#1c1d20 35px 69px);box-shadow:0 2px 0 #393939;overflow:hidden}
 .coachRecPitch:before{content:'';position:absolute;inset:16px;border:1px solid #555;pointer-events:none}
 .coachRecPitch:after{content:'Popular Traits';position:absolute;bottom:-31px;left:0;right:0;color:#777;font-weight:900;letter-spacing:1px;pointer-events:none}
-.coachRecSpot{position:absolute;transform:translate(-50%,-50%);width:42px;height:42px;border-radius:50%;border:2px solid #36cba1;background:#293249;color:white;font-size:11px;font-weight:900;cursor:pointer}
+.coachRecSpot{position:absolute;transform:translate(-50%,-50%);width:42px;height:42px;border-radius:50%;border:2px solid #36cba1;background:#293249;color:white;font-size:11px;font-weight:900;cursor:grab;touch-action:none;user-select:none}
+.coachRecSpot.dragging{cursor:grabbing;z-index:2}
 .coachRecSpot.fw{border-color:#ff4d67}.coachRecSpot.df{border-color:#4fa5ff}.coachRecSpot.gk{border-color:#e8ad31}.coachRecSpot.on{background:#22dca3;color:#111;border-color:#22dca3;box-shadow:0 0 0 4px #22dca344}
-.coachRecRight{background:#eef0f8;min-width:0}.coachRecPosTitle{text-align:center;font-size:22px;padding:22px 10px 14px}.coachRecPosTitle b{color:#08ca8b}
+.coachRecSpot.fw.on{background:#ff4d67;border-color:#ff4d67;box-shadow:0 0 0 4px #ff4d6744}.coachRecSpot.df.on{background:#4fa5ff;border-color:#4fa5ff;box-shadow:0 0 0 4px #4fa5ff44}.coachRecSpot.gk.on{background:#e8ad31;border-color:#e8ad31;box-shadow:0 0 0 4px #e8ad3144}
+.coachRecRight{background:#eef0f8;min-width:0}.coachRecPosTitle{text-align:center;font-size:22px;padding:22px 10px 14px}.coachRecPosTitle b{color:#36cba1}.coachRecPosTitle b.fw{color:#ff4d67}.coachRecPosTitle b.df{color:#4fa5ff}.coachRecPosTitle b.gk{color:#e8ad31}
 .coachRecTabs{display:flex;margin:0 20px 20px;border-bottom:1px solid #383e51}.coachRecTabs button{flex:1;background:transparent;border:0;padding:11px;color:#9ba1b1;font-size:13px;cursor:pointer}.coachRecTabs button.on{color:#141b38;border:1px solid #383e51;border-bottom:0;background:#f8f9fc}
 .coachRecSections{padding-bottom:12px}.coachRecSection{padding:15px 20px 24px;text-align:center}.coachRecSection:nth-child(odd){background:#e8ebf4}.coachRecSection h3{margin:0 0 16px;font-size:14px}
 .coachRecTiles{display:flex;justify-content:center;gap:9px}.coachRecTile{flex:1;min-width:0;max-width:120px;text-align:center;font-size:11px;color:#141b30}.coachRecTile img{display:block;width:56px;height:56px;object-fit:contain;margin:0 auto 7px}.coachRecTile .label{min-height:33px;line-height:1.25;overflow-wrap:anywhere}.coachRecTile b{font-size:13px;color:#00bd83}.coachRecTile b.low{color:#172039}
@@ -2833,8 +2835,8 @@ let coachRecData=null,coachRecPromise=null,coachRecPos=null,coachRecTab='acquire
 const COACH_ICON_ROOT='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/';
 function coachRecRate(value){return Number.isFinite(+value)?(+value*100).toFixed(1)+'%':'-';}
 function coachRecIcon(id,kind){
-  const n=String(id).padStart(kind==='coach'?2:3,'0');
-  const path=kind==='coach'?`traits/trait_icon_${n}.png`:`trainingTrait/training_trait_${kind==='platinum'?'s_':''}icon_${n}.png`;
+  const n=String(id).padStart(kind==='coach'||kind==='gold'||kind==='silver'?2:3,'0');
+  const path=kind==='coach'?`trainingTrait/training_trait_icon_${n.padStart(3,'0')}.png`:kind==='platinum'?`trainingTrait/training_trait_s_icon_${n}.png`:`traits/trait_icon_${n}.png`;
   return `${COACH_ICON_ROOT}${path}`;
 }
 function coachRecTiles(rows,kind){
@@ -2845,11 +2847,40 @@ function coachRecGroup(rows){
   if(!rows?.length)return '<div class="coachRecEmpty">집계된 추천이 없습니다.</div>';
   return rows.map(row=>`<div class="coachRecGroup">${row.rank}위 <strong>${coachRecRate(row.ratio)}</strong><div class="icons">${(row.ids||[]).map(item=>`<figure><img src="${coachRecIcon(item.id,'coach')}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"><figcaption>${esc(item.name||'')}</figcaption></figure>`).join('')}</div></div>`).join('');
 }
+function coachRecPosClass(pos){return pos==='GK'?'gk':POS_GROUP.FW.includes(BASE_POS[pos]||pos)?'fw':POS_GROUP.DF.includes(BASE_POS[pos]||pos)?'df':'';}
+function coachRecDown(e,i){
+  if(e.button!==undefined&&e.button!==0)return;
+  const el=e.currentTarget,pitch=document.getElementById('coachRecPitch');
+  const startX=e.clientX,startY=e.clientY,startLeft=parseFloat(el.style.left),startTop=parseFloat(el.style.top);
+  let moved=false;
+  el.setPointerCapture(e.pointerId);
+  const move=ev=>{
+    if(Math.hypot(ev.clientX-startX,ev.clientY-startY)<5&&!moved)return;
+    moved=true;el.classList.add('dragging');
+    const r=pitch.getBoundingClientRect();
+    el.style.left=`${Math.max(6,Math.min(94,startLeft+(ev.clientX-startX)/r.width*100))}%`;
+    el.style.top=`${Math.max(8,Math.min(88,startTop+(ev.clientY-startY)/r.height*100))}%`;
+  };
+  const end=ev=>{
+    el.removeEventListener('pointermove',move);el.removeEventListener('pointerup',end);el.removeEventListener('pointercancel',end);
+    if(ev.type==='pointercancel'){renderCoachRec();return;}
+    if(!moved){coachRecPos=slotLabel(i);renderCoachRec();return;}
+    if(slotLabel(i)==='GK'){renderCoachRec();return;}
+    const r=pitch.getBoundingClientRect();
+    const x=Math.max(0,Math.min(1,((ev.clientX-r.left)/r.width*100-6)/88));
+    const y=Math.max(0,Math.min(.94,((ev.clientY-r.top)/r.height*100-8)/80));
+    const next=zoneAt(x,y);
+    if(next==='GK'||positionTaken(next,i)){toast(next==='GK'?'GK 위치는 고정입니다':`${next} 포지션은 이미 사용 중입니다`);renderCoachRec();return;}
+    layout[i]={fx:x,fy:y};coachRecPos=next;save();renderBoard();renderCoachRec();
+  };
+  el.addEventListener('pointermove',move);el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);
+}
 function renderCoachRec(){
-  const spots=layout.slice(0,N_START).map((slot,i)=>({pos:slotLabel(i),x:slot.fx,y:slot.fy}));
+  const spots=layout.slice(0,N_START).map((slot,i)=>({i,pos:slotLabel(i),x:slot.fx,y:slot.fy}));
   if(!spots.some(item=>item.pos===coachRecPos))coachRecPos=spots[0]?.pos||'ST';
-  document.getElementById('coachRecPitch').innerHTML=spots.map(item=>`<button type="button" class="coachRecSpot ${item.y<.25?'fw':item.y>.72?item.pos==='GK'?'gk':'df':''} ${item.pos===coachRecPos?'on':''}" style="left:${6+item.x*88}%;top:${8+item.y*80}%" onclick="coachRecPos='${item.pos}';renderCoachRec()">${item.pos}</button>`).join('');
-  document.getElementById('coachRecPosTitle').innerHTML=`<b>${coachRecPos}</b> 포지션 기준입니다.`;
+  document.getElementById('coachRecPitch').innerHTML=spots.map(item=>`<button type="button" class="coachRecSpot ${coachRecPosClass(item.pos)} ${item.pos===coachRecPos?'on':''}" style="left:${6+item.x*88}%;top:${8+item.y*80}%">${item.pos}</button>`).join('');
+  document.querySelectorAll('#coachRecPitch .coachRecSpot').forEach((el,i)=>el.addEventListener('pointerdown',e=>coachRecDown(e,i)));
+  document.getElementById('coachRecPosTitle').innerHTML=`<b class="${coachRecPosClass(coachRecPos)}">${coachRecPos}</b> 포지션 기준입니다.`;
   document.getElementById('coachRecTabAcquire').classList.toggle('on',coachRecTab==='acquire');
   document.getElementById('coachRecTabCoach').classList.toggle('on',coachRecTab==='coach');
   const box=document.getElementById('coachRecSections'),data=coachRecData?.positions?.[coachRecPos];
@@ -3687,15 +3718,19 @@ function slotMin(i){ return POS_MIN_OVR[BASE_POS[zoneAt(layout[i].fx,layout[i].f
 const G_MAX=11;
 function nextG(g){ let n=g+1; if(n===10)n=11; return n>G_MAX?null:n; }   // 다음 강화(10 건너뜀, 11 상한)
 function prevG(g){ let p=g-1; if(p===10)p=9; return p<1?1:p; }           // 이전 강화(10 건너뜀)
+function aiKeeperFitsSlot(i,spid){
+  const p=byId(spid);
+  return !!p && (zoneAt(layout[i].fx,layout[i].fy)==='GK')===(grpOf(p[I.pos])==='GK');
+}
 // 그 자리를 더 싼 '급여' 선수로 교체 (자리 최소 OVR는 지킴). 성공 시 true
 function aiSwapCheaperPay(i){
   const lb=zoneAt(layout[i].fx,layout[i].fy), grp=grpOf(lb), g=squad[i].g, min=slotMin(i), cur=squad[i];
   const usedPids=new Set(squad.filter(Boolean).map(s=>PID(s.spid)));
   const curPay=(byId(cur.spid)||[])[I.pay]||0;
-  const tryset=(spid)=>{ if(!byId(spid))return false; squad[i]={spid,g}; if(min && finalOvr(squad[i],i)<min){ squad[i]=cur; return false; } return true; };
+  const tryset=(spid)=>{ if(!aiKeeperFitsSlot(i,spid))return false; squad[i]={spid,g}; if(min && finalOvr(squad[i],i)<min){ squad[i]=cur; return false; } return true; };
   const list=(PICK[aiState.mode]&&PICK[aiState.mode][grp])||[];
   for(const preferGold of [true,false])for(const x of list){
-    if(!aiOk(x.spid)||!aiHasTc(x.spid)||(preferGold&&!aiSlotBaseGoldMatch(i,x.spid)))continue;
+    if(!aiOk(x.spid)||!aiHasTc(x.spid)||!aiKeeperFitsSlot(i,x.spid)||(preferGold&&!aiSlotBaseGoldMatch(i,x.spid)))continue;
     if(usedPids.has(x.pid)&&x.pid!==PID(cur.spid))continue;
     if(((byId(x.spid)||[])[I.pay]||0)<curPay&&tryset(x.spid))return true;
   }
@@ -3716,7 +3751,7 @@ function aiReduceOneNotch(i){
   const curPay=(byId(cur.spid)||[])[I.pay]||0; if(curPay<=0) return 0;
   const usedPids=new Set(squad.filter(Boolean).map(s=>PID(s.spid)));
   let best=null,bestPay=-1;
-  const consider=spid=>{ const rr=byId(spid); if(!rr)return; const pay=rr[I.pay]||0;
+  const consider=spid=>{ const rr=byId(spid); if(!rr||!aiKeeperFitsSlot(i,spid))return; const pay=rr[I.pay]||0;
     if(pay>=curPay||pay<=bestPay) return;
     squad[i]={spid,g}; const okf=!min||finalOvr(squad[i],i)>=min; squad[i]=cur;   // floor 체크 후 복원
     if(okf){ best=spid; bestPay=pay; } };
@@ -3833,7 +3868,7 @@ function aiSwapCheaperPlayer(i){                        // 그 자리를 더 싼
   const curBP=bpAt(byId(squad[i].spid),g)||0;
   const list=(PICK[aiState.mode]&&PICK[aiState.mode][grp])||[];
   for(const preferGold of [true,false])for(const x of list){
-    if(!aiOk(x.spid)||!aiHasTc(x.spid)||(preferGold&&!aiSlotBaseGoldMatch(i,x.spid)))continue;
+    if(!aiOk(x.spid)||!aiHasTc(x.spid)||!aiKeeperFitsSlot(i,x.spid)||(preferGold&&!aiSlotBaseGoldMatch(i,x.spid)))continue;
     if(usedPids.has(x.pid)&&x.pid!==PID(squad[i].spid))continue;
     const bp=bpAt(byId(x.spid),g);if(bp!=null&&bp<curBP){squad[i]={spid:x.spid,g};return true;}
   }
@@ -3902,7 +3937,7 @@ function aiFillSquad(){
     let slot=-1;
     for(const preferGold of [true,false]){
       for(const wantGrp of tryGroups){
-        for(let i=0;i<N_START;i++){if(squad[i]||(preferGold&&!aiSlotBaseGoldMatch(i,l.spid)))continue;
+        for(let i=0;i<N_START;i++){if(squad[i]||!aiKeeperFitsSlot(i,l.spid)||(preferGold&&!aiSlotBaseGoldMatch(i,l.spid)))continue;
           if(grpOf(zoneAt(layout[i].fx,layout[i].fy))===wantGrp){slot=i;break;}}
         if(slot>=0)break;
       }
@@ -3926,7 +3961,7 @@ function aiFillSquad(){
     tryLists.push((PICK[mode]&&PICK[mode][grp])||[]);
     let chosen=null;
     for(const preferGold of [true,false]){
-      for(const L of tryLists){for(const x of L){if(used.has(x.pid)||!aiOk(x.spid)||!aiHasTc(x.spid))continue;
+      for(const L of tryLists){for(const x of L){if(used.has(x.pid)||!aiOk(x.spid)||!aiHasTc(x.spid)||!aiKeeperFitsSlot(i,x.spid))continue;
         if(preferGold&&!aiSlotBaseGoldMatch(i,x.spid))continue;chosen=x;break;}if(chosen)break;}
       if(chosen)break;
     }
