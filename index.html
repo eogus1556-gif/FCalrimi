@@ -1248,7 +1248,7 @@
   </noscript>
 
   <style>
-    /* PC 상단 메뉴: '이용 방법'에 마우스 올리면 '강화 등급별 배율' 하위 메뉴 */
+    /* PC 상단 메뉴: '갱신시간 개념'에 마우스 올리면 '이용 방법' 하위 메뉴 */
     .nav-dd{ position:relative; display:flex; align-items:center; }
     .nav-dd-menu{ display:none; position:absolute; top:100%; left:0; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:6px; min-width:150px; z-index:200; box-shadow:0 8px 24px rgba(0,0,0,.35); }
     .nav-dd:hover .nav-dd-menu, .nav-dd:focus-within .nav-dd-menu{ display:block; }
@@ -1283,10 +1283,10 @@
     <div class="logo" onclick="showHome()" style="cursor:pointer;"><span class="dot"></span>FC알리미</div>
     <nav>
       <div class="nav-dd">
-        <a href="#" onclick="showGuide(); return false;">이용 방법 ▾</a>
+        <a href="#" onclick="showRefresh(); return false;">갱신시간 개념 ▾</a>
         <div class="nav-dd-menu">
+          <a href="#" onclick="showRefresh(); return false;">갱신시간 개념</a>
           <a href="#" onclick="showGuide(); return false;">이용 방법</a>
-          <a href="#" onclick="showRefresh(); return false;">강화 등급별 배율</a>
           <a href="#" onclick="showRefreshBattle(); return false;">갱신싸움 팁</a>
           <a href="#" onclick="showAchievement(); return false;">시즌별 달성률</a>
           <a href="#" onclick="openInstallGuide(); return false;">앱으로 설치</a>
@@ -1333,10 +1333,10 @@
 
   <!-- 모바일 메뉴 (720px 이하에서 ☰ 버튼으로 열림) -->
   <div id="mobileMenu" class="mobile-menu">
-    <a onclick="mmNav('guide')">이용 방법</a>
+    <a onclick="mmNav('refresh')">갱신시간 개념</a>
     <a onclick="mmNav('board')">커뮤니티</a>
     <a href="/자료/스쿼드메이커%20db만들기/trainer.html">집중 훈련 계산기</a>
-    <a onclick="mmNav('refresh')">강화 등급별 배율</a>
+    <a onclick="mmNav('guide')">이용 방법</a>
     <a onclick="mmNav('ach')">시즌별 달성률</a>
     <a onclick="closeMobileMenu(); openInstallGuide();">📱 앱 설치</a>
     <div id="mmUserSec" style="display:none; border-top:1px solid var(--line); margin-top:6px; padding-top:6px;">
