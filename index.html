@@ -3205,6 +3205,25 @@
     }
     return st;
   }
+  function favoriteOrderKey(spid, hj, min){
+    if(!hj || min < 0) return 1e9;
+    const active = timerStatus(hj, min).now;
+    const muted = isFavoriteTurnMuted(spid, hj, min);
+    // 현재 갱신 구간에서는 먼저 시작된 시간부터, 나머지는 다음 갱신까지 짧은 순서로.
+    if(active && !muted) return -120 - sinceRefreshMin(hj, min);
+    const next = nextInMin(hj, min);
+    return next < 0 ? 1e9 : (active && muted && next === 0 ? 120 : next);
+  }
+  function reorderFavoriteRows(){
+    if(currentView !== 'viewFavorites') return;
+    const list = document.getElementById('favList');
+    if(!list) return;
+    const rows = Array.from(list.children).filter(el => el.classList.contains('fav-row'));
+    const sorted = rows.slice().sort((a, b) =>
+      favoriteOrderKey(Number(a.dataset.spid), a.dataset.hj, Number(a.dataset.min))
+      - favoriteOrderKey(Number(b.dataset.spid), b.dataset.hj, Number(b.dataset.min)));
+    if(sorted.some((row, i) => row !== rows[i])) sorted.forEach(row => list.appendChild(row));
+  }
   function toggleFavoriteTurn(spid){
     const btn = document.querySelector(`.fav-turn-toggle[data-spid="${Number(spid)}"]`);
     if(!btn) return;
@@ -3248,6 +3267,7 @@
       btn.textContent = muted ? '다시 켜기' : '이번 턴 종료';
       btn.classList.toggle('is-muted', muted);
     });
+    reorderFavoriteRows();
     // 즐겨찾기 상단 실시간 시계: 항상 현재 시각 표시, 0~15초 구간에는 안내 문구 + 반짝임
     const fc = document.getElementById('favClock');
     if(fc){
@@ -4935,11 +4955,10 @@
         confirmed, custom: !!ct, estimated: (!confirmed && !!ct && estimatedTimes[spid]) ? estimatedTimes[spid] : null, report: !!rep, repFlags: rep ? (rep.flags || 0) : 0,
         hj, min,
         refresh: refreshLabel(hj, hj ? min : null),
-        nextIn: nextInMin(hj, min),
       };
     }).filter(Boolean);
-    // 갱신 임박 순 (미확인은 뒤로)
-    rows.sort((a, b) => (a.nextIn < 0 ? 1e9 : a.nextIn) - (b.nextIn < 0 ? 1e9 : b.nextIn));
+    // 현재 갱신 구간을 맨 위에, 이번 턴 종료한 카드는 다음 갱신 예정 순으로 표시한다.
+    rows.sort((a, b) => favoriteOrderKey(a.id, a.hj, a.min) - favoriteOrderKey(b.id, b.hj, b.min));
 
     subEl.textContent = currentUser()
       ? `즐겨찾기 ${rows.length}장 · 갱신 임박한 카드부터 표시됩니다.`
@@ -4977,7 +4996,7 @@
         rightHtml += `<button class="fav-remove fav-turn-toggle${muted ? ' is-muted' : ''}" data-spid="${r.id}" data-hj="${r.hj}" data-min="${r.min}"${muted || timerStatus(r.hj, r.min).now ? '' : ' hidden'} onclick="event.stopPropagation(); toggleFavoriteTurn(${r.id})">${muted ? '다시 켜기' : '이번 턴 종료'}</button>`;
       }
       return `
-      <div class="fav-row" onclick="showPlayer('${esc(r.name)}')">
+      <div class="fav-row" data-spid="${r.id}" data-hj="${r.hj}" data-min="${r.min}" onclick="showPlayer('${esc(r.name)}')">
         <div class="f-left">
           <div class="result-badge">-${faceImg(r.id)}</div>
           <span class="class-chip" style="cursor:pointer;" title="유저 제보 보기" onclick="event.stopPropagation(); openReportDetail(${r.id})">${seasonIcon(r.seasonId)}${esc(r.season)}</span>
