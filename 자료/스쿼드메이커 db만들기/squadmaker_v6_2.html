@@ -348,6 +348,7 @@ button{cursor:pointer;}
 .aiEntryBox,.aiTextBox{width:min(540px,100%);max-height:min(88dvh,800px);overflow:auto;padding:22px;border:1px solid var(--line-2);border-radius:16px;background:var(--surface);box-shadow:0 24px 70px #000a}.aiEntryHead{display:flex;align-items:center;justify-content:space-between;gap:10px}.aiEntryHead h3{margin:0;font-size:20px}.aiEntryHead button{border:0;background:transparent;color:var(--text-dim);font-size:25px;cursor:pointer}.aiEntryBox>p{color:var(--text-dim);font-size:12px;line-height:1.5}.aiEntryChoices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}.aiEntryChoices button{min-height:104px;padding:16px;border:1px solid var(--line-2);border-radius:12px;background:var(--surface-2);color:var(--text);text-align:left;cursor:pointer;font-size:16px;font-weight:900}.aiEntryChoices button:hover{border-color:var(--lime)}.aiEntryChoices small{display:block;margin-top:8px;color:var(--text-dim);font-size:11px;font-weight:600;line-height:1.4}
 .aiTextBox{width:min(660px,100%);display:flex;flex-direction:column;overflow:hidden}.aiTextChat{min-height:170px;max-height:min(50dvh,460px);overflow:auto;display:flex;flex-direction:column;gap:12px;margin:18px 0;padding:4px 2px}.aiTextBubble{max-width:94%;padding:11px 13px;border:1px solid var(--line-2);border-radius:13px;background:var(--surface-2);font-size:13px;line-height:1.55;white-space:pre-wrap}.aiTextBubble.user{align-self:flex-end;border-color:var(--lime);background:rgba(186,255,50,.12)}.aiTextBubble.assistant{align-self:flex-start}.aiTextOptions{width:100%;display:grid;gap:12px}.aiTextGroup h4{margin:0 0 7px;color:var(--lime);font-size:12px}.aiTextTeam{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;margin:5px 0;padding:10px 12px;border:1px solid var(--line-2);border-radius:9px;background:var(--surface-2);color:var(--text);text-align:left;cursor:pointer}.aiTextTeam:hover{border-color:var(--lime)}.aiTextTeam span{min-width:0;font-size:12px;font-weight:800}.aiTextTeam small{color:var(--text-dim);font-size:10px;white-space:nowrap}.aiTextForm{display:flex;gap:8px}.aiTextForm textarea{flex:1;min-width:0;min-height:65px;max-height:110px;resize:vertical;padding:11px;border:1px solid var(--line-2);border-radius:10px;background:var(--bg);color:var(--text);font:inherit;font-size:13px}.aiTextForm button{padding:0 16px;border:0;border-radius:10px;background:var(--lime);color:#0b0f14;font-weight:900;cursor:pointer}.aiTextForm button:disabled{opacity:.45;cursor:default}@media(max-width:600px){.aiEntryChoices{grid-template-columns:1fr}.aiEntryChoices button{min-height:80px}.aiTextBox{padding:16px}.aiTextTeam{align-items:flex-start;flex-direction:column}.aiTextTeam small{white-space:normal}}
 .aiTextForm button{width:48px;flex:none;padding:0;font-size:22px}.aiTextRecommend{align-self:flex-end;margin-top:9px;padding:9px 15px;border:1px solid var(--lime);border-radius:9px;background:transparent;color:var(--lime);font-size:12px;font-weight:900;cursor:pointer}.aiTextRecommend:disabled{opacity:.45;cursor:default}
+.aiTextPlayerPick{width:100%;display:flex;gap:8px;flex-wrap:wrap}.aiTextPlayerPick select{flex:1;min-width:150px;padding:10px;border:1px solid var(--line-2);border-radius:9px;background:var(--surface-2);color:var(--text);font:inherit;font-size:12px}
 /* 큰 선택 버튼 */
 .aiPick{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;max-width:640px;}
 .aiCard{min-width:180px;padding:22px 26px;border-radius:14px;border:2px solid var(--line-2);background:var(--surface);
@@ -3382,7 +3383,7 @@ function pickGrade(spid){
   if(_pickG.has(spid)) return _pickG.get(spid);
   const v=_pickG.get('p'+PID(spid)); return v!=null?v:11;
 }
-let aiEntrySource='click',aiTextRequest=null,aiTextBuilding=false,aiTextMessages=[];
+let aiEntrySource='click',aiTextRequest=null,aiTextBuilding=false,aiTextMessages=[],aiTextChosenPlayer='',aiTextChosenSeason='',aiTextPlayerIntent='';
 function aiPrepareState(restoreGold){
   aiState={budget:null, mode:'manager', tc:null, tcName:'', tcAuto:true, form:null, grade:'auto', goldTraits:[], goldSlots:{}, goldSlotsForm:'', locks:[], gmap:{}, gmapForm:'', preferredSeason:'', noRare:false, rareGkFree:false, rareFullbackFree:false};
   if(restoreGold){const storedGold=aiStoredGoldSlots();if(storedGold)Object.assign(aiState,storedGold);}
@@ -3400,7 +3401,7 @@ function openAiClick(){
 }
 function openAiText(){
   closeAiEntry();
-  aiTextMessages=[];aiTextRequest=null;
+  aiTextMessages=[];aiTextRequest=null;aiTextChosenPlayer='';aiTextChosenSeason='';aiTextPlayerIntent='';
   document.getElementById('aiTextInput').value='';
   document.getElementById('aiTextChat').innerHTML='<div class="aiTextBubble assistant">모드·예산·선수·시즌·팀을 적어주세요. 예: “감독모드 50억 DR 호나우두 넣고 짜줘”. Enter나 화살표로 보내고, ‘추천 보기’를 누르면 팀 후보를 보여줍니다.</div>';
   document.getElementById('aiTextModal').classList.add('on');
@@ -3426,6 +3427,39 @@ function aiTextPlayer(q,season,mode){
   for(const rows of Object.values(PICK?.[mode]||{}))for(const row of rows)counts.set(+row.spid,(counts.get(+row.spid)||0)+(+row.cnt||0));
   cards.sort((a,b)=>(counts.get(b[I.spid])||0)-(counts.get(a[I.spid])||0)||b[I.ovr]-a[I.ovr]);
   return {name,card:cards[0]};
+}
+function aiTextPlayerCandidates(message){
+  if(!/넣고/.test(message))return null;
+  const before=message.split('넣고')[0].trim();
+  const names=[...new Set(PLAYERS.map(p=>p[I.name]))].filter(Boolean);
+  const exact=names.filter(name=>before.includes(name)).sort((a,b)=>b.length-a.length)[0];
+  const needle=exact||before.split(/\s+/).at(-1)?.replace(/[^\p{L}\p{N}.]/gu,'')||'';
+  if(needle.length<2)return {needle,names:[]};
+  return {needle,names:names.filter(name=>name.includes(needle))
+    .sort((a,b)=>Number(b===needle)-Number(a===needle)||Number(b.endsWith(needle))-Number(a.endsWith(needle))||a.length-b.length||a.localeCompare(b,'ko')).slice(0,15)};
+}
+function aiTextSeasonOptions(select,name,wanted){
+  select.replaceChildren(new Option('시즌 선택',''));
+  const cards=PLAYERS.filter(p=>p[I.name]===name).sort((a,b)=>b[I.ovr]-a[I.ovr]);
+  const seen=new Set();
+  for(const card of cards){const season=card[I.season];if(!season||seen.has(season))continue;
+    seen.add(season);select.add(new Option(`${season} · OVR ${card[I.ovr]}`,season));}
+  select.disabled=!name;
+  if(wanted&&seen.has(wanted)){select.value=wanted;aiTextChosenSeason=wanted;}
+}
+function aiTextShowPlayerPick(chat,candidates,wantedSeason){
+  chat.querySelector('.aiTextPlayerPick')?.remove();
+  if(!candidates.names.length)return;
+  const picker=document.createElement('div');picker.className='aiTextPlayerPick';
+  const nameSelect=document.createElement('select'),seasonSelect=document.createElement('select');
+  nameSelect.setAttribute('aria-label','선수 전체 이름 선택');seasonSelect.setAttribute('aria-label','선수 시즌 선택');
+  nameSelect.add(new Option('선수 선택',''));
+  for(const name of candidates.names)nameSelect.add(new Option(name,name));
+  if(candidates.names.length===1){nameSelect.value=candidates.names[0];aiTextChosenPlayer=nameSelect.value;}
+  aiTextSeasonOptions(seasonSelect,aiTextChosenPlayer,wantedSeason);
+  nameSelect.addEventListener('change',()=>{aiTextChosenPlayer=nameSelect.value;aiTextChosenSeason='';aiTextSeasonOptions(seasonSelect,aiTextChosenPlayer,wantedSeason);});
+  seasonSelect.addEventListener('change',()=>{aiTextChosenSeason=seasonSelect.value;});
+  picker.append(nameSelect,seasonSelect);chat.appendChild(picker);
 }
 function aiTextTeamName(q){
   const aliases={'맨유':'맨체스터 유나이티드','맨시티':'맨체스터 시티','레알':'레알 마드리드','뮌헨':'바이에른 뮌헨','바르사':'FC 바르셀로나'};
@@ -3455,22 +3489,29 @@ function aiTextSendMessage(){
   const chat=document.getElementById('aiTextChat'),user=document.createElement('div');
   user.className='aiTextBubble user';user.textContent=value;chat.appendChild(user);
   chat.querySelector('.aiTextOptions')?.remove();aiTextRequest=null;
-  const q=aiTextMessages.join(' '),budget=aiTextBudget(q),season=aiTextSeason(q);
+  const q=aiTextMessages.join(' '),budget=aiTextBudget(q),candidates=aiTextPlayerCandidates(value);
+  if(candidates){aiTextPlayerIntent=candidates.needle;aiTextChosenPlayer='';aiTextChosenSeason='';}
+  const season=aiTextChosenSeason||aiTextSeason(q);
   const mode=/공식|공경|1대1|손겜/.test(q)?'official':'manager';
-  const player=aiTextPlayer(q,season,mode),team=aiTextTeamName(q);
+  const player=candidates?{name:'',card:null}:aiTextChosenPlayer?aiTextPlayer(aiTextChosenPlayer,season,mode):aiTextPlayer(q,season,mode);
+  const team=aiTextTeamName(q);
   const parts=[];
   if(/감독|감모/.test(q))parts.push('감독모드');
   else if(/공식|공경|1대1|손겜/.test(q))parts.push('공식경기');
   if(budget)parts.push(`예산 ${budget>=10000?`${+(budget/10000).toFixed(2)}조`:`${budget}억`}`);
   if(season)parts.push(`${season} 시즌`);
-  if(player.name)parts.push(`${player.name} 선수`);
+  if(player.name||aiTextChosenPlayer||candidates?.names.length===1)parts.push(`${player.name||aiTextChosenPlayer||candidates.names[0]} 선수`);
   if(team)parts.push(`${team} 팀`);
   if(/희귀\s*매물\s*제외|생성\s*제한\s*제외/.test(q))parts.push('희귀매물 제외');
   const reply=document.createElement('div');reply.className='aiTextBubble assistant';
-  if(player.error)reply.textContent=`${parts.join(' · ')} 요청을 읽었습니다. ${player.error}`;
+  if(candidates&&!candidates.names.length)reply.textContent=`‘${candidates.needle||'입력한 이름'}’에 맞는 선수를 찾지 못했어요. 선수 이름을 조금 더 정확하게 적어주세요.`;
+  else if(candidates)reply.textContent=`${candidates.names.length===1?`전체 이름은 ${candidates.names[0]}입니다.`:`‘${candidates.needle}’와 일치하는 선수가 ${candidates.names.length}명 있습니다.`} 아래에서 선수와 시즌을 선택해 주세요. 선택 후 ‘추천 보기’를 누르면 팀 후보가 나옵니다.`;
+  else if(player.error)reply.textContent=`${parts.join(' · ')} 요청을 읽었습니다. ${player.error}`;
   else if(parts.length)reply.textContent=`${parts.join(' · ')} 조건을 확인했어요. 더 적어도 됩니다. 팀 후보를 보려면 ‘추천 보기’를 눌러주세요.${/채굴|수익/.test(q)?' 채굴 수익 데이터는 없어 랭커 픽률을 기준으로 추천합니다.':''}`;
   else reply.textContent='예산, 모드, 시즌, 선수명, 팀명 중 원하는 조건을 적어주세요. 예: “감독모드 50억 DR 호나우두 넣고 짜줘”, “레알 마드리드로 짜줘”. 보내기는 조건만 기록하고 ‘추천 보기’를 누르면 팀 후보가 나옵니다.';
-  chat.appendChild(reply);chat.scrollTop=chat.scrollHeight;
+  chat.appendChild(reply);
+  if(candidates)aiTextShowPlayerPick(chat,candidates,season);
+  chat.scrollTop=chat.scrollHeight;
   return true;
 }
 document.getElementById('aiTextForm').addEventListener('submit',event=>{event.preventDefault();aiTextSendMessage();});
@@ -3480,6 +3521,10 @@ document.getElementById('aiTextInput').addEventListener('keydown',event=>{
 document.getElementById('aiTextSubmit').addEventListener('click',async()=>{
   aiTextSendMessage();if(!aiTextMessages.length)return;
   const q=aiTextMessages.join(' '),submit=document.getElementById('aiTextSubmit'),chat=document.getElementById('aiTextChat');
+  if(aiTextPlayerIntent&&(!aiTextChosenPlayer||!aiTextChosenSeason)){
+    const reply=document.createElement('div');reply.className='aiTextBubble assistant';
+    reply.textContent='선수의 전체 이름과 시즌을 먼저 선택해 주세요.';chat.appendChild(reply);chat.scrollTop=chat.scrollHeight;return;
+  }
   submit.disabled=true;
   chat.querySelector('.aiTextOptions')?.remove();
   const reply=document.createElement('div');reply.className='aiTextBubble assistant';reply.textContent='가격대별 랭커 기록을 확인하고 있습니다.';chat.appendChild(reply);chat.scrollTop=chat.scrollHeight;
@@ -3488,7 +3533,9 @@ document.getElementById('aiTextSubmit').addEventListener('click',async()=>{
     if(!TCB||!TCFULL)throw new Error('랭커 가격대 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
     const mode=/공식|공경|1대1|손겜/.test(q)?'official':'manager';
     const budget=aiTextBudget(q),noRare=/희귀\s*매물\s*제외|생성\s*제한\s*제외/.test(q);
-    const season=aiTextSeason(q),player=aiTextPlayer(q,season,mode),teamName=aiTextTeamName(q);
+    const season=aiTextChosenSeason||aiTextSeason(q);
+    const player=aiTextChosenPlayer?aiTextPlayer(aiTextChosenPlayer,season,mode):aiTextPlayer(q,season,mode);
+    const teamName=aiTextTeamName(q);
     if(player.error){reply.textContent=player.error;return;}
     const allowedNos=player.card?new Set((CHEM?.[player.card[I.spid]]?.tc||[]).map(Number)):null;
     if(teamName&&allowedNos){const no=Object.keys(TCFULL).find(key=>TCFULL[key].n===teamName);
