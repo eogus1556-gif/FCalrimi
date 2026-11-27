@@ -3940,36 +3940,35 @@
     return qIsCho ? toChosung(name).includes(q) : name.includes(q);
   }
 
-  // ---------- 검색 결과: 이름(+선택된 시즌 필터)으로 선수 표시 (선수 단위) ----------
+  // ---------- 검색 결과: 선수 고유 ID(+선택된 시즌 필터)로 구분 ----------
   function buildPlayerList(q, season){
     const qIsCho = q ? isChosungQuery(q) : false;
-    const byName = new Map();
+    const byPlayer = new Map();
     for(const p of allPlayers){
       if(season && p.season !== season) continue;
       if(q && !nameMatches(p.name, q, qIsCho)) continue;
-      if(!season && !q) continue;   // 시즌·검색어 모두 없으면 결과 없음
-      let e = byName.get(p.name);
+      const playerId = p.id % 1000000;
+      let e = byPlayer.get(playerId);
       if(!e){
-        e = { name: p.name, id: p.id, position: p.pos || '', ovr: p.ovr || 0, cards: 0, confirmed: 0 };
-        byName.set(p.name, e);
+        e = { name: p.name, id: p.id, playerId, position: p.pos || '', ovr: p.ovr || 0, cards: 0, confirmed: 0 };
+        byPlayer.set(playerId, e);
       }
       e.cards++;
       if(p.hj) e.confirmed++;
       if((p.ovr || 0) > e.ovr){ e.ovr = p.ovr; e.id = p.id; e.position = p.pos || e.position; }
     }
-    return [...byName.values()].sort((a, b) => b.ovr - a.ovr);
+    return [...byPlayer.values()].sort((a, b) => b.ovr - a.ovr);
   }
 
-  // 검색 결과 한 줄. 사진(배지)·이름 클릭 → 신고게시판 선수 댓글 화면, 그 외 영역 클릭 → 선수 상세
-  // season이 있으면 상세 진입 시 해당 클래스 카드만 표시
+  // 검색 결과 한 줄. 이름·행 클릭 → 동일 선수 ID의 전체 카드, 사진 클릭 → 선수 게시판
   function positionColor(pos){const value=String(pos||'').toUpperCase();return value==='GK'?'#f2c84b':/^(ST|CF|LW|RW|LF|RF|LS|RS)$/.test(value)?'#f04e65':/^(CB|LB|RB|LWB|RWB|SW|LCB|RCB)$/.test(value)?'#5b9dff':/^(CAM|CM|CDM|LM|RM|LAM|RAM|LCM|RCM|LDM|RDM)$/.test(value)?'#53bf76':'transparent'}
   function resultRowHtml(p, season){
     return `
-      <div class="result-row" onclick="showPlayer('${esc(p.name)}', '${esc(season || '')}')">
+      <div class="result-row" onclick="showPlayer(${esc(JSON.stringify(p.name))}, '', ${p.playerId})">
         <div class="result-left">
           <div class="result-badge" style="cursor:pointer;" title="선수 게시판(댓글) 열기" onclick="event.stopPropagation(); openReportDetail(${p.id})">${p.position || '-'}${faceImg(p.id)}</div>
           <div>
-            <div class="result-name b-name-link" title="선수 게시판(댓글) 열기" onclick="event.stopPropagation(); openReportDetail(${p.id})">${esc(p.name)}</div>
+            <div class="result-name b-name-link" title="이 선수의 전체 시즌 카드 보기">${esc(p.name)}</div>
             <div class="result-meta"><span class="fc-pos" style="--pos-color:${positionColor(p.position)}">${esc(p.position||'-')}</span> · 카드 ${p.cards}장 · 갱신 시간 확인 ${p.confirmed}장</div>
           </div>
         </div>
@@ -4021,13 +4020,6 @@
     }
   }
 
-  // 검색어 최소 2글자 — 1글자로는 결과가 너무 많고 느려서 막는다.
-  // 단 '존'·'킹'처럼 이름 자체가 1글자인 선수는 통과시켜 못 찾는 일이 없게 한다.
-  const MIN_Q = 2;
-  function qTooShort(q){
-    if(!q || q.length >= MIN_Q) return false;
-    return !(allPlayers && allPlayers.some(p => p.name === q));
-  }
   function runSearch(){
     const q = document.getElementById('playerSearch').value.trim();
     if(q === ''){
@@ -4036,7 +4028,7 @@
     }
 
     if(allPlayers){
-      renderResults(buildPlayerList(q), 'results');
+      renderResults(buildPlayerList(q, selectedSeason), 'results', false, selectedSeason);
       return;
     }
 
@@ -4125,6 +4117,7 @@
         view: currentView,
         player: (typeof lastPlayerName === 'string') ? lastPlayerName : '',
         playerSeason: (typeof lastPlayerSeason === 'string') ? lastPlayerSeason : '',
+        playerBaseId: (typeof lastPlayerBaseId === 'number') ? lastPlayerBaseId : null,
         searchQ: (typeof lastSearchQ === 'string') ? lastSearchQ : '',
         searchSeason: (typeof lastSearchSeason === 'string') ? lastSearchSeason : '',
         reportSpid: (typeof reportDetailSpid !== 'undefined') ? reportDetailSpid : null,
@@ -4146,7 +4139,7 @@
       switch(st.view){
         case 'viewPlayer':
           if(st.searchQ || st.searchSeason) showSearchCards(st.searchQ || '', st.searchSeason || '');
-          else if(st.player) showPlayer(st.player, st.playerSeason || '');
+          else if(st.player) showPlayer(st.player, st.playerSeason || '', st.playerBaseId);
           break;
         case 'viewJerseyHelper': showJerseyHelper(); break;
         case 'viewFavorites':    showFavorites(); break;
@@ -4247,16 +4240,17 @@
   function onCardSortChange(sel){
     _cardSort = sel.value === 'time' ? 'time' : 'ovr';
     // 현재 보고 있는 화면을 그대로 다시 렌더 (정렬만 바뀜)
-    if(lastPlayerName) showPlayer(lastPlayerName, lastPlayerSeason);
+    if(lastPlayerName) showPlayer(lastPlayerName, lastPlayerSeason, lastPlayerBaseId);
     else if(lastSearchQ || lastSearchSeason) showSearchCards(lastSearchQ, lastSearchSeason);
   }
 
-  async function showPlayer(name, seasonFilter){
+  async function showPlayer(name, seasonFilter, playerBaseId){
     lastPlayerName = name;
     lastPlayerSeason = seasonFilter || '';
+    lastPlayerBaseId = Number(playerBaseId) || null;
     lastSearchQ = ''; lastSearchSeason = '';
     const source = allPlayers
-      ? allPlayers.filter(p => p.name === name && (!seasonFilter || p.season === seasonFilter))
+      ? allPlayers.filter(p => (lastPlayerBaseId ? p.id % 1000000 === lastPlayerBaseId : p.name === name) && (!seasonFilter || p.season === seasonFilter))
       : players.filter(p => p.name === name).map(p => ({ id:0, name:p.name, season:'', hj:'', min:-1 }));
     if(source.length === 0){ return; }
 
@@ -4292,7 +4286,7 @@
     const subEl = document.getElementById('playerSub');
     if(seasonFilter){
       subEl.innerHTML = `${esc(seasonFilter)} 카드만 표시 · 갱신 시간 확인 ${confirmed}장 · `
-        + `<a style="color:var(--lime); cursor:pointer;" onclick="showPlayer('${esc(name)}')">전체 클래스 보기</a>`;
+        + `<a style="color:var(--lime); cursor:pointer;" onclick="showPlayer(${esc(JSON.stringify(name))}, '', ${lastPlayerBaseId || 'null'})">전체 클래스 보기</a>`;
     }else{
       subEl.textContent = `시즌 카드 ${cards.length}장 · 갱신 시간 확인 ${confirmed}장`;
     }
@@ -4328,24 +4322,17 @@
       box.classList.add('show');
       return;
     }
-    if(!q){
-      // 클래스만 선택해서는 검색되지 않음 — 반드시 선수 이름을 입력해야 함
-      if(useSeason){
-        try{ showToast('선수 이름을 두 글자 이상 입력해주세요.'); }catch(e){}
-        const el = document.getElementById(inputId);
-        if(el) el.focus();
-      }
+    if(!q && useSeason){
+      showSearchCards('', useSeason);
       return;
     }
-    if(qTooShort(q)){
-      try{ showToast('두 글자 이상 입력해주세요.'); }catch(e){}
-      const el = document.getElementById(inputId);
-      if(el) el.focus();
+    if(!q){
+      renderResults(buildPlayerList('', ''), boxId, true, '');
       return;
     }
     const list = buildPlayerList(q, useSeason);
     if(list.length === 0){ renderResults([], boxId); return; }
-    if(list.length === 1){ showPlayer(list[0].name, useSeason); return; }
+    if(list.length === 1){ showPlayer(list[0].name, '', list[0].playerId); return; }
     showSearchCards(q, useSeason);   // 여러 명 → 관련 선수 전원 갱신시간 카드 화면
   }
   function goSearch(){ goSearchFrom('playerSearch'); }
@@ -4360,7 +4347,7 @@
     return `
       <div class="p-card">
         <span style="cursor:pointer;" title="선수 게시판(댓글) 열기" onclick="openReportDetail(${c.id})">${actionImg(c.id)}</span>
-        <div style="font-weight:700; margin-bottom:6px;"><span class="b-name-link" title="선수 게시판(댓글) 열기" onclick="openReportDetail(${c.id})">${esc(c.name)}</span></div>
+        <div style="font-weight:700; margin-bottom:6px;"><span class="b-name-link" title="이 선수의 전체 시즌 카드 보기" onclick="showPlayer(${esc(JSON.stringify(c.name))}, '', ${c.id % 1000000})">${esc(c.name)}</span></div>
         <div class="p-season">${seasonRefLink(c)}<button class="fav-btn ${favs[c.id] ? 'on' : ''}" data-spid="${c.id}" title="즐겨찾기" onclick="toggleFav(${c.id})">${favs[c.id] ? '★' : '☆'}</button></div>
         ${c.pos || c.ovr ? `<div class="p-timer" style="margin:0 0 8px;">${esc(c.pos)}${c.pos && c.ovr ? ' · ' : ''}${c.ovr ? 'OVR ' + c.ovr : ''}</div>` : ''}
         ${c.refresh
@@ -4384,7 +4371,7 @@
     if(!allPlayers) return;
     if(!q && !season) return;
     lastSearchQ = q || ''; lastSearchSeason = season || '';
-    lastPlayerName = null; lastPlayerSeason = '';
+    lastPlayerName = null; lastPlayerSeason = ''; lastPlayerBaseId = null;
     detachCardsScroll();
     await loadServerBoards();   // 제보 집계(유저 제보 N건 표시)에 필요
     const favs = (await favApi.list()) || {};
@@ -4529,7 +4516,7 @@
     });
   }
 
-  // 선택 처리: 두 위치 모두 '선택만' 하고, 검색 버튼/엔터를 눌러야 이동
+  // 선택 처리: 시즌만 고르면 홈 안에서 해당 시즌 전체 갱신시간을 표시
   function pickSeasonFrom(which, season){
     if(which === '2'){
       selectedSeason2 = season;
@@ -4544,6 +4531,7 @@
       });
       const dd = document.getElementById('seasonDropdown2');
       if(dd) dd.classList.remove('show');
+      if(season) showSearchCards('', season);
       return;
     }
     if(which === '3'){
@@ -4576,8 +4564,8 @@
       it.classList.toggle('active', (it.getAttribute('data-season') || '') === season);
     });
     document.getElementById('seasonDropdown').classList.remove('show');
-    // 선택만 하고 이동하지 않음 — 검색 버튼 또는 엔터를 눌러야 검색/이동 실행
     document.getElementById('results').classList.remove('show');
+    if(season) showSearchCards('', season);
   }
   // 바깥 클릭 시 시즌 드롭다운 닫기 (홈/갱신시간 페이지 모두)
   document.addEventListener('click', (e) => {
@@ -4594,13 +4582,13 @@
 
   // ---------- 시즌별 달성률 ----------
   // 시즌명 → 랜딩페이지 slug (build_refresh.py 의 slugify 와 동일 규칙)
-  // 검색카드 시즌명 → 그 시즌 갱신시간 페이지(/refresh)로. 카드 클릭(제보상세)과 겹치지 않게 전파 중단.
+  // 검색카드 시즌명 → FC알리미 안의 해당 시즌 전체 갱신시간으로 이동.
   function seasonRefLink(c){
     const sn = c.season || '';
     const inner = `${seasonIcon(c.seasonId)}<span class="code">${esc(sn || '기본')}</span>`;
     if(!sn || sn === '기본')
       return `<span style="display:inline-flex; align-items:center; gap:8px;">${inner}</span>`;
-    return `<a class="p-season-link" href="/refresh/${achSlug(sn)}.html" onclick="event.stopPropagation()" title="${esc(sn)} 갱신시간 페이지로 이동" style="display:inline-flex; align-items:center; gap:8px; color:inherit; text-decoration:none;">${inner}</a>`;
+    return `<button type="button" class="p-season-link" onclick="event.stopPropagation(); showSearchCards('', ${esc(JSON.stringify(sn))})" title="${esc(sn)} 시즌 전체 갱신시간 보기" style="display:inline-flex; align-items:center; gap:8px; padding:0; border:0; background:none; color:inherit; font:inherit;">${inner}</button>`;
   }
   function achSlug(s){
     s = (s || '').trim().toLowerCase();
@@ -4609,9 +4597,7 @@
   }
   async function openAchievementSeason(season){
     if(!season) return;
-    // 확정 갱신시간이 0명이라 정적 /refresh 페이지가 없는 시즌도
-    // 앱 안의 시즌 전체 카드 화면으로 이동해 미확인 선수와 제보 버튼을 보여준다.
-    pickSeasonFrom('2', season);
+    // 정적 페이지 유무와 관계없이 홈 안의 시즌 전체 카드 화면으로 이동한다.
     await showSearchCards('', season);
   }
   function showAchievement(){
@@ -4812,6 +4798,7 @@
 
   let lastPlayerName = null;   // 상세 페이지 재렌더용
   let lastPlayerSeason = '';   // 상세 페이지에 적용된 클래스 필터 ('' = 전체)
+  let lastPlayerBaseId = null; // 동명이인을 구분하는 선수 고유 ID
   let lastSearchQ = '';        // 검색 결과 카드 화면의 검색어 (새로고침 복원용)
   let lastSearchSeason = '';   // 검색 결과 카드 화면의 클래스 필터
 
@@ -6855,7 +6842,6 @@
       return;
     }
     const q = document.getElementById('reportSearch').value.trim();
-    if(qTooShort(q)){ boxEl.innerHTML = `<div class="no-result">두 글자 이상 입력해주세요.</div>`; return; }
     const flags = getReportFlags();
     // 등록됨 = 갱신시간(홀/짝+분)이 입력된 카드
     let list = allPlayers.filter(p => p.hj && (q === '' || p.name.includes(q)));
@@ -7493,7 +7479,6 @@
       return;
     }
     const q = document.getElementById('boardSearch').value.trim();
-    if(qTooShort(q)){ boxEl.innerHTML = `<div class="no-result">두 글자 이상 입력해주세요.</div>`; return; }
     const season = selectedSeason3 || '';
     const reports = getReports();
     // 미등록 = 갱신시간(홀/짝+분)이 입력되지 않은 카드 (+ 시즌 필터)
