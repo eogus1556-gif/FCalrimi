@@ -347,7 +347,7 @@ button{cursor:pointer;}
 .aiEntryModal,.aiTextModal{position:fixed;inset:0;z-index:310;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(3,7,11,.82)}.aiEntryModal.on,.aiTextModal.on{display:flex}
 .aiEntryBox,.aiTextBox{width:min(540px,100%);max-height:min(88dvh,800px);overflow:auto;padding:22px;border:1px solid var(--line-2);border-radius:16px;background:var(--surface);box-shadow:0 24px 70px #000a}.aiEntryHead{display:flex;align-items:center;justify-content:space-between;gap:10px}.aiEntryHead h3{margin:0;font-size:20px}.aiEntryHead button{border:0;background:transparent;color:var(--text-dim);font-size:25px;cursor:pointer}.aiEntryBox>p{color:var(--text-dim);font-size:12px;line-height:1.5}.aiEntryChoices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}.aiEntryChoices button{min-height:104px;padding:16px;border:1px solid var(--line-2);border-radius:12px;background:var(--surface-2);color:var(--text);text-align:left;cursor:pointer;font-size:16px;font-weight:900}.aiEntryChoices button:hover{border-color:var(--lime)}.aiEntryChoices small{display:block;margin-top:8px;color:var(--text-dim);font-size:11px;font-weight:600;line-height:1.4}
 .aiTextBox{width:min(660px,100%);display:flex;flex-direction:column;overflow:hidden}.aiTextChat{min-height:170px;max-height:min(50dvh,460px);overflow:auto;display:flex;flex-direction:column;gap:12px;margin:18px 0;padding:4px 2px}.aiTextBubble{max-width:94%;padding:11px 13px;border:1px solid var(--line-2);border-radius:13px;background:var(--surface-2);font-size:13px;line-height:1.55;white-space:pre-wrap}.aiTextBubble.user{align-self:flex-end;border-color:var(--lime);background:rgba(186,255,50,.12)}.aiTextBubble.assistant{align-self:flex-start}.aiTextOptions{width:100%;display:grid;gap:12px}.aiTextGroup h4{margin:0 0 7px;color:var(--lime);font-size:12px}.aiTextTeam{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;margin:5px 0;padding:10px 12px;border:1px solid var(--line-2);border-radius:9px;background:var(--surface-2);color:var(--text);text-align:left;cursor:pointer}.aiTextTeam:hover{border-color:var(--lime)}.aiTextTeam span{min-width:0;font-size:12px;font-weight:800}.aiTextTeam small{color:var(--text-dim);font-size:10px;white-space:nowrap}.aiTextForm{display:flex;gap:8px}.aiTextForm textarea{flex:1;min-width:0;min-height:65px;max-height:110px;resize:vertical;padding:11px;border:1px solid var(--line-2);border-radius:10px;background:var(--bg);color:var(--text);font:inherit;font-size:13px}.aiTextForm button{padding:0 16px;border:0;border-radius:10px;background:var(--lime);color:#0b0f14;font-weight:900;cursor:pointer}.aiTextForm button:disabled{opacity:.45;cursor:default}@media(max-width:600px){.aiEntryChoices{grid-template-columns:1fr}.aiEntryChoices button{min-height:80px}.aiTextBox{padding:16px}.aiTextTeam{align-items:flex-start;flex-direction:column}.aiTextTeam small{white-space:normal}}
-.aiTextForm button{width:48px;flex:none;padding:0;font-size:22px}.aiTextRecommend{align-self:flex-end;margin-top:9px;padding:9px 15px;border:1px solid var(--lime);border-radius:9px;background:transparent;color:var(--lime);font-size:12px;font-weight:900;cursor:pointer}.aiTextRecommend:disabled{opacity:.45;cursor:default}
+.aiTextForm button{width:48px;flex:none;padding:0;font-size:22px}.aiTextKeywords{display:flex;gap:6px;min-height:32px;overflow-x:auto;margin:0 0 8px;padding:2px 0;scrollbar-width:thin}.aiTextKeywords button{flex:none;padding:5px 9px;border:1px solid var(--line-2);border-radius:8px;background:var(--surface-2);color:var(--text-dim);font-size:11px;font-weight:800;cursor:pointer}.aiTextKeywords button:hover{border-color:var(--lime);color:var(--lime)}
 .aiTextPlayerPick{width:100%;display:flex;flex-direction:column;gap:8px}.aiTextPlayerPick select{width:100%;padding:10px;border:1px solid var(--line-2);border-radius:9px;background:var(--surface-2);color:var(--text);font:inherit;font-size:12px}.aiTextSeasonList{max-height:255px;overflow:auto;padding:5px;border:1px solid var(--line-2);border-radius:9px;background:var(--bg)}.aiTextSeasonList .pickRow{color:var(--text);cursor:pointer}.aiTextGoldReq{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.aiTextGoldReq span{display:inline-flex;align-items:center;gap:5px;padding:4px 7px;border:1px solid var(--gold);border-radius:7px;color:var(--gold);font-size:10px;font-weight:800}.aiTextGoldReq img{width:17px;height:17px;object-fit:contain}
 .aiTextSeasonMeta{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.aiTextSeasonMeta b,.aiTextSeasonMeta small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.aiTextSeasonMeta b{font-size:12px}.aiTextSeasonMeta small{color:var(--gold);font-size:9px}
 .aiTextTeam small{white-space:normal;text-align:right}
@@ -1072,7 +1072,7 @@ button{cursor:pointer;}
 </div>
 
 <div class="aiEntryModal" id="aiEntryModal" onclick="if(event.target===this)closeAiEntry()"><div class="aiEntryBox" role="dialog" aria-modal="true" aria-labelledby="aiEntryTitle"><div class="aiEntryHead"><h3 id="aiEntryTitle">딸깍 스쿼드 만들기</h3><button type="button" onclick="closeAiEntry()" aria-label="닫기">×</button></div><p>원하는 방식으로 스쿼드 조건을 정해주세요.</p><div class="aiEntryChoices"><button type="button" onclick="openAiText()">텍스트로 요청<small>원하는 선수·시즌·팀·예산을 적고 인기 팀을 고르세요.</small></button><button type="button" onclick="openAiClick()">클릭해서 설정<small>기존 단계별 설정에서 조건을 직접 선택하세요.</small></button></div></div></div>
-<div class="aiTextModal" id="aiTextModal" onclick="if(event.target===this)closeAiText()"><div class="aiTextBox" role="dialog" aria-modal="true" aria-labelledby="aiTextTitle"><div class="aiEntryHead"><h3 id="aiTextTitle">텍스트로 스쿼드 만들기</h3><button type="button" onclick="closeAiText()" aria-label="닫기">×</button></div><div class="aiTextChat" id="aiTextChat" aria-live="polite"><div class="aiTextBubble assistant">예산·선수·팀·금빛특성을 적어주세요. 예: “톱에는 포쳐 아크로, 윙에는 두심 스스 아니면 스스 트릭, 수미or 중미는 레슛 커맨더”. Enter나 화살표로 보내고 ‘추천 보기’를 누르면 팀 후보가 나옵니다.</div></div><form class="aiTextForm" id="aiTextForm"><textarea id="aiTextInput" rows="2" maxlength="160" placeholder="원하는 스쿼드를 적어주세요" aria-label="스쿼드 요청"></textarea><button type="submit" id="aiTextSend" aria-label="보내기" title="보내기">➤</button></form><button type="button" class="aiTextRecommend" id="aiTextSubmit">추천 보기</button></div></div>
+<div class="aiTextModal" id="aiTextModal" onclick="if(event.target===this)closeAiText()"><div class="aiTextBox" role="dialog" aria-modal="true" aria-labelledby="aiTextTitle"><div class="aiEntryHead"><h3 id="aiTextTitle">텍스트로 스쿼드 만들기</h3><button type="button" onclick="closeAiText()" aria-label="닫기">×</button></div><div class="aiTextChat" id="aiTextChat" aria-live="polite"><div class="aiTextBubble assistant">예산·선수·팀·금빛특성을 적어주세요. 예: “톱에는 포쳐 아크로, 윙에는 두심 스스 아니면 스스 트릭, 수미or 중미는 레슛 커맨더”. 보내면 조건에 맞는 팀 후보가 바로 나옵니다.</div></div><div class="aiTextKeywords" id="aiTextKeywords" aria-label="키워드 자동완성"></div><form class="aiTextForm" id="aiTextForm"><textarea id="aiTextInput" rows="2" maxlength="160" placeholder="원하는 스쿼드를 적어주세요" aria-label="스쿼드 요청"></textarea><button type="submit" id="aiTextSend" aria-label="보내기" title="보내기">➤</button></form></div></div>
 
 <div class="aiGoldPosModal" id="aiGoldPosModal" onclick="if(event.target===this)closeAiGoldPositions()">
   <div class="aiGoldPosBox" role="dialog" aria-modal="true" aria-labelledby="aiGoldPosTitle">
@@ -3386,7 +3386,7 @@ function pickGrade(spid){
   if(_pickG.has(spid)) return _pickG.get(spid);
   const v=_pickG.get('p'+PID(spid)); return v!=null?v:11;
 }
-let aiEntrySource='click',aiTextRequest=null,aiTextBuilding=false,aiTextMessages=[],aiTextChosenPlayer='',aiTextChosenSeason='',aiTextChosenSpid=null,aiTextPlayerGrade=8,aiTextIncludePlayerPrice=true,aiTextPlayerIntent='';
+let aiEntrySource='click',aiTextRequest=null,aiTextBuilding=false,aiTextMessages=[],aiTextChosenPlayer='',aiTextChosenSeason='',aiTextChosenSpid=null,aiTextPlayerGrade=8,aiTextIncludePlayerPrice=true,aiTextPlayerIntent='',aiTextRecommendTimer=null,aiTextRecommendSeq=0;
 function aiPrepareState(restoreGold){
   aiState={budget:null, mode:'manager', tc:null, tcName:'', tcAuto:true, form:null, grade:'auto', goldTraits:[], goldSlots:{}, goldSlotsForm:'', locks:[], gmap:{}, gmapForm:'', preferredSeason:'', noRare:false, rareGkFree:false, rareFullbackFree:false};
   if(restoreGold){const storedGold=aiStoredGoldSlots();if(storedGold)Object.assign(aiState,storedGold);}
@@ -3404,18 +3404,41 @@ function openAiClick(){
 }
 function openAiText(){
   closeAiEntry();
+  clearTimeout(aiTextRecommendTimer);aiTextRecommendSeq++;
   aiTextMessages=[];aiTextRequest=null;aiTextChosenPlayer='';aiTextChosenSeason='';aiTextChosenSpid=null;aiTextPlayerGrade=8;aiTextIncludePlayerPrice=true;aiTextPlayerIntent='';
   document.getElementById('aiTextInput').value='';
-  document.getElementById('aiTextChat').innerHTML='<div class="aiTextBubble assistant">예산·선수·팀·금빛특성을 적어주세요. 예: “톱에는 포쳐 아크로, 윙에는 두심 스스 아니면 스스 트릭, 수미or 중미는 레슛 커맨더”. Enter나 화살표로 보내고 ‘추천 보기’를 누르면 팀 후보가 나옵니다.</div>';
+  document.getElementById('aiTextChat').innerHTML='<div class="aiTextBubble assistant">예산·선수·팀·금빛특성을 적어주세요. 예: “톱에는 포쳐 아크로, 윙에는 두심 스스 아니면 스스 트릭, 수미or 중미는 레슛 커맨더”. 보내면 조건에 맞는 팀 후보가 바로 나옵니다.</div>';
+  aiTextRenderKeywords();
   document.getElementById('aiTextModal').classList.add('on');
   document.getElementById('aiTextInput').focus();
 }
-function closeAiText(){document.getElementById('aiTextModal').classList.remove('on');}
+function closeAiText(){clearTimeout(aiTextRecommendTimer);aiTextRecommendSeq++;document.getElementById('aiTextModal').classList.remove('on');}
+const AI_TEXT_KEYWORDS=[
+  ['감독모드','감독모드'],['공식경기','공식경기'],['50억','50억'],['100억','100억'],['희귀매물 제외','희귀매물 제외'],['생제 제외','생제 제외'],['톱에는','톱에는'],['윙에는','윙에는'],['수미or 중미는','수미or 중미는'],
+  ['두심 · 2개의 심장','두심'],['스스 · 스피드스터','스스'],['트릭 · 트릭스터','트릭'],['라브 · 라인 브레이커','라브'],
+  ['아크로 · 아크로바틱 피니셔','아크로'],['포쳐 · 크로스 포쳐','포쳐'],['레슛 · 레이저 슈터','레슛'],['커맨더','커맨더'],
+  ['악어 · 프레데터','악어'],['와태 · 와일드 태클러','와태'],['빠반 · GK 빠른 반응','빠반'],['쥐공장 · GK 공중볼 장악','쥐공장']
+];
+function aiTextRenderKeywords(){
+  const box=document.getElementById('aiTextKeywords'),input=document.getElementById('aiTextInput');if(!box||!input)return;
+  const tail=(input.value.match(/(?:^|[\s,])([^\s,]*)$/)?.[1]||'').toLowerCase();
+  const list=(tail?AI_TEXT_KEYWORDS.filter(([label,value])=>label.toLowerCase().includes(tail)||value.toLowerCase().includes(tail)):AI_TEXT_KEYWORDS.slice(0,8)).slice(0,8);
+  box.innerHTML=list.map(([label,value])=>`<button type="button" data-ai-keyword="${esc(value)}">${esc(label)}</button>`).join('');
+}
+document.getElementById('aiTextInput').addEventListener('input',aiTextRenderKeywords);
+document.getElementById('aiTextKeywords').addEventListener('click',event=>{
+  const button=event.target.closest('[data-ai-keyword]');if(!button)return;
+  const input=document.getElementById('aiTextInput'),value=button.dataset.aiKeyword;
+  const prefix=input.value.replace(/[^\s,]*$/,'');
+  input.value=prefix+(prefix&&/[^\s]$/.test(prefix)?' ':'')+value+' ';
+  aiTextRenderKeywords();input.focus();
+});
 function aiTextBudget(q){
   const amount=s=>Number((s||'').replace(/,/g,''))||0;
   const jo=amount(q.match(/([\d,.]+)\s*조/)?.[1]),eok=amount(q.match(/([\d,.]+)\s*억/)?.[1]);
   return jo||eok?jo*10000+eok:null;
 }
+function aiTextNoRare(q){return /(?:희귀\s*매물|생성\s*제한|생제)(?:\s*(?:시즌|선수))?\s*(?:은|는|을|를)?\s*(?:제외|빼|없이)/.test(q);}
 function aiTextSeason(q){
   const normalized=String(q).toUpperCase().replace(/[\s_-]/g,'');
   return [...new Set(PLAYERS.map(p=>p[I.season]))].filter(Boolean)
@@ -3456,7 +3479,7 @@ function aiTextPlayerPrice(){return aiTextChosenSpid?bpAt(byId(aiTextChosenSpid)
 function aiTextRenderPlayerControls(panel){
   const price=aiTextPlayerPrice();
   panel.innerHTML=`<strong>강화단계</strong><div class="aiTextGradeGrid">${Array.from({length:13},(_,i)=>{const grade=i+1;return `<button type="button" class="${enClass(grade)} ${grade===aiTextPlayerGrade?'on':''}" data-ai-text-grade="${grade}">${grade}</button>`;}).join('')}</div>
-    <div class="aiTextPlayerPrice">선수 가격 · ${price==null?'가격 데이터 없음':won(price)+' BP'}</div>
+    <div class="aiTextPlayerPrice">${!aiTextChosenSpid?'시즌을 선택하면 가격이 표시됩니다.':`선수 가격 · ${price==null?'해당 강화단계 가격 정보 없음':won(price)+' BP'}`}</div>
     <label class="aiTextPriceChoice"><input type="radio" name="aiTextPriceMode" value="include" ${aiTextIncludePlayerPrice?'checked':''}>입력 예산에 선수 가격 포함</label>
     <label class="aiTextPriceChoice"><input type="radio" name="aiTextPriceMode" value="exclude" ${aiTextIncludePlayerPrice?'':'checked'}>선수 가격 별도 · 나머지 스쿼드 예산</label>`;
 }
@@ -3472,12 +3495,13 @@ function aiTextShowPlayerPick(chat,candidates,wantedSeason){
   if(candidates.names.length===1){nameSelect.value=candidates.names[0];aiTextChosenPlayer=nameSelect.value;}
   aiTextSeasonOptions(seasonList,aiTextChosenPlayer,wantedSeason);
   aiTextRenderPlayerControls(controls);
-  const invalidate=()=>{chat.querySelector('.aiTextOptions')?.remove();aiTextRequest=null;};
+  const invalidate=()=>{aiTextCancelRecommendation();if(!aiTextPlayerIntent||aiTextChosenSpid)aiTextQueueRecommendation();};
   nameSelect.addEventListener('change',()=>{aiTextChosenPlayer=nameSelect.value;aiTextChosenSeason='';aiTextChosenSpid=null;aiTextSeasonOptions(seasonList,aiTextChosenPlayer,wantedSeason);aiTextRenderPlayerControls(controls);invalidate();});
   seasonList.addEventListener('click',event=>{const row=event.target.closest('[data-ai-text-season]');if(!row)return;
     aiTextChosenSpid=+row.dataset.aiTextSeason;aiTextChosenSeason=byId(aiTextChosenSpid)?.[I.season]||'';
     seasonList.querySelectorAll('.pickRow').forEach(button=>button.classList.toggle('on',button===row));aiTextRenderPlayerControls(controls);invalidate();});
   controls.addEventListener('click',event=>{const button=event.target.closest('[data-ai-text-grade]');if(!button)return;
+    if(!aiTextChosenSpid){toast('선수 시즌을 먼저 선택해 주세요.');return;}
     aiTextPlayerGrade=+button.dataset.aiTextGrade;aiTextSeasonOptions(seasonList,aiTextChosenPlayer,aiTextChosenSeason);aiTextRenderPlayerControls(controls);invalidate();});
   controls.addEventListener('change',event=>{if(event.target.name!=='aiTextPriceMode')return;aiTextIncludePlayerPrice=event.target.value==='include';invalidate();});
   layout.append(seasonList,controls);picker.append(nameSelect,layout);chat.appendChild(picker);
@@ -3589,10 +3613,10 @@ function aiTextTeamSuggestions(mode,budget,teamName,allowedNos,goldTraits=[],pos
 }
 function aiTextSendMessage(){
   const input=document.getElementById('aiTextInput'),value=input.value.trim();if(!value)return false;
-  aiTextMessages.push(value);input.value='';
+  aiTextCancelRecommendation();
+  aiTextMessages.push(value);input.value='';aiTextRenderKeywords();
   const chat=document.getElementById('aiTextChat'),user=document.createElement('div');
   user.className='aiTextBubble user';user.textContent=value;chat.appendChild(user);
-  chat.querySelector('.aiTextOptions')?.remove();aiTextRequest=null;
   const q=aiTextMessages.join(' '),budget=aiTextBudget(q),candidates=aiTextPlayerCandidates(value);
   if(candidates){aiTextPlayerIntent=candidates.needle;aiTextChosenPlayer='';aiTextChosenSeason='';aiTextChosenSpid=null;aiTextPlayerGrade=8;aiTextIncludePlayerPrice=true;}
   const season=aiTextChosenSeason||aiTextSeason(q);
@@ -3609,44 +3633,52 @@ function aiTextSendMessage(){
   if(team)parts.push(`${team} 팀`);
   if(positions.length)parts.push(positions.map(request=>`${request.label}: ${request.options.map(option=>option.map(id=>TRAITS?.[id]?.n||id).join(' + ')).join(' 또는 ')}`).join(' · '));
   else if(gold.length)parts.push(`금빛특성 ${gold.map(id=>TRAITS?.[id]?.n||id).join(' · ')}`);
-  if(/희귀\s*매물\s*제외|생성\s*제한\s*제외/.test(q))parts.push('희귀매물 제외');
+  if(aiTextNoRare(q))parts.push('생제 제외(시즌·선수)');
   const reply=document.createElement('div');reply.className='aiTextBubble assistant';
   if(candidates&&!candidates.names.length)reply.textContent=`‘${candidates.needle||'입력한 이름'}’에 맞는 선수를 찾지 못했어요. 선수 이름을 조금 더 정확하게 적어주세요.`;
-  else if(candidates)reply.textContent=`${candidates.names.length===1?`전체 이름은 ${candidates.names[0]}입니다.`:`‘${candidates.needle}’와 일치하는 선수가 ${candidates.names.length}명 있습니다.`} 아래에서 선수와 시즌을 선택해 주세요. 선택 후 ‘추천 보기’를 누르면 팀 후보가 나옵니다.`;
+  else if(candidates)reply.textContent=`${candidates.names.length===1?`전체 이름은 ${candidates.names[0]}입니다.`:`‘${candidates.needle}’와 일치하는 선수가 ${candidates.names.length}명 있습니다.`} 아래에서 선수와 시즌을 선택하면 팀 후보가 자동으로 나옵니다.`;
   else if(player.error)reply.textContent=`${parts.join(' · ')} 요청을 읽었습니다. ${player.error}`;
-  else if(parts.length)reply.textContent=`${parts.join(' · ')} 조건을 확인했어요. 더 적어도 됩니다. 팀 후보를 보려면 ‘추천 보기’를 눌러주세요.${/채굴|수익/.test(q)?' 채굴 수익 데이터는 없어 랭커 픽률을 기준으로 추천합니다.':''}`;
-  else reply.textContent='예산, 모드, 시즌, 선수명, 팀명 중 원하는 조건을 적어주세요. 예: “감독모드 50억 DR 호나우두 넣고 짜줘”, “레알 마드리드로 짜줘”. 보내기는 조건만 기록하고 ‘추천 보기’를 누르면 팀 후보가 나옵니다.';
+  else if(parts.length)reply.textContent=`${parts.join(' · ')} 조건을 확인했어요. 팀 후보를 찾겠습니다.${/채굴|수익/.test(q)?' 채굴 수익 데이터는 없어 랭커 픽률을 기준으로 추천합니다.':''}`;
+  else reply.textContent='예산, 모드, 시즌, 선수명, 팀명 또는 금빛특성을 적어주세요. 예: “감독모드 50억 DR 호나우두 넣고 짜줘”, “레알 마드리드로 짜줘”.';
   chat.appendChild(reply);
   if(gold.length){const chips=document.createElement('div');chips.innerHTML=aiTextGoldHtml(gold);chat.appendChild(chips.firstElementChild);}
   if(candidates)aiTextShowPlayerPick(chat,candidates,season);
   chat.scrollTop=chat.scrollHeight;
+  if((parts.length||/짜줘|스쿼드|추천/.test(value))&&(!aiTextPlayerIntent||aiTextChosenSpid))aiTextQueueRecommendation();
   return true;
 }
 document.getElementById('aiTextForm').addEventListener('submit',event=>{event.preventDefault();aiTextSendMessage();});
 document.getElementById('aiTextInput').addEventListener('keydown',event=>{
   if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing){event.preventDefault();aiTextSendMessage();}
 });
-document.getElementById('aiTextSubmit').addEventListener('click',async()=>{
-  aiTextSendMessage();if(!aiTextMessages.length)return;
-  const q=aiTextMessages.join(' '),submit=document.getElementById('aiTextSubmit'),chat=document.getElementById('aiTextChat');
-  if(aiTextPlayerIntent&&(!aiTextChosenPlayer||!aiTextChosenSeason)){
-    const reply=document.createElement('div');reply.className='aiTextBubble assistant';
-    reply.textContent='선수의 전체 이름과 시즌을 먼저 선택해 주세요.';chat.appendChild(reply);chat.scrollTop=chat.scrollHeight;return;
-  }
-  submit.disabled=true;
+function aiTextQueueRecommendation(){
+  clearTimeout(aiTextRecommendTimer);const seq=++aiTextRecommendSeq;
+  aiTextRecommendTimer=setTimeout(()=>aiTextRecommend(seq),180);
+}
+function aiTextCancelRecommendation(){
+  clearTimeout(aiTextRecommendTimer);aiTextRecommendSeq++;aiTextRequest=null;
+  const chat=document.getElementById('aiTextChat');chat.querySelector('.aiTextOptions')?.remove();chat.querySelector('.aiTextRecommendationReply')?.remove();
+}
+async function aiTextRecommend(seq){
+  if(seq!==aiTextRecommendSeq||!aiTextMessages.length||!document.getElementById('aiTextModal').classList.contains('on'))return;
+  if(aiTextPlayerIntent&&(!aiTextChosenPlayer||!aiTextChosenSpid))return;
+  const q=aiTextMessages.join(' '),chat=document.getElementById('aiTextChat');
   chat.querySelector('.aiTextOptions')?.remove();
-  const reply=document.createElement('div');reply.className='aiTextBubble assistant';reply.textContent='가격대별 랭커 기록을 확인하고 있습니다.';chat.appendChild(reply);chat.scrollTop=chat.scrollHeight;
+  chat.querySelector('.aiTextRecommendationReply')?.remove();
+  const reply=document.createElement('div');reply.className='aiTextBubble assistant aiTextRecommendationReply';reply.textContent='조건에 맞는 팀을 찾고 있습니다.';chat.appendChild(reply);chat.scrollTop=chat.scrollHeight;
   try{
     tcbLoad();if(_tcbLoading)await _tcbLoading;
+    if(seq!==aiTextRecommendSeq)return;
     if(!TCB||!TCFULL)throw new Error('랭커 가격대 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
     const mode=/공식|공경|1대1|손겜/.test(q)?'official':'manager';
-    const budget=aiTextBudget(q),noRare=/희귀\s*매물\s*제외|생성\s*제한\s*제외/.test(q);
-    if(noRare){rareLoad();if(_rareLoading)await _rareLoading;if(!RARE)throw new Error('희귀매물 목록을 불러오지 못했습니다. 다시 시도해 주세요.');}
+    const budget=aiTextBudget(q),noRare=aiTextNoRare(q);
+    if(noRare){rareLoad();if(_rareLoading)await _rareLoading;if(seq!==aiTextRecommendSeq)return;if(!RARE)throw new Error('희귀매물 목록을 불러오지 못했습니다. 다시 시도해 주세요.');}
     const season=aiTextChosenSeason||aiTextSeason(q);
     const player=aiTextChosenSpid?{name:aiTextChosenPlayer,card:byId(aiTextChosenSpid)}:aiTextChosenPlayer?aiTextPlayer(aiTextChosenPlayer,season,mode):aiTextPlayer(q,season,mode);
     const teamName=aiTextTeamName(q);
     const positionRequests=aiTextPositionRequests(q),goldTraits=positionRequests.length?[]:aiTextGoldTraits(q);
     if(player.error){reply.textContent=player.error;return;}
+    if(noRare&&player.card&&!RARE.ok.has(player.card[I.spid])&&(RARE.sp.has(player.card[I.spid])||RARE.ss.has(player.card[I.season]))){reply.textContent='선택한 선수는 희귀매물 제외 대상입니다. 다른 시즌을 선택하거나 제외 조건을 바꿔주세요.';return;}
     const playerGrade=aiTextChosenSpid?aiTextPlayerGrade:8;
     const playerPrice=player.card?bpAt(player.card,playerGrade):null;
     if(player.card&&playerPrice==null){reply.textContent='선택한 강화단계의 선수 가격 데이터가 없습니다. 가격이 있는 강화단계를 선택해 주세요.';return;}
@@ -3654,6 +3686,7 @@ document.getElementById('aiTextSubmit').addEventListener('click',async()=>{
     if(teamName&&allowedNos){const no=Object.keys(TCFULL).find(key=>TCFULL[key].n===teamName);
       if(no&&!allowedNos.has(+no)){reply.textContent=`${season||player.card[I.season]} ${player.name} 선수는 ${teamName} 팀컬러 대상이 아닙니다. 팀이나 선수를 바꿔주세요.`;return;}}
     const groups=aiTextTeamSuggestions(mode,budget,teamName,allowedNos,goldTraits,positionRequests,noRare);
+    if(seq!==aiTextRecommendSeq)return;
     aiTextRequest={mode,budget,noRare,season,playerSpid:player.card?.[I.spid]||null,playerGrade,playerPrice,includePlayerPrice:aiTextIncludePlayerPrice,goldTraits,positionRequests};
     if(!groups.length){reply.textContent='선수·예산·금빛특성·포지션 조건에 맞는 팀 기록이 없습니다. 조건을 줄이거나 다른 조합으로 다시 적어주세요.';return;}
     const condition=player.card?`${season||player.card[I.season]} ${player.name} ${playerGrade}강 · ${won(playerPrice)} BP ${aiTextIncludePlayerPrice?'예산 포함':'예산 별도'} · `:season?`${season} 시즌 카드 우선 · `:'';
@@ -3661,9 +3694,9 @@ document.getElementById('aiTextSubmit').addEventListener('click',async()=>{
     const options=document.createElement('div');options.className='aiTextOptions';
     options.innerHTML=groups.map(({bucket,teams})=>`<section class="aiTextGroup"><h4>${esc(bucket.label)} · 팀 선택 기록 순</h4>${teams.map(team=>`<button type="button" class="aiTextTeam" data-ai-text-team="${team.no}" data-ai-text-bucket="${bucket.key}"><span>${team.rank}위 ${esc(team.name)}</span><small>${team.plan?`${esc(positionRequests.map((request,i)=>`${request.label} ${byId(team.plan.choices[i].spid)?.[I.name]||''}`).join(' · '))}<br>`:''}랭커 카드 선택 비중 ${team.share.toFixed(1)}% · ${team.filled}개 포지션 기록</small></button>`).join('')}</section>`).join('');
     chat.appendChild(options);
-  }catch(error){reply.textContent=error.message||'추천 데이터를 확인하지 못했습니다.';}
-  finally{submit.disabled=false;chat.scrollTop=chat.scrollHeight;}
-});
+  }catch(error){if(seq===aiTextRecommendSeq)reply.textContent=error.message||'추천 데이터를 확인하지 못했습니다.';}
+  finally{if(seq!==aiTextRecommendSeq)reply.remove();else chat.scrollTop=chat.scrollHeight;}
+}
 document.getElementById('aiTextChat').addEventListener('click',async event=>{
   const button=event.target.closest('[data-ai-text-team]');if(!button||!aiTextRequest||aiTextBuilding)return;
   const no=+button.dataset.aiTextTeam,team=TCFULL?.[no];if(!team)return;
@@ -4132,9 +4165,9 @@ function aiEnsureSlotFloor(i, min, group){
     for(let g=8;g<=gMax;g++){ if(g===10)continue; squad[i]={spid,g}; if(finalOvr(squad[i],i)>=min) return g; } return null; };
   if(squad[i]){ const g=fit(squad[i].spid); if(g!=null){ squad[i]={spid:squad[i].spid,g}; return; } }
   let cands=PLAYERS.filter(p=>grpOf(p[I.pos])===group && !usedPids.has(PID(p[I.spid])) && aiOk(p[I.spid]) && (!aiState.tc||aiHasTc(p[I.spid])) && aiSlotBaseGoldMatch(i,p[I.spid]));
-  if(!cands.length) cands=PLAYERS.filter(p=>grpOf(p[I.pos])===group && !usedPids.has(PID(p[I.spid])) && byId(p[I.spid]) && (!aiState.tc||aiHasTc(p[I.spid])) && aiSlotBaseGoldMatch(i,p[I.spid]));   // 희귀 빼고 후보 0명이면 완화
+  if(!cands.length&&!aiState.noRare) cands=PLAYERS.filter(p=>grpOf(p[I.pos])===group && !usedPids.has(PID(p[I.spid])) && byId(p[I.spid]) && (!aiState.tc||aiHasTc(p[I.spid])) && aiSlotBaseGoldMatch(i,p[I.spid]));
   if(!cands.length)cands=PLAYERS.filter(p=>grpOf(p[I.pos])===group&&!usedPids.has(PID(p[I.spid]))&&aiOk(p[I.spid])&&(!aiState.tc||aiHasTc(p[I.spid])));
-  if(!cands.length)cands=PLAYERS.filter(p=>grpOf(p[I.pos])===group&&!usedPids.has(PID(p[I.spid]))&&byId(p[I.spid])&&(!aiState.tc||aiHasTc(p[I.spid])));
+  if(!cands.length&&!aiState.noRare)cands=PLAYERS.filter(p=>grpOf(p[I.pos])===group&&!usedPids.has(PID(p[I.spid]))&&byId(p[I.spid])&&(!aiState.tc||aiHasTc(p[I.spid])));
   cands.sort((a,b)=>(a[I.pay]||0)-(b[I.pay]||0) || ovrAt(b,gMax)-ovrAt(a,gMax));
   for(const p of cands.slice(0,80)){ const g=fit(p[I.spid]); if(g!=null){ squad[i]={spid:p[I.spid],g}; return; } }
   cands.sort((a,b)=>ovrAt(b,gMax)-ovrAt(a,gMax));   // 도달 가능 없으면 최고 OVR라도(상한강화)
