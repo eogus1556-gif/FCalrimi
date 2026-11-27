@@ -3440,7 +3440,7 @@ function aiTextBudget(q){
 }
 function aiTextNoRare(q){return /(?:희귀\s*매물|생성\s*제한|생제)(?:\s*(?:시즌|선수))?\s*(?:은|는|을|를)?\s*(?:제외|빼|없이)/.test(q);}
 function aiTextSeason(q){
-  const normalized=String(q).toUpperCase().replace(/[\s_-]/g,'');
+  const normalized=String(q).replace(/[\d,.]+\s*(?:조|억)/g,' ').toUpperCase().replace(/[\s_-]/g,'');
   return [...new Set(PLAYERS.map(p=>p[I.season]))].filter(Boolean)
     .sort((a,b)=>b.length-a.length).find(season=>normalized.includes(String(season).toUpperCase().replace(/[\s_-]/g,'')))||'';
 }
@@ -3507,7 +3507,7 @@ function aiTextShowPlayerPick(chat,candidates,wantedSeason){
   layout.append(seasonList,controls);picker.append(nameSelect,layout);chat.appendChild(picker);
 }
 function aiTextTeamName(q){
-  const aliases={'맨유':'맨체스터 유나이티드','맨시티':'맨체스터 시티','레알':'레알 마드리드','뮌헨':'바이에른 뮌헨','바르사':'FC 바르셀로나'};
+  const aliases={'맨유':'맨체스터 유나이티드','맨시티':'맨체스터 시티','레알':'레알 마드리드','뮌헨':'바이에른 뮌헨','바르사':'FC 바르셀로나','리옹':'올랭피크 리옹'};
   const found=Object.values(TCFULL||{}).map(item=>item?.n).filter(name=>name?.length>=3&&q.includes(name)).sort((a,b)=>b.length-a.length)[0];
   if(found)return found;
   for(const [alias,name] of Object.entries(aliases))if(q.includes(alias)&&Object.values(TCFULL||{}).some(item=>item?.n===name))return name;
