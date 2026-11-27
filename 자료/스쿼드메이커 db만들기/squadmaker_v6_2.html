@@ -3453,7 +3453,24 @@ function aiTextSendMessage(){
   const input=document.getElementById('aiTextInput'),value=input.value.trim();if(!value)return false;
   aiTextMessages.push(value);input.value='';
   const chat=document.getElementById('aiTextChat'),user=document.createElement('div');
-  user.className='aiTextBubble user';user.textContent=value;chat.appendChild(user);chat.scrollTop=chat.scrollHeight;
+  user.className='aiTextBubble user';user.textContent=value;chat.appendChild(user);
+  chat.querySelector('.aiTextOptions')?.remove();aiTextRequest=null;
+  const q=aiTextMessages.join(' '),budget=aiTextBudget(q),season=aiTextSeason(q);
+  const mode=/공식|공경|1대1|손겜/.test(q)?'official':'manager';
+  const player=aiTextPlayer(q,season,mode),team=aiTextTeamName(q);
+  const parts=[];
+  if(/감독|감모/.test(q))parts.push('감독모드');
+  else if(/공식|공경|1대1|손겜/.test(q))parts.push('공식경기');
+  if(budget)parts.push(`예산 ${budget>=10000?`${+(budget/10000).toFixed(2)}조`:`${budget}억`}`);
+  if(season)parts.push(`${season} 시즌`);
+  if(player.name)parts.push(`${player.name} 선수`);
+  if(team)parts.push(`${team} 팀`);
+  if(/희귀\s*매물\s*제외|생성\s*제한\s*제외/.test(q))parts.push('희귀매물 제외');
+  const reply=document.createElement('div');reply.className='aiTextBubble assistant';
+  if(player.error)reply.textContent=`${parts.join(' · ')} 요청을 읽었습니다. ${player.error}`;
+  else if(parts.length)reply.textContent=`${parts.join(' · ')} 조건을 확인했어요. 더 적어도 됩니다. 팀 후보를 보려면 ‘추천 보기’를 눌러주세요.${/채굴|수익/.test(q)?' 채굴 수익 데이터는 없어 랭커 픽률을 기준으로 추천합니다.':''}`;
+  else reply.textContent='예산, 모드, 시즌, 선수명, 팀명 중 원하는 조건을 적어주세요. 예: “감독모드 50억 DR 호나우두 넣고 짜줘”, “레알 마드리드로 짜줘”. 보내기는 조건만 기록하고 ‘추천 보기’를 누르면 팀 후보가 나옵니다.';
+  chat.appendChild(reply);chat.scrollTop=chat.scrollHeight;
   return true;
 }
 document.getElementById('aiTextForm').addEventListener('submit',event=>{event.preventDefault();aiTextSendMessage();});
