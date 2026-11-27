@@ -3912,7 +3912,7 @@
     return `<img class="p-photo" src="https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/playersAction/p${spid}.png" alt="" loading="lazy"
       onerror="if(!this.dataset.f){this.dataset.f=1;this.src='https://fco.dn.nexoncdn.co.kr/live/externalAssets/common/players/p${pid}.png';}else{this.remove();}">`;
   }
-  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+  function esc(s){ return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
   // Google Analytics 이벤트 전송 (gtag 로드 실패해도 안전)
   function track(name, params){ try{ if(typeof gtag === 'function') gtag('event', name, params || {}); }catch(e){} }
   // 홈 화면 설치(PWA) 완료 감지 → app_install 이벤트
@@ -4272,7 +4272,7 @@
       seen.add(p.id);
       const rep = (!p.hj) ? publicReport(p.id) : null;
       cards.push({
-        id: p.id,
+        id: p.id, name: p.name,
         season: p.season, seasonId: Math.floor(p.id / 1000000),
         pos: p.pos || '', ovr: p.ovr || 0,
         hj: p.hj || '', min: (p.min == null ? -1 : p.min),
@@ -4352,6 +4352,7 @@
 
   // ---------- 검색 결과 카드 화면: 관련 선수 전원의 카드를 갱신시간과 함께 표시 ----------
   function trackerSearchLink(c){
+    if(!c?.name || c.name === 'undefined')return '';
     const url = `/refresh-estimate.html?q=${encodeURIComponent(c.name)}&season=${encodeURIComponent(c.season || '')}`;
     return `<a class="report-go" href="${url}" onclick="event.stopPropagation()">추적기에서 검색하러 가기</a>`;
   }
