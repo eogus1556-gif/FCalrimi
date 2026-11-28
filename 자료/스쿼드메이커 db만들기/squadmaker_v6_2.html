@@ -1240,7 +1240,8 @@ let UNIQ=null, UNI_LAB={}, UNI_SEASON={}, _uniTarget=null, _uniLoading=null;
 let JERSEY=null, _jerseyLoading=null, _jerseyNameIndex=null; // 로컬 수집 결과 jersey_numbers.json
 let ABILITY_JERSEY=null, _abilityJerseyLoading=null;          // 세부 정보용 전체 시즌별 클럽 경력
 let PLAYER_TEAMCOLORS=null, _playerTeamcolorsLoading=null, _playerTeamcolorsByPid=null; // FC온라인 선수별 실제 팀 경력(career/applied 분리)
-const NEXON_CAREERS=new Map(), _nexonCareerLoading=new Map();
+const NEXON_CAREERS=new Map();
+let _playerCareersLoading=null, _playerCareersLoaded=false;
 const UNI_MAXDE=22;           // color-match tolerance (lower = stricter; keeps sky/royal/navy apart)
 function _hex2rgb(h){h=String(h).replace('#','');return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
 function _rgb2lab(rgb){let[r,g,b]=rgb.map(v=>{v/=255;return v>0.04045?Math.pow((v+0.055)/1.055,2.4):v/12.92;});
@@ -1273,17 +1274,15 @@ async function playerTeamcolorsLoad(){
     .catch(()=>{PLAYER_TEAMCOLORS={players:{}};return PLAYER_TEAMCOLORS;});
   return _playerTeamcolorsLoading;
 }
-function nexonCareerLoad(spid){
-  const pid=(+spid)%1000000;
-  if(NEXON_CAREERS.has(pid))return Promise.resolve(NEXON_CAREERS.get(pid));
-  if(_nexonCareerLoading.has(pid))return _nexonCareerLoading.get(pid);
-  const pending=fetch(`/api/player-career?spid=${encodeURIComponent(spid)}`)
+function playerCareersLoad(){
+  if(_playerCareersLoaded)return Promise.resolve(NEXON_CAREERS);
+  if(_playerCareersLoading)return _playerCareersLoading;
+  _playerCareersLoading=fetch('player_careers.json',{cache:'no-cache'})
     .then(r=>r.ok?r.json():Promise.reject(new Error(`HTTP ${r.status}`)))
-    .then(data=>{const rows=Array.isArray(data.rows)?data.rows:[];NEXON_CAREERS.set(pid,rows);return rows;})
-    .catch(()=>{NEXON_CAREERS.set(pid,null);return null;})
-    .finally(()=>_nexonCareerLoading.delete(pid));
-  _nexonCareerLoading.set(pid,pending);
-  return pending;
+    .then(data=>{for(const [pid,rows] of Object.entries(data?.players||{}))if(Array.isArray(rows))NEXON_CAREERS.set(+pid,rows);return NEXON_CAREERS;})
+    .catch(error=>{console.warn('클럽 경력 파일 로드 실패',error);return NEXON_CAREERS;})
+    .finally(()=>{_playerCareersLoaded=true;_playerCareersLoading=null;});
+  return _playerCareersLoading;
 }
 const UNI_PURW=26;   // 순도 가중치: 목표색이 '더 큰 비율'인 시즌 우선 (흰90+빨10 뮌헨 < 흰99 잉글랜드)
 function uniPick(spid,target,useNearest=false,preferAlternate=false){const own=String(spid);
@@ -2758,7 +2757,7 @@ function renderPanel(){
       panel.className='cardPanel abilityPanel on';
       const traitIds=[...(c.tr||[])];
       const summary=groups.slice(0,6).map(([title,ids])=>[title,Math.round(ids.reduce((a,i)=>a+(+vals[i]||0),0)/ids.length)]);
-      const careers=abilityCareerRows(p),careerPending=!NEXON_CAREERS.has(PID(s.spid)),footDetail=footDetailHtml(p);
+      const careers=abilityCareerRows(p),careerPending=!_playerCareersLoaded,footDetail=footDetailHtml(p);
       const physical=[c.birth||'',c.h?`${c.h}cm`:'',c.w?`${c.w}kg`:'',c.body||''].filter(Boolean);
       panel.innerHTML=`<div class="abilityLayout"><section class="abilityMain">
         <div class="abilityProfile">${faceImg('abilityPortrait',s.spid,false,'','auto')}<div class="abilityIdentity">
@@ -2769,12 +2768,11 @@ function renderPanel(){
         <div class="abilitySummary">${summary.map(([title,v])=>`<div><span>${title}</span><b class="${statTone(v)}">${v}</b></div>`).join('')}</div>
         <div class="abilityGroups">${groups.map(([title,ids])=>`<div class="abilityGroup"><div class="abilityGroupTitle">${title}</div><div class="abilityGrid">${ids.map(i=>{const tv=+assignedTrain[i]||0;return `<div class="abilityItem" title="${esc(DAB[i])}${tv?` · 집중훈련 +${tv}`:''}"><span class="abilityName">${esc(DAB[i])}</span><span class="abilityValue"><b class="${statTone(vals[i])}">${vals[i]}</b>${tv?`<em class="${showTrain?'':'off'}">+${tv}</em>`:''}</span></div>`;}).join('')}</div></div>`).join('')}</div>
         <div class="panelHint">강화 · 팀컬러 · 집중훈련이 반영된 현재 수치</div></section>
-        <aside class="abilityCareer"><h3>클럽 경력</h3>${careerPending?'<div class="careerEmpty">공식 클럽 경력을 불러오는 중…</div>':careers.length?`<table class="careerTable"><thead><tr><th>연도</th><th>클럽</th><th>임대 여부</th></tr></thead><tbody>${careers.map(r=>`<tr><td>${esc(r.season)}</td><td>${esc(r.team)}</td><td>${r.loan}</td></tr>`).join('')}</tbody></table>`:'<div class="careerEmpty">등록된 클럽 경력 정보가 없습니다.<br>팀 경력 데이터가 추가되면 자동으로 표시됩니다.</div>'}</aside></div>`;
+        <aside class="abilityCareer"><h3>클럽 경력</h3>${careerPending?'<div class="careerEmpty">클럽 경력 데이터를 불러오는 중…</div>':careers.length?`<table class="careerTable"><thead><tr><th>연도</th><th>클럽</th><th>임대 여부</th></tr></thead><tbody>${careers.map(r=>`<tr><td>${esc(r.season)}</td><td>${esc(r.team)}</td><td>${esc(r.loan)}</td></tr>`).join('')}</tbody></table>`:'<div class="careerEmpty">등록된 클럽 경력 정보가 없습니다.<br>팀 경력 데이터가 추가되면 자동으로 표시됩니다.</div>'}</aside></div>`;
       if(!ABILITY_JERSEY||!PLAYER_TEAMCOLORS)
         Promise.all([abilityJerseyLoad(),playerTeamcolorsLoad()]).then(()=>{if(menuMode==='ability'&&menuIdx!=null)renderPanel();});
-      const careerPid=PID(s.spid);
-      if(!NEXON_CAREERS.has(careerPid)&&!_nexonCareerLoading.has(careerPid))
-        nexonCareerLoad(s.spid).then(()=>{if(menuMode==='ability'&&menuIdx!=null&&squad[menuIdx]?.spid===s.spid)renderPanel();});
+      if(!_playerCareersLoaded&&!_playerCareersLoading)
+        playerCareersLoad().then(()=>{if(menuMode==='ability'&&menuIdx!=null&&squad[menuIdx]?.spid===s.spid)renderPanel();});
     }
   }else if(menuMode==='season'){
     const cards=BY_PID.get(PID(s.spid))||[p];
