@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FC알리미 — 갱신시간 놓치지 마세요</title>
+<title>FC알리미 — FC온라인 선수·시즌별 갱신시간 검색</title>
 <!-- Google AdSense -->
 <meta name="google-adsense-account" content="ca-pub-8019320351145896">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8019320351145896" crossorigin="anonymous"></script>
@@ -23,7 +23,7 @@
         y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
     })(window, document, "clarity", "script", "xln101cmtt");
 </script>
-<meta name="description" content="FC온라인 선수마다 다른 가격 갱신 시간을 자동 추적하고, 기준가가 바뀌기 전에 알려드려요.">
+<meta name="description" content="FC온라인 선수 이름과 시즌별 갱신시간을 한곳에서 검색하세요. 자주 쓰는 시즌 이름으로도 찾아보고 즐겨찾기 알림을 받을 수 있어요.">
 <meta property="og:title" content="FC알리미 — FC온라인 갱신시간 알리미">
 <meta property="og:description" content="선수 갱신 시간 자동 추적 · 즐겨찾기 알림 · 유저 제보 커뮤니티">
 <meta property="og:type" content="website">
@@ -312,6 +312,15 @@
   .subpage h1{ font-family:var(--font-display); font-size:34px; margin-bottom:6px; }
   .subpage .page-sub{ color:var(--text-dim); font-size:14px; margin-bottom:30px; }
   .search-result-progress{ display:inline-flex; align-items:center; padding:4px 11px; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--lime); font-family:var(--font-mono); font-size:12px; font-weight:700; white-space:nowrap; }
+  .season-alias-info{ grid-column:1/-1; margin:10px 0; padding:15px 18px; background:var(--surface); border:1px solid var(--line); border-radius:12px; color:var(--text-dim); font-size:13px; line-height:1.7; }
+  .season-alias-info strong{ color:var(--text); }
+  .season-alias-tag{ display:inline-block; margin:3px 5px 3px 0; padding:2px 8px; border:1px solid var(--line); border-radius:7px; color:var(--text); background:var(--surface-2); }
+  .home-season-alias-directory{ max-width:1060px; margin:28px auto 0; border:1px solid var(--line); border-radius:12px; background:var(--surface); }
+  .home-season-alias-directory summary{ padding:14px 18px; cursor:pointer; color:var(--text); font-weight:700; }
+  .home-season-alias-list{ max-height:340px; overflow:auto; padding:0 18px 12px; }
+  .home-season-alias{ display:flex; align-items:baseline; gap:12px; padding:8px 0; border-top:1px solid var(--line); font-size:13px; color:var(--text-dim); }
+  .home-season-alias button{ flex:0 0 110px; padding:0; border:0; background:none; color:var(--lime); text-align:left; font:700 13px var(--font-body); cursor:pointer; }
+  @media(max-width:600px){.home-season-alias{display:block}.home-season-alias button{display:block;margin-bottom:3px}}
   .card-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; }
   .p-card{
     background:var(--surface); border:1px solid var(--line); border-radius:14px;
@@ -1745,6 +1754,137 @@
       </div>
     </div>
   </section>
+  <!-- 홈 HTML에 시즌별 별칭을 제공한다. 선택한 시즌 결과에는 이 목록의 한 행만 표시한다. -->
+  <details class="home-season-alias-directory" id="homeSeasonAliasDirectory">
+    <summary>시즌별 다른 이름 보기</summary>
+    <div class="home-season-alias-list" id="homeSeasonAliasList">
+<!-- SEASON_ALIASES_START -->
+      <div class="home-season-alias" data-season="17 LIVE"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;17 LIVE&quot;)">17 LIVE</button><span><span class="home-season-alias-name">17라이브</span> · <span class="home-season-alias-name">17live</span> · <span class="home-season-alias-name">라이브</span></span></div>
+      <div class="home-season-alias" data-season="18 KFA"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;18 KFA&quot;)">18 KFA</button><span><span class="home-season-alias-name">18KFC</span> · <span class="home-season-alias-name">18ㅏㄹㅊ</span></span></div>
+      <div class="home-season-alias" data-season="18 LIVE"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;18 LIVE&quot;)">18 LIVE</button><span><span class="home-season-alias-name">18라이브</span> · <span class="home-season-alias-name">18live</span> · <span class="home-season-alias-name">라이브</span></span></div>
+      <div class="home-season-alias" data-season="18 PLA"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;18 PLA&quot;)">18 PLA</button><span><span class="home-season-alias-name">18피엘</span> · <span class="home-season-alias-name">18pla</span> · <span class="home-season-alias-name">피엘</span></span></div>
+      <div class="home-season-alias" data-season="18 PLS"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;18 PLS&quot;)">18 PLS</button><span><span class="home-season-alias-name">18피엘</span> · <span class="home-season-alias-name">18pls</span> · <span class="home-season-alias-name">피엘</span></span></div>
+      <div class="home-season-alias" data-season="18 TOTY"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;18 TOTY&quot;)">18 TOTY</button><span><span class="home-season-alias-name">18토티</span> · <span class="home-season-alias-name">18toty</span> · <span class="home-season-alias-name">토티</span></span></div>
+      <div class="home-season-alias" data-season="19 KFA"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;19 KFA&quot;)">19 KFA</button><span><span class="home-season-alias-name">19KFC</span> · <span class="home-season-alias-name">19ㅏㄹㅊ</span></span></div>
+      <div class="home-season-alias" data-season="19 LIVE"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;19 LIVE&quot;)">19 LIVE</button><span><span class="home-season-alias-name">19라이브</span> · <span class="home-season-alias-name">19live</span> · <span class="home-season-alias-name">라이브</span></span></div>
+      <div class="home-season-alias" data-season="19 PLA"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;19 PLA&quot;)">19 PLA</button><span><span class="home-season-alias-name">19피엘</span> · <span class="home-season-alias-name">19pla</span> · <span class="home-season-alias-name">피엘</span></span></div>
+      <div class="home-season-alias" data-season="19 PLS"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;19 PLS&quot;)">19 PLS</button><span><span class="home-season-alias-name">19피엘</span> · <span class="home-season-alias-name">19pls</span> · <span class="home-season-alias-name">피엘</span></span></div>
+      <div class="home-season-alias" data-season="19 TOTS"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;19 TOTS&quot;)">19 TOTS</button><span><span class="home-season-alias-name">19토츠</span> · <span class="home-season-alias-name">19tots</span> · <span class="home-season-alias-name">토츠</span></span></div>
+      <div class="home-season-alias" data-season="19 TOTY"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;19 TOTY&quot;)">19 TOTY</button><span><span class="home-season-alias-name">19토티</span> · <span class="home-season-alias-name">19toty</span> · <span class="home-season-alias-name">토티</span></span></div>
+      <div class="home-season-alias" data-season="19 UCL"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;19 UCL&quot;)">19 UCL</button><span><span class="home-season-alias-name">19챔스</span> · <span class="home-season-alias-name">19챔</span> · <span class="home-season-alias-name">19ucl</span> · <span class="home-season-alias-name">챔스</span> · <span class="home-season-alias-name">챔</span></span></div>
+      <div class="home-season-alias" data-season="19NG"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;19NG&quot;)">19NG</button><span><span class="home-season-alias-name">19ㅜㅎ</span></span></div>
+      <div class="home-season-alias" data-season="20 PLA"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;20 PLA&quot;)">20 PLA</button><span><span class="home-season-alias-name">20피엘</span> · <span class="home-season-alias-name">20pla</span> · <span class="home-season-alias-name">피엘</span></span></div>
+      <div class="home-season-alias" data-season="20 TOTS"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;20 TOTS&quot;)">20 TOTS</button><span><span class="home-season-alias-name">20토츠</span> · <span class="home-season-alias-name">20tots</span> · <span class="home-season-alias-name">토츠</span></span></div>
+      <div class="home-season-alias" data-season="20 TOTY"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;20 TOTY&quot;)">20 TOTY</button><span><span class="home-season-alias-name">20토티</span> · <span class="home-season-alias-name">20toty</span> · <span class="home-season-alias-name">토티</span></span></div>
+      <div class="home-season-alias" data-season="20 TOTY-N"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;20 TOTY-N&quot;)">20 TOTY-N</button><span><span class="home-season-alias-name">20토티 노미니</span> · <span class="home-season-alias-name">20노미니</span> · <span class="home-season-alias-name">20toty-n</span> · <span class="home-season-alias-name">20totyn</span> · <span class="home-season-alias-name">토티 노미니</span> · <span class="home-season-alias-name">노미니</span></span></div>
+      <div class="home-season-alias" data-season="20 UCL"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;20 UCL&quot;)">20 UCL</button><span><span class="home-season-alias-name">20챔스</span> · <span class="home-season-alias-name">20챔</span> · <span class="home-season-alias-name">20ucl</span> · <span class="home-season-alias-name">챔스</span> · <span class="home-season-alias-name">챔</span></span></div>
+      <div class="home-season-alias" data-season="20KB"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;20KB&quot;)">20KB</button><span><span class="home-season-alias-name">20ㅏㅠ</span></span></div>
+      <div class="home-season-alias" data-season="20KLeague"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;20KLeague&quot;)">20KLeague</button><span><span class="home-season-alias-name">20 K리그</span> · <span class="home-season-alias-name">20케이리그</span></span></div>
+      <div class="home-season-alias" data-season="20NG"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;20NG&quot;)">20NG</button><span><span class="home-season-alias-name">20ㅜㅎ</span></span></div>
+      <div class="home-season-alias" data-season="21 LIVE"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;21 LIVE&quot;)">21 LIVE</button><span><span class="home-season-alias-name">21라이브</span> · <span class="home-season-alias-name">21live</span> · <span class="home-season-alias-name">라이브</span></span></div>
+      <div class="home-season-alias" data-season="21 TOTS"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;21 TOTS&quot;)">21 TOTS</button><span><span class="home-season-alias-name">21토츠</span> · <span class="home-season-alias-name">21tots</span> · <span class="home-season-alias-name">토츠</span></span></div>
+      <div class="home-season-alias" data-season="21 TOTY"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;21 TOTY&quot;)">21 TOTY</button><span><span class="home-season-alias-name">21토티</span> · <span class="home-season-alias-name">21toty</span> · <span class="home-season-alias-name">토티</span></span></div>
+      <div class="home-season-alias" data-season="21 TOTY-N"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;21 TOTY-N&quot;)">21 TOTY-N</button><span><span class="home-season-alias-name">21토티 노미니</span> · <span class="home-season-alias-name">21노미니</span> · <span class="home-season-alias-name">21toty-n</span> · <span class="home-season-alias-name">21totyn</span> · <span class="home-season-alias-name">토티 노미니</span> · <span class="home-season-alias-name">노미니</span></span></div>
+      <div class="home-season-alias" data-season="21 UCL"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;21 UCL&quot;)">21 UCL</button><span><span class="home-season-alias-name">21챔스</span> · <span class="home-season-alias-name">21챔</span> · <span class="home-season-alias-name">21ucl</span> · <span class="home-season-alias-name">챔스</span> · <span class="home-season-alias-name">챔</span></span></div>
+      <div class="home-season-alias" data-season="22 LIVE"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;22 LIVE&quot;)">22 LIVE</button><span><span class="home-season-alias-name">22라이브</span> · <span class="home-season-alias-name">22live</span> · <span class="home-season-alias-name">라이브</span></span></div>
+      <div class="home-season-alias" data-season="22 PL"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;22 PL&quot;)">22 PL</button><span><span class="home-season-alias-name">22피엘</span> · <span class="home-season-alias-name">22pl</span> · <span class="home-season-alias-name">피엘</span></span></div>
+      <div class="home-season-alias" data-season="22 TOTS"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;22 TOTS&quot;)">22 TOTS</button><span><span class="home-season-alias-name">22토츠</span> · <span class="home-season-alias-name">22tots</span> · <span class="home-season-alias-name">토츠</span></span></div>
+      <div class="home-season-alias" data-season="22 UCL"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;22 UCL&quot;)">22 UCL</button><span><span class="home-season-alias-name">22챔스</span> · <span class="home-season-alias-name">22챔</span> · <span class="home-season-alias-name">22ucl</span> · <span class="home-season-alias-name">챔스</span> · <span class="home-season-alias-name">챔</span></span></div>
+      <div class="home-season-alias" data-season="22NG"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;22NG&quot;)">22NG</button><span><span class="home-season-alias-name">22ㅜㅎ</span></span></div>
+      <div class="home-season-alias" data-season="23 LIVE"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;23 LIVE&quot;)">23 LIVE</button><span><span class="home-season-alias-name">23라이브</span> · <span class="home-season-alias-name">23live</span> · <span class="home-season-alias-name">라이브</span></span></div>
+      <div class="home-season-alias" data-season="23 PL"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;23 PL&quot;)">23 PL</button><span><span class="home-season-alias-name">23피엘</span> · <span class="home-season-alias-name">23pl</span> · <span class="home-season-alias-name">피엘</span></span></div>
+      <div class="home-season-alias" data-season="23 TOTY-N"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;23 TOTY-N&quot;)">23 TOTY-N</button><span><span class="home-season-alias-name">23토티 노미니</span> · <span class="home-season-alias-name">23노미니</span> · <span class="home-season-alias-name">23toty-n</span> · <span class="home-season-alias-name">23totyn</span> · <span class="home-season-alias-name">토티 노미니</span> · <span class="home-season-alias-name">노미니</span></span></div>
+      <div class="home-season-alias" data-season="23 UCL"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;23 UCL&quot;)">23 UCL</button><span><span class="home-season-alias-name">23챔스</span> · <span class="home-season-alias-name">23챔</span> · <span class="home-season-alias-name">23ucl</span> · <span class="home-season-alias-name">챔스</span> · <span class="home-season-alias-name">챔</span></span></div>
+      <div class="home-season-alias" data-season="23HW"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;23HW&quot;)">23HW</button><span><span class="home-season-alias-name">23하드워커</span> · <span class="home-season-alias-name">23핟웤</span> · <span class="home-season-alias-name">하드워커</span></span></div>
+      <div class="home-season-alias" data-season="23KB"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;23KB&quot;)">23KB</button><span><span class="home-season-alias-name">23ㅏㅠ</span></span></div>
+      <div class="home-season-alias" data-season="23NG"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;23NG&quot;)">23NG</button><span><span class="home-season-alias-name">23ㅜㅎ</span></span></div>
+      <div class="home-season-alias" data-season="24 UCL"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;24 UCL&quot;)">24 UCL</button><span><span class="home-season-alias-name">24챔스</span> · <span class="home-season-alias-name">24챔</span> · <span class="home-season-alias-name">24ucl</span> · <span class="home-season-alias-name">챔스</span> · <span class="home-season-alias-name">챔</span></span></div>
+      <div class="home-season-alias" data-season="24EP"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;24EP&quot;)">24EP</button><span><span class="home-season-alias-name">24이피</span> · <span class="home-season-alias-name">에너제틱 플레이어</span></span></div>
+      <div class="home-season-alias" data-season="24HR"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;24HR&quot;)">24HR</button><span><span class="home-season-alias-name">24히어로</span> · <span class="home-season-alias-name">24히어로즈</span> · <span class="home-season-alias-name">24hr</span> · <span class="home-season-alias-name">히어로</span> · <span class="home-season-alias-name">히어로즈</span></span></div>
+      <div class="home-season-alias" data-season="25 LIVE"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;25 LIVE&quot;)">25 LIVE</button><span><span class="home-season-alias-name">25라이브</span> · <span class="home-season-alias-name">25live</span> · <span class="home-season-alias-name">라이브</span></span></div>
+      <div class="home-season-alias" data-season="25 PL"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;25 PL&quot;)">25 PL</button><span><span class="home-season-alias-name">25피엘</span> · <span class="home-season-alias-name">25pl</span> · <span class="home-season-alias-name">피엘</span></span></div>
+      <div class="home-season-alias" data-season="25 TOTS"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;25 TOTS&quot;)">25 TOTS</button><span><span class="home-season-alias-name">25토츠</span> · <span class="home-season-alias-name">25tots</span> · <span class="home-season-alias-name">토츠</span></span></div>
+      <div class="home-season-alias" data-season="25 TOTY"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;25 TOTY&quot;)">25 TOTY</button><span><span class="home-season-alias-name">25토티</span> · <span class="home-season-alias-name">25toty</span> · <span class="home-season-alias-name">토티</span></span></div>
+      <div class="home-season-alias" data-season="25 TOTY-N"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;25 TOTY-N&quot;)">25 TOTY-N</button><span><span class="home-season-alias-name">25토티 노미니</span> · <span class="home-season-alias-name">25노미니</span> · <span class="home-season-alias-name">25toty-n</span> · <span class="home-season-alias-name">25totyn</span> · <span class="home-season-alias-name">토티 노미니</span> · <span class="home-season-alias-name">노미니</span></span></div>
+      <div class="home-season-alias" data-season="25 UCL"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;25 UCL&quot;)">25 UCL</button><span><span class="home-season-alias-name">25챔스</span> · <span class="home-season-alias-name">25챔</span> · <span class="home-season-alias-name">25ucl</span> · <span class="home-season-alias-name">챔스</span> · <span class="home-season-alias-name">챔</span></span></div>
+      <div class="home-season-alias" data-season="25DP"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;25DP&quot;)">25DP</button><span><span class="home-season-alias-name">25디피</span> · <span class="home-season-alias-name">디피</span></span></div>
+      <div class="home-season-alias" data-season="25HR"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;25HR&quot;)">25HR</button><span><span class="home-season-alias-name">25히어로</span> · <span class="home-season-alias-name">25히어로즈</span> · <span class="home-season-alias-name">25hr</span> · <span class="home-season-alias-name">히어로</span> · <span class="home-season-alias-name">히어로즈</span></span></div>
+      <div class="home-season-alias" data-season="25IM - FB"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;25IM - FB&quot;)">25IM - FB</button><span><span class="home-season-alias-name">아이콘 매치</span> · <span class="home-season-alias-name">25아이콘매치</span></span></div>
+      <div class="home-season-alias" data-season="25IM - S&amp;P"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;25IM - S&amp;P&quot;)">25IM - S&amp;P</button><span><span class="home-season-alias-name">아이콘 매치</span> · <span class="home-season-alias-name">25아이콘매치</span></span></div>
+      <div class="home-season-alias" data-season="25KB"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;25KB&quot;)">25KB</button><span><span class="home-season-alias-name">25ㅏㅠ</span></span></div>
+      <div class="home-season-alias" data-season="26 LIVE"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;26 LIVE&quot;)">26 LIVE</button><span><span class="home-season-alias-name">26라이브</span> · <span class="home-season-alias-name">26live</span> · <span class="home-season-alias-name">라이브</span></span></div>
+      <div class="home-season-alias" data-season="26 PL"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;26 PL&quot;)">26 PL</button><span><span class="home-season-alias-name">26피엘</span> · <span class="home-season-alias-name">26pl</span> · <span class="home-season-alias-name">피엘</span></span></div>
+      <div class="home-season-alias" data-season="26 TOTS"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;26 TOTS&quot;)">26 TOTS</button><span><span class="home-season-alias-name">26토츠</span> · <span class="home-season-alias-name">26tots</span> · <span class="home-season-alias-name">토츠</span></span></div>
+      <div class="home-season-alias" data-season="26 TOTY"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;26 TOTY&quot;)">26 TOTY</button><span><span class="home-season-alias-name">26토티</span> · <span class="home-season-alias-name">26toty</span> · <span class="home-season-alias-name">토티</span></span></div>
+      <div class="home-season-alias" data-season="26 TOTY-N"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;26 TOTY-N&quot;)">26 TOTY-N</button><span><span class="home-season-alias-name">26토티 노미니</span> · <span class="home-season-alias-name">26노미니</span> · <span class="home-season-alias-name">26toty-n</span> · <span class="home-season-alias-name">26totyn</span> · <span class="home-season-alias-name">토티 노미니</span> · <span class="home-season-alias-name">노미니</span></span></div>
+      <div class="home-season-alias" data-season="26HR"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;26HR&quot;)">26HR</button><span><span class="home-season-alias-name">26히어로</span> · <span class="home-season-alias-name">26히어로즈</span> · <span class="home-season-alias-name">26hr</span> · <span class="home-season-alias-name">히어로</span> · <span class="home-season-alias-name">히어로즈</span></span></div>
+      <div class="home-season-alias" data-season="26KB"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;26KB&quot;)">26KB</button><span><span class="home-season-alias-name">26ㅏㅠ</span></span></div>
+      <div class="home-season-alias" data-season="26UP"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;26UP&quot;)">26UP</button><span><span class="home-season-alias-name">26업</span> · <span class="home-season-alias-name">26유피</span></span></div>
+      <div class="home-season-alias" data-season="BDO"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;BDO&quot;)">BDO</button><span><span class="home-season-alias-name">발롱도르</span> · <span class="home-season-alias-name">발롱</span></span></div>
+      <div class="home-season-alias" data-season="BLD"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;BLD&quot;)">BLD</button><span><span class="home-season-alias-name">베스트 레전드</span> · <span class="home-season-alias-name">Best Legends</span></span></div>
+      <div class="home-season-alias" data-season="BOE21"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;BOE21&quot;)">BOE21</button><span><span class="home-season-alias-name">비오이</span> · <span class="home-season-alias-name">보21</span></span></div>
+      <div class="home-season-alias" data-season="BTB"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;BTB&quot;)">BTB</button><span><span class="home-season-alias-name">방탄</span></span></div>
+      <div class="home-season-alias" data-season="BWC"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;BWC&quot;)">BWC</button><span><span class="home-season-alias-name">비떱씨</span> · <span class="home-season-alias-name">비더블류씨</span> · <span class="home-season-alias-name">Best of World Cup</span></span></div>
+      <div class="home-season-alias" data-season="CAP"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;CAP&quot;)">CAP</button><span><span class="home-season-alias-name">캡</span> · <span class="home-season-alias-name">캡틴</span></span></div>
+      <div class="home-season-alias" data-season="CC"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;CC&quot;)">CC</button><span><span class="home-season-alias-name">ㅊㅊ</span> · <span class="home-season-alias-name">CenturyClub(센추리 클럽)</span></span></div>
+      <div class="home-season-alias" data-season="CH"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;CH&quot;)">CH</button><span><span class="home-season-alias-name">초</span> · <span class="home-season-alias-name">Continental Heroes</span></span></div>
+      <div class="home-season-alias" data-season="COC"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;COC&quot;)">COC</button><span><span class="home-season-alias-name">챛</span> · <span class="home-season-alias-name">Captain of Captains</span></span></div>
+      <div class="home-season-alias" data-season="CU"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;CU&quot;)">CU</button><span><span class="home-season-alias-name">챔우</span> · <span class="home-season-alias-name">Champions of Europe(챔피언스 리그 우승)</span> · <span class="home-season-alias-name">쳐</span></span></div>
+      <div class="home-season-alias" data-season="DC"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;DC&quot;)">DC</button><span><span class="home-season-alias-name">디씨</span> · <span class="home-season-alias-name">Decade(디케이드)</span> · <span class="home-season-alias-name">ㅇㅊ</span></span></div>
+      <div class="home-season-alias" data-season="DCB"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;DCB&quot;)">DCB</button><span><span class="home-season-alias-name">Dramatic Comebacks(드라마틱 컴백)</span> · <span class="home-season-alias-name">디씨비</span> · <span class="home-season-alias-name">ㅇ츄</span></span></div>
+      <div class="home-season-alias" data-season="DR"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;DR&quot;)">DR</button><span><span class="home-season-alias-name">디알</span> · <span class="home-season-alias-name">ㅇㄱ</span> · <span class="home-season-alias-name">Derby Rivals(더비 라이벌스)</span></span></div>
+      <div class="home-season-alias" data-season="EBS"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;EBS&quot;)">EBS</button><span><span class="home-season-alias-name">교육</span></span></div>
+      <div class="home-season-alias" data-season="EU24"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;EU24&quot;)">EU24</button><span><span class="home-season-alias-name">유로</span> · <span class="home-season-alias-name">24유로</span></span></div>
+      <div class="home-season-alias" data-season="EVO CU"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;EVO CU&quot;)">EVO CU</button><span><span class="home-season-alias-name">에보 챔우</span> · <span class="home-season-alias-name">에보 시즌</span> · <span class="home-season-alias-name">에보 씨유</span> · <span class="home-season-alias-name">에보 cu</span> · <span class="home-season-alias-name">에보 클래스</span> · <span class="home-season-alias-name">evo 클래스</span> · <span class="home-season-alias-name">EVO 시즌</span></span></div>
+      <div class="home-season-alias" data-season="EVO EP"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;EVO EP&quot;)">EVO EP</button><span><span class="home-season-alias-name">에보 이피</span> · <span class="home-season-alias-name">전기차</span> · <span class="home-season-alias-name">에보 전기</span> · <span class="home-season-alias-name">EVO 시즌</span> · <span class="home-season-alias-name">EVO 클래스</span> · <span class="home-season-alias-name">에보 클래스</span></span></div>
+      <div class="home-season-alias" data-season="FA"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;FA&quot;)">FA</button><span><span class="home-season-alias-name">FA(Free Agent, 자유계약선수)</span> · <span class="home-season-alias-name">자계 시즌</span> · <span class="home-season-alias-name">파 시즌</span> · <span class="home-season-alias-name">ㄹㅁ</span></span></div>
+      <div class="home-season-alias" data-season="FAC"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;FAC&quot;)">FAC</button><span><span class="home-season-alias-name">ㄹㅁㅊ</span> · <span class="home-season-alias-name">팍</span> · <span class="home-season-alias-name">FAC (Football Association Champions)</span></span></div>
+      <div class="home-season-alias" data-season="FCA"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;FCA&quot;)">FCA</button><span><span class="home-season-alias-name">ㄹㅊㅁ</span> · <span class="home-season-alias-name">에프씨에이</span></span></div>
+      <div class="home-season-alias" data-season="GR"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;GR&quot;)">GR</button><span><span class="home-season-alias-name">ㅎㄱ</span> · <span class="home-season-alias-name">지알</span></span></div>
+      <div class="home-season-alias" data-season="GRU"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;GRU&quot;)">GRU</button><span><span class="home-season-alias-name">ㅎ겨</span> · <span class="home-season-alias-name">그루</span></span></div>
+      <div class="home-season-alias" data-season="HG"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;HG&quot;)">HG</button><span><span class="home-season-alias-name">홈그론</span> · <span class="home-season-alias-name">홈그로운</span> · <span class="home-season-alias-name">홈그</span></span></div>
+      <div class="home-season-alias" data-season="HOT"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;HOT&quot;)">HOT</button><span><span class="home-season-alias-name">핫</span></span></div>
+      <div class="home-season-alias" data-season="ICON"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;ICON&quot;)">ICON</button><span><span class="home-season-alias-name">아이콘</span> · <span class="home-season-alias-name">콘</span></span></div>
+      <div class="home-season-alias" data-season="ICON TM"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;ICON TM&quot;)">ICON TM</button><span><span class="home-season-alias-name">아이콘 더 모먼트</span> · <span class="home-season-alias-name">모먼트</span></span></div>
+      <div class="home-season-alias" data-season="ICONS MATCH"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;ICONS MATCH&quot;)">ICONS MATCH</button><span><span class="home-season-alias-name">아이콘 매치</span></span></div>
+      <div class="home-season-alias" data-season="JNM"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;JNM&quot;)">JNM</button><span><span class="home-season-alias-name">저니맨</span> · <span class="home-season-alias-name">ㅓㅜㅡ</span> · <span class="home-season-alias-name">JNM(Journeyman)</span></span></div>
+      <div class="home-season-alias" data-season="JVA"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;JVA&quot;)">JVA</button><span><span class="home-season-alias-name">유벤투스 엠베서더</span> · <span class="home-season-alias-name">유엠</span> · <span class="home-season-alias-name">유베 엠버서더</span></span></div>
+      <div class="home-season-alias" data-season="KHD"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;KHD&quot;)">KHD</button><span><span class="home-season-alias-name">ㅏㅗㅇ</span></span></div>
+      <div class="home-season-alias" data-season="LA"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;LA&quot;)">LA</button><span><span class="home-season-alias-name">엘에이</span> · <span class="home-season-alias-name">ㅣㅁ</span></span></div>
+      <div class="home-season-alias" data-season="LD"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;LD&quot;)">LD</button><span><span class="home-season-alias-name">라스트 댄스</span> · <span class="home-season-alias-name">LD(Last Dance)</span> · <span class="home-season-alias-name">ㅣㅇ</span></span></div>
+      <div class="home-season-alias" data-season="LE"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;LE&quot;)">LE</button><span><span class="home-season-alias-name">Legend of Europa (LE)</span> · <span class="home-season-alias-name">엘이</span> · <span class="home-season-alias-name">ㅣㄷ</span></span></div>
+      <div class="home-season-alias" data-season="LH"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;LH&quot;)">LH</button><span><span class="home-season-alias-name">주공</span></span></div>
+      <div class="home-season-alias" data-season="LKI"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;LKI&quot;)">LKI</button><span><span class="home-season-alias-name">이강인</span></span></div>
+      <div class="home-season-alias" data-season="LN"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;LN&quot;)">LN</button><span><span class="home-season-alias-name">Legendary Numbers</span> · <span class="home-season-alias-name">ㅣㅠ</span></span></div>
+      <div class="home-season-alias" data-season="LOL"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;LOL&quot;)">LOL</button><span><span class="home-season-alias-name">롤</span></span></div>
+      <div class="home-season-alias" data-season="MC"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;MC&quot;)">MC</button><span><span class="home-season-alias-name">맥</span></span></div>
+      <div class="home-season-alias" data-season="MCFC ICON"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;MCFC ICON&quot;)">MCFC ICON</button><span><span class="home-season-alias-name">맨시티 아이콘</span></span></div>
+      <div class="home-season-alias" data-season="MDL"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;MDL&quot;)">MDL</button><span><span class="home-season-alias-name">메달</span> · <span class="home-season-alias-name">메달리스트</span> · <span class="home-season-alias-name">ㅡ이</span></span></div>
+      <div class="home-season-alias" data-season="MOG"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;MOG&quot;)">MOG</button><span><span class="home-season-alias-name">목</span> · <span class="home-season-alias-name">모그</span></span></div>
+      <div class="home-season-alias" data-season="NHD"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;NHD&quot;)">NHD</button><span><span class="home-season-alias-name">농협</span></span></div>
+      <div class="home-season-alias" data-season="NO7"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;NO7&quot;)">NO7</button><span><span class="home-season-alias-name">넘버세븐</span> · <span class="home-season-alias-name">ㅜㅐ7</span></span></div>
+      <div class="home-season-alias" data-season="NTG"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;NTG&quot;)">NTG</button><span><span class="home-season-alias-name">Nostalgia(노스탤지어)</span> · <span class="home-season-alias-name">노스텔지아</span> · <span class="home-season-alias-name">엔티지</span> · <span class="home-season-alias-name">ㅜㅅㅎ</span></span></div>
+      <div class="home-season-alias" data-season="OTW"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;OTW&quot;)">OTW</button><span><span class="home-season-alias-name">오티떱</span> · <span class="home-season-alias-name">Ones To Watch</span></span></div>
+      <div class="home-season-alias" data-season="PTG"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;PTG&quot;)">PTG</button><span><span class="home-season-alias-name">Path to Glory(영광으로 가는 길)</span> · <span class="home-season-alias-name">피티지</span></span></div>
+      <div class="home-season-alias" data-season="RMCF"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;RMCF&quot;)">RMCF</button><span><span class="home-season-alias-name">레엠</span> · <span class="home-season-alias-name">레알엠버서더</span></span></div>
+      <div class="home-season-alias" data-season="SPL"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;SPL&quot;)">SPL</button><span><span class="home-season-alias-name">에스피엘</span> · <span class="home-season-alias-name">스플</span> · <span class="home-season-alias-name">스포트라이트(Spotlight)</span></span></div>
+      <div class="home-season-alias" data-season="SPT"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;SPT&quot;)">SPT</button><span><span class="home-season-alias-name">에스피티</span> · <span class="home-season-alias-name">Spartan(스파르탄)</span> · <span class="home-season-alias-name">넷</span></span></div>
+      <div class="home-season-alias" data-season="TB"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;TB&quot;)">TB</button><span><span class="home-season-alias-name">티비</span></span></div>
+      <div class="home-season-alias" data-season="TC"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;TC&quot;)">TC</button><span><span class="home-season-alias-name">티씨</span></span></div>
+      <div class="home-season-alias" data-season="TK"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;TK&quot;)">TK</button><span><span class="home-season-alias-name">티케이</span> · <span class="home-season-alias-name">Team Korea(대한민국 국가대표)</span> · <span class="home-season-alias-name">사</span></span></div>
+      <div class="home-season-alias" data-season="TKL"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;TKL&quot;)">TKL</button><span><span class="home-season-alias-name">TEAM K LEAGUE</span> · <span class="home-season-alias-name">티케이엘</span> · <span class="home-season-alias-name">사ㅣ</span></span></div>
+      <div class="home-season-alias" data-season="TT"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;TT&quot;)">TT</button><span><span class="home-season-alias-name">티티</span> · <span class="home-season-alias-name">ㅅㅅ</span></span></div>
+      <div class="home-season-alias" data-season="UC"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;UC&quot;)">UC</button><span><span class="home-season-alias-name">유씨</span> · <span class="home-season-alias-name">Untouchable Champions (압도적 우승)</span> · <span class="home-season-alias-name">ㅕㅊ</span></span></div>
+      <div class="home-season-alias" data-season="UP"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;UP&quot;)">UP</button><span><span class="home-season-alias-name">업</span></span></div>
+      <div class="home-season-alias" data-season="UT"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;UT&quot;)">UT</button><span><span class="home-season-alias-name">유티</span> · <span class="home-season-alias-name">Unexpected Transfer(예상치 못한 이적)</span> · <span class="home-season-alias-name">ㅕㅅ</span></span></div>
+      <div class="home-season-alias" data-season="VTR"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;VTR&quot;)">VTR</button><span><span class="home-season-alias-name">베테랑</span></span></div>
+      <div class="home-season-alias" data-season="WB"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;WB&quot;)">WB</button><span><span class="home-season-alias-name">원더보이</span> · <span class="home-season-alias-name">더블류비</span> · <span class="home-season-alias-name">쮸</span></span></div>
+      <div class="home-season-alias" data-season="WC22"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;WC22&quot;)">WC22</button><span><span class="home-season-alias-name">22월컵</span> · <span class="home-season-alias-name">22월드컵</span></span></div>
+      <div class="home-season-alias" data-season="WG"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;WG&quot;)">WG</button><span><span class="home-season-alias-name">떱쥐</span> · <span class="home-season-alias-name">Warriors of Glory</span> · <span class="home-season-alias-name">ㅈㅎ</span></span></div>
+      <div class="home-season-alias" data-season="WS"><button type="button" onclick="showSearchCards(&#x27;&#x27;, &quot;WS&quot;)">WS</button><span><span class="home-season-alias-name">더블류에스</span> · <span class="home-season-alias-name">Winning Streak</span> · <span class="home-season-alias-name">ㅉㄴ</span></span></div>
+<!-- SEASON_ALIASES_END -->
+    </div>
+  </details>
   </main>
 
   <!-- 선수 상세 (시즌별 카드) -->
@@ -2593,12 +2733,12 @@
     playersLoadState = 'ready';
     animateNum(document.getElementById('statConfirmed'), allPlayers.filter(p => p.hj).length, '명');
     buildSeasonDropdown();
-    applySeasonDeepLink();   // 시즌 랜딩페이지에서 ?season=로 넘어온 경우 해당 시즌 필터 미리 선택
+    applySeasonDeepLink();   // 이전 시즌 페이지에서 ?season=로 넘어온 경우 홈 안의 시즌 결과 표시
     _playersReady = true; try{ maybeRunFavDeepLink(); }catch(_){}
     try{ if(document.getElementById('playerSearch')?.value.trim()) runSearch(); }catch(_){}
   }
 
-  // 시즌 랜딩페이지(정적) → 앱 ?season=CH 로 들어오면 홈 검색의 시즌 필터를 그 시즌으로 고정
+  // 이전 시즌 주소 → 홈 ?season=CH 로 들어오면 해당 시즌의 검색 결과를 바로 표시
   let _seasonDeepLinkDone = false;
   function applySeasonDeepLink(){
     if(_seasonDeepLinkDone) return;
@@ -2611,6 +2751,11 @@
       // 시즌만 넘어왔는데 아직 유효하지 않으면 다음 로드에서 재시도
       if(season && !seasonOk && !player) return;
       _seasonDeepLinkDone = true;
+      if(seasonOk && !player){
+        try{ sessionStorage.removeItem('fc_view_state'); }catch(_){}
+        if(typeof showSearchCards === 'function') showSearchCards('', season);
+        return;
+      }
       // 저장된 뷰 복원이 우선이면 건드리지 않음
       let hasState = false;
       try{ const st = JSON.parse(sessionStorage.getItem('fc_view_state') || 'null'); hasState = !!(st && st.view && st.view !== 'viewHome'); }catch(_){}
@@ -4472,6 +4617,11 @@
       </div>`;
   }
 
+  function seasonAliasesInHome(season){
+    const row = [...document.querySelectorAll('#homeSeasonAliasList .home-season-alias')]
+      .find(el => el.dataset.season === season);
+    return row ? [...row.querySelectorAll('.home-season-alias-name')].map(el => el.textContent) : [];
+  }
   // q가 비어 있고 season만 있으면 '해당 시즌 전체 갱신시간 페이지'로 동작
   async function showSearchCards(q, season){
     if(!allPlayers) return;
@@ -4527,6 +4677,18 @@
         ad.className = 'search-inline-ad';
         const fifteenthCard = box.querySelectorAll('.p-card')[14];
         fifteenthCard.after(ad);
+      }
+      if(!box.querySelector('.season-alias-info')){
+        const aliasEl = document.createElement('div');
+        aliasEl.className = 'season-alias-info';
+        const names = season ? seasonAliasesInHome(season) : [];
+        aliasEl.hidden = !names.length;
+        if(names.length) aliasEl.innerHTML = `<strong>${esc(season)}</strong> 시즌은 유저들 사이에서 `
+          + names.map(name => `<span class="season-alias-tag">${esc(name)}</span>`).join(', ')
+          + ' 등으로도 불립니다.';
+        const anchor = box.querySelector('#searchInlineAd') || box.querySelectorAll('.p-card')[14];
+        if(anchor) anchor.after(aliasEl);
+        else box.appendChild(aliasEl);
       }
       if(idx < cards.length){
         const b = document.createElement('button');
@@ -4737,9 +4899,7 @@
       <div class="stat-box"><div class="sv">${fullSeasons}</div><div class="sl">100% 완료 시즌</div></div>
     `;
     listEl.innerHTML = rows.map(r => {
-      // 확정 선수가 있는 시즌은 정적 갱신시간 페이지로, 0명인 시즌은
-      // 앱 안의 시즌 전체 카드 화면으로 연결한다.
-      const seasonCell = `<a class="a-season a-link" href="/refresh/${achSlug(r.season)}.html" title="${esc(r.season)} 갱신시간 페이지로 이동">${seasonIcon(r.seasonId)}<span class="code">${esc(r.season)}</span></a>`;
+      const seasonCell = `<button type="button" class="a-season a-link" style="border:0;background:none;padding:0;cursor:pointer;font:inherit;" onclick="showSearchCards('', ${esc(JSON.stringify(r.season))})" title="${esc(r.season)} 갱신시간 보기">${seasonIcon(r.seasonId)}<span class="code">${esc(r.season)}</span></button>`;
       return `<div class="ach-row">${seasonCell}`
         + `<div class="ach-bar"><span style="width:${r.pct.toFixed(1)}%"></span></div>`
         + `<div class="a-num">${r.done.toLocaleString()} / ${r.total.toLocaleString()}</div>`
