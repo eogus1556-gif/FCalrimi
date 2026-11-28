@@ -3285,7 +3285,7 @@
       const hj = btn.dataset.hj;
       const min = Number(btn.dataset.min);
       const muted = isFavoriteTurnMuted(spid, hj, min);
-      btn.hidden = !muted && !timerStatus(hj, min).now;
+      btn.hidden = !timerStatus(hj, min).now;
       btn.textContent = muted ? '다시 켜기' : '이번 턴 종료';
       btn.classList.toggle('is-muted', muted);
     });
@@ -5024,7 +5024,7 @@
       }
       if(r.hj && r.min >= 0){
         const muted = isFavoriteTurnMuted(r.id, r.hj, r.min);
-        rightHtml += `<button class="fav-remove fav-turn-toggle${muted ? ' is-muted' : ''}" data-spid="${r.id}" data-hj="${r.hj}" data-min="${r.min}"${muted || timerStatus(r.hj, r.min).now ? '' : ' hidden'} onclick="event.stopPropagation(); toggleFavoriteTurn(${r.id})">${muted ? '다시 켜기' : '이번 턴 종료'}</button>`;
+        rightHtml += `<button class="fav-remove fav-turn-toggle${muted ? ' is-muted' : ''}" data-spid="${r.id}" data-hj="${r.hj}" data-min="${r.min}"${timerStatus(r.hj, r.min).now ? '' : ' hidden'} onclick="event.stopPropagation(); toggleFavoriteTurn(${r.id})">${muted ? '다시 켜기' : '이번 턴 종료'}</button>`;
       }
       return `
       <div class="fav-row" data-spid="${r.id}" data-hj="${r.hj}" data-min="${r.min}" onclick="showPlayer(${esc(JSON.stringify(r.name))}, '', ${r.id % 1000000})">
