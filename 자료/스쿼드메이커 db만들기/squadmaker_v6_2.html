@@ -1221,6 +1221,8 @@ const PAY_LIMIT=315;
    TCFULL : teamcolors_full.json  { "40107": {n,need,lv,img,levels:[{lv,need,eff}]} }
    CHEM   : chem.json             { "845260779": {tc:[...], sp:[...]} }                */
 let TCFULL=null, CHEM=null, DAB=null, DW=null;   // DAB=능력치명, DW=OVR가중치 (집중훈련용)
+let TEAM_FILTER_SOURCE=null;
+const TEAM_FILTER_ADDED=new Set();
 let SINGLE_TC_NOS=new Set();                    // 실제 한 시즌/시즌군 전체 카드가 받는 단일 팀컬러
 let showTrain=true;                              // 집중훈련 on/off (OVR 반영 여부)
 let showWr=false;                                // 고유참여도 카드 표시 on/off
@@ -1415,6 +1417,7 @@ async function loadSquadDetails(){try{let d,lastError;for(let attempt=0;attempt<
   GOLDIDS=new Set(Object.keys(TR).filter(id=>TR[id]&&TR[id].g));   // 금빛 특성 id
   CHEM={};
   for(const p of d.P){ CHEM[p[0]]={tc:p[6],sp:p[7],tr:p[19],gt:p[10],ab:p[5],wr:p[9],nation:p[11],foot:p[12],weak:p[13],h:p[15],w:p[16],body:p[17],birth:p[18]}; }
+  TEAM_FILTER_SOURCE=d.P;
   TCFULL={};
   for(const no in d.TC){ const t=d.TC[no];
     TCFULL[no]={n:t.n,img:t.img,levels:t.eff.map((e,i)=>({lv:i+1,need:(t.need||[])[i],eff:e}))}; }
@@ -2125,6 +2128,19 @@ function playerHasTeamFilter(p,key){
   if(!p)return false;
   if(careerKeyNorm(key))return playerHasCareer(p,key);
   const no=+key,c=CHEM&&CHEM[p[I.spid]];return !!(c&&[...(c.tc||[]),...(c.sp||[])].includes(no));
+}
+function ensureTeamFilterPlayers(key){
+  if(!TEAM_FILTER_SOURCE)return 0;
+  const career=careerKeyNorm(key),no=+key,cacheKey=career?String(key):no;
+  if((!career&&!Number.isInteger(no))||TEAM_FILTER_ADDED.has(cacheKey))return 0;
+  const rows=[];
+  for(const p of TEAM_FILTER_SOURCE){
+    if(career?!playerHasCareer([p[0],p[1]],key):(!(p[6]||[]).includes(no)&&!(p[7]||[]).includes(no)))continue;
+    if(PMAP.has(p[0]))continue;
+    rows.push([p[0],p[1],p[2],p[3],p[4],p[8],p[12],p[13],PRICE_MAP?.[p[0]]||null]);
+  }
+  TEAM_FILTER_ADDED.add(cacheKey);
+  return rows.length?applyPlayerRows(rows):0;
 }
 function careerMatches(q){
   if(!q||(!JERSEY&&!ABILITY_JERSEY))return [];
@@ -3029,6 +3045,7 @@ renderSeasonChips(); renderTcFilter();
 document.querySelector('.filterCol').addEventListener('click',e=>{
   const tcBtn=e.target.closest('button.tcRow');
   if(tcBtn){const raw=tcBtn.dataset.tc,no=careerKeyNorm(raw)?raw:+raw;F.tc.has(no)?F.tc.delete(no):F.tc.add(no);
+    if(F.tc.has(no))ensureTeamFilterPlayers(no);
     tcBtn.classList.toggle('on',F.tc.has(no));                       // 목록 재빌드 없이 토글 → 스크롤 유지
     const cnt=document.getElementById('fTcCnt'); if(cnt)cnt.textContent=F.tc.size?`(${F.tc.size} 선택)`:'';
     showN=SHOW_STEP;renderResults();return;}
@@ -3615,6 +3632,7 @@ function aiTextTeamSuggestions(mode,budget,teamName,allowedNos,goldTraits=[],pos
   const candidateNos=teamName?Object.keys(TCFULL||{}).filter(no=>exactTeam?TCFULL[no].n===teamName:tcMatch(teamName,TCFULL[no].n)):Object.keys(ranked);
   return buckets.map(bucket=>{
     const candidates=candidateNos.map(no=>{
+      if(teamName)ensureTeamFilterPlayers(no);
       const name=TCFULL?.[no]?.n||'',groups=ranked[no]?.[bucket.key]||{};
       let filled=Object.values(groups).filter(rows=>Array.isArray(rows)&&rows.length).length;
       let score=Object.values(groups).reduce((sum,rows)=>sum+(Array.isArray(rows)?rows.reduce((n,row)=>n+(+row[1]||0),0):0),0);
@@ -4073,7 +4091,8 @@ document.getElementById('aiBody').addEventListener('click',e=>{
     if(v==='auto'){ if(!rollAutoTc()) toast('랭킹 데이터(rankmeta.json)가 아직 없어요'); }
     else if(v==='none'){ aiState.tcAuto=false; aiState.tc=null; aiState.tcName=''; }
     else { aiState.tcAuto=false; aiState.tc=careerKeyNorm(v)?v:+v;
-      aiState.tcName=careerKeyNorm(v)?((careerTeamIndex().byNorm.get(careerKeyNorm(v))||{}).name||v):((TCFULL[v]||{}).n||''); }
+      aiState.tcName=careerKeyNorm(v)?((careerTeamIndex().byNorm.get(careerKeyNorm(v))||{}).name||v):((TCFULL[v]||{}).n||'');
+      ensureTeamFilterPlayers(aiState.tc); }
     renderAiTcList(); return; }
   const la=e.target.closest('[data-lockadd]'); if(la){ const spid=+la.dataset.lockadd;
     const ix=aiState.locks.findIndex(l=>l.spid===spid);
@@ -4956,7 +4975,7 @@ renderBoard();
    players.json : 내장 목록에 없는 카드 추가 (신규 시즌·누락분, 가끔 갱신)
    prices.json  : 강화별 BP 가격 (매일 갱신) — 항상 마지막에 덮어씀
    파일이 없으면 내장 PLAYERS 값 그대로 동작. */
-let PRICE_DATE=null;
+let PRICE_DATE=null, PRICE_MAP=null;
 function applyPlayerRows(rows){
   let add=0;
   for(const r of rows||[]){
@@ -4986,7 +5005,7 @@ const _getJson=async u=>{for(let attempt=0;attempt<2;attempt++){const controller
 // players.json(목록 추가분, 가끔 갱신) → prices.json(가격, 매일 갱신) 순으로 적용. 없는 파일은 건너뜀
 const squadPlayerLoadPromise=Promise.all([_getJson('players.json'),_getJson('prices.json')]).then(([pl,pr])=>{
   if(pl){ applyPlayerRows(Array.isArray(pl)?pl:pl.rows); }
-  if(pr){ const P=pr.prices||pr; PRICE_DATE=pr.date||null;
+  if(pr){ const P=pr.prices||pr; PRICE_DATE=pr.date||null; PRICE_MAP=P;
     for(const k in P){ const p=PMAP.get(+k); if(p&&Array.isArray(P[k]))p[I.bp]=P[k]; } }
   if(pl||pr) refreshAfterPlayers();
 });   // 둘 다 없으면 내장 데이터 유지
