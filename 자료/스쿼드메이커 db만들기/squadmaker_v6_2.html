@@ -2979,16 +2979,17 @@ function tcMatch(q,name){
   const rawQ=String(q||'').trim(),rawName=String(name||''); if(!rawQ)return true;
   if(/^[ㄱ-ㅎ\s]+$/.test(rawQ)) return toCho(rawName).replace(/\s/g,'').includes(rawQ.replace(/\s/g,''));
   const qWords=tcLatinWords(rawQ),nameWords=tcLatinWords(rawName);
-  if(qWords.length&&nameWords.length){
+  if(/^[\x00-\x7f\s]+$/.test(rawQ)&&qWords.length&&nameWords.length){
     const compactQ=qWords.join(''),compactName=nameWords.join('');
     if(compactName.includes(compactQ))return true;
     const initials=nameWords.filter(w=>!_TC_STOP_WORDS.has(w)).map(w=>w[0]).join('');
     if(initials.includes(compactQ))return true;
-    let at=0;
-    for(const part of qWords){while(at<nameWords.length&&!nameWords[at].startsWith(part))at++;if(at>=nameWords.length)return false;at++;}
-    return true;
+    return qWords.every(part=>nameWords.some(word=>word.startsWith(part)));
   }
-  return rawName.toLocaleLowerCase().includes(rawQ.toLocaleLowerCase());
+  const compact=v=>String(v).normalize('NFKC').toLocaleLowerCase().replace(/[\s·,._-]+/g,'');
+  const text=compact(rawName),query=compact(rawQ);
+  if(text.includes(query))return true;
+  return rawQ.split(/[\s·,]+/).filter(Boolean).every(part=>text.includes(compact(part)));
 }
 function renderTcFilter(){                                  // 입력창은 1회만 생성(한글 조합 안 깨짐), 목록은 renderTcList로 갱신
   const wrap=document.getElementById('fTcWrap');
@@ -3511,9 +3512,19 @@ function aiTextShowPlayerPick(chat,candidates,wantedSeason){
 }
 function aiTextTeamName(q){
   const aliases={'맨유':'맨체스터 유나이티드','맨시티':'맨체스터 시티','레알':'레알 마드리드','뮌헨':'바이에른 뮌헨','바르사':'FC 바르셀로나','리옹':'올랭피크 리옹'};
-  const found=Object.values(TCFULL||{}).map(item=>item?.n).filter(name=>name?.length>=3&&q.includes(name)).sort((a,b)=>b.length-a.length)[0];
-  if(found)return found;
+  const compact=v=>String(v||'').normalize('NFKC').toLocaleLowerCase().replace(/[\s·,._-]+/g,'');
+  const query=compact(q);
+  const found=Object.values(TCFULL||{}).map(item=>item?.n).filter(Boolean)
+    .map(name=>({name,search:name.replace(/^\d{2}(?:-\d{2})?\s+/, '')}))
+    .filter(item=>item.search.length>=3&&query.includes(compact(item.search)))
+    .sort((a,b)=>b.search.length-a.search.length||a.name.localeCompare(b.name,'ko'))[0];
+  if(found)return found.search===found.name?found.name:found.search;
   for(const [alias,name] of Object.entries(aliases))if(q.includes(alias)&&Object.values(TCFULL||{}).some(item=>item?.n===name))return name;
+  const words=String(q).match(/[가-힣a-zA-Z]{2,}/g)||[];
+  const isTeamWord=word=>Object.values(TCFULL||{}).some(item=>item?.n&&tcMatch(word,item.n));
+  const teamWords=words.map(word=>isTeamWord(word)?word:word.replace(/(으로|에서|로|를|을|와|과|은|는|이|가)$/, ''))
+    .filter(word=>word.length>=2&&isTeamWord(word));
+  if(teamWords.length&&Object.values(TCFULL||{}).some(item=>item?.n&&tcMatch(teamWords.join(' '),item.n)))return teamWords.join(' ');
   return '';
 }
 const AI_TEXT_GOLD_ALIASES={
@@ -3599,19 +3610,28 @@ const AI_TEXT_BUCKET_BUDGET={'0-10':9,'10-30':29,'30-60':59,'60-100':99,'100-':1
 function aiTextTeamSuggestions(mode,budget,teamName,allowedNos,goldTraits=[],positionRequests=[],noRare=false){
   const buckets=budget?TCB.buckets.filter(item=>item.key===budgetBucket(budget)):TCB.buckets;
   const soc=socTcSet();
+  const ranked=TCB[mode]||{};
+  const exactTeam=teamName&&Object.values(TCFULL||{}).some(item=>item?.n===teamName);
+  const candidateNos=teamName?Object.keys(TCFULL||{}).filter(no=>exactTeam?TCFULL[no].n===teamName:tcMatch(teamName,TCFULL[no].n)):Object.keys(ranked);
   return buckets.map(bucket=>{
-    const candidates=Object.entries(TCB[mode]||{}).map(([no,levels])=>{
-      const name=TCFULL?.[no]?.n||'',groups=levels[bucket.key]||{};
-      const filled=Object.values(groups).filter(rows=>Array.isArray(rows)&&rows.length).length;
-      const score=Object.values(groups).reduce((sum,rows)=>sum+(Array.isArray(rows)?rows.reduce((n,row)=>n+(+row[1]||0),0):0),0);
-      return {no,name,score,filled};
-    }).filter(item=>item.name&&soc.has(+item.no)&&item.filled>=8&&item.score>0&&(!teamName||item.name===teamName)&&(!allowedNos||allowedNos.has(+item.no))
+    const candidates=candidateNos.map(no=>{
+      const name=TCFULL?.[no]?.n||'',groups=ranked[no]?.[bucket.key]||{};
+      let filled=Object.values(groups).filter(rows=>Array.isArray(rows)&&rows.length).length;
+      let score=Object.values(groups).reduce((sum,rows)=>sum+(Array.isArray(rows)?rows.reduce((n,row)=>n+(+row[1]||0),0):0),0);
+      const hasRankedData=score>0;
+      if(teamName&&!hasRankedData){
+        const players=PLAYERS.filter(p=>playerHasTeamFilter(p,no));
+        score=new Set(players.map(p=>PID(p[I.spid]))).size;
+        filled=new Set(players.map(p=>grpOf(p[I.pos]))).size;
+      }
+      return {no,name,score,filled,hasRankedData};
+    }).filter(item=>item.name&&(teamName||soc.has(+item.no))&&item.filled>=(teamName?1:8)&&item.score>0&&(!allowedNos||allowedNos.has(+item.no))
       &&(!goldTraits.length||autoTcGoldFits(mode,+item.no,item.name,goldTraits)))
       .map(item=>({...item,plan:positionRequests.length?aiTextPositionPlan(mode,+item.no,item.name,positionRequests,budget||AI_TEXT_BUCKET_BUDGET[bucket.key],noRare):null}))
       .filter(item=>!positionRequests.length||item.plan);
     candidates.sort((a,b)=>b.score-a.score||a.name.localeCompare(b.name,'ko'));
     const total=candidates.reduce((sum,item)=>sum+item.score,0);
-    return {bucket,teams:candidates.slice(0,teamName?1:3).map((item,index)=>({...item,rank:index+1,share:total?item.score/total*100:0}))};
+    return {bucket,teams:candidates.slice(0,teamName?5:3).map((item,index)=>({...item,rank:index+1,share:total?item.score/total*100:0}))};
   }).filter(group=>group.teams.length);
 }
 function aiTextSendMessage(){
@@ -3685,9 +3705,10 @@ async function aiTextRecommend(seq){
     const playerGrade=aiTextChosenSpid?aiTextPlayerGrade:8;
     const playerPrice=player.card?bpAt(player.card,playerGrade):null;
     if(player.card&&playerPrice==null){reply.textContent='선택한 강화단계의 선수 가격 데이터가 없습니다. 가격이 있는 강화단계를 선택해 주세요.';return;}
-    const allowedNos=player.card?new Set((CHEM?.[player.card[I.spid]]?.tc||[]).map(Number)):null;
-    if(teamName&&allowedNos){const no=Object.keys(TCFULL).find(key=>TCFULL[key].n===teamName);
-      if(no&&!allowedNos.has(+no)){reply.textContent=`${season||player.card[I.season]} ${player.name} 선수는 ${teamName} 팀컬러 대상이 아닙니다. 팀이나 선수를 바꿔주세요.`;return;}}
+    const playerChem=player.card?CHEM?.[player.card[I.spid]]:null;
+    const allowedNos=player.card?new Set([...(playerChem?.tc||[]),...(playerChem?.sp||[])].map(Number)):null;
+    if(teamName&&allowedNos&&!Object.keys(TCFULL).some(key=>tcMatch(teamName,TCFULL[key].n)&&allowedNos.has(+key))){
+      reply.textContent=`${season||player.card[I.season]} ${player.name} 선수는 ${teamName} 팀컬러 대상이 아닙니다. 팀이나 선수를 바꿔주세요.`;return;}
     const groups=aiTextTeamSuggestions(mode,budget,teamName,allowedNos,goldTraits,positionRequests,noRare);
     if(seq!==aiTextRecommendSeq)return;
     aiTextRequest={mode,budget,noRare,season,playerSpid:player.card?.[I.spid]||null,playerGrade,playerPrice,includePlayerPrice:aiTextIncludePlayerPrice,goldTraits,positionRequests};
@@ -3695,7 +3716,7 @@ async function aiTextRecommend(seq){
     const condition=player.card?`${season||player.card[I.season]} ${player.name} ${playerGrade}강 · ${won(playerPrice)} BP ${aiTextIncludePlayerPrice?'예산 포함':'예산 별도'} · `:season?`${season} 시즌 카드 우선 · `:'';
     reply.textContent=`${condition}${positionRequests.length?'지정한 포지션·금빛특성 조합이 가능한 ':goldTraits.length?'지정한 금빛특성을 적용할 수 있는 ':''}${mode==='manager'?'감독모드':'공식경기'} 랭커 팀 후보입니다. 팀을 누르면 스쿼드를 완성합니다.`;
     const options=document.createElement('div');options.className='aiTextOptions';
-    options.innerHTML=groups.map(({bucket,teams})=>`<section class="aiTextGroup"><h4>${esc(bucket.label)} · 팀 선택 기록 순</h4>${teams.map(team=>`<button type="button" class="aiTextTeam" data-ai-text-team="${team.no}" data-ai-text-bucket="${bucket.key}"><span>${team.rank}위 ${esc(team.name)}</span><small>${team.plan?`${esc(positionRequests.map((request,i)=>`${request.label} ${byId(team.plan.choices[i].spid)?.[I.name]||''}`).join(' · '))}<br>`:''}랭커 카드 선택 비중 ${team.share.toFixed(1)}% · ${team.filled}개 포지션 기록</small></button>`).join('')}</section>`).join('');
+    options.innerHTML=groups.map(({bucket,teams})=>`<section class="aiTextGroup"><h4>${esc(bucket.label)} · ${teamName?'팀컬러 검색 결과':'팀 선택 기록 순'}</h4>${teams.map(team=>`<button type="button" class="aiTextTeam" data-ai-text-team="${team.no}" data-ai-text-bucket="${bucket.key}"><span>${team.hasRankedData?`${team.rank}위 `:''}${esc(team.name)}</span><small>${team.plan?`${esc(positionRequests.map((request,i)=>`${request.label} ${byId(team.plan.choices[i].spid)?.[I.name]||''}`).join(' · '))}<br>`:''}${team.hasRankedData?`랭커 카드 선택 비중 ${team.share.toFixed(1)}% · ${team.filled}개 포지션 기록`:`팀컬러 대상 선수 ${team.score}명 · 랭커 가격대 기록 없음`}</small></button>`).join('')}</section>`).join('');
     chat.appendChild(options);
   }catch(error){if(seq===aiTextRecommendSeq)reply.textContent=error.message||'추천 데이터를 확인하지 못했습니다.';}
   finally{if(seq!==aiTextRecommendSeq)reply.remove();else chat.scrollTop=chat.scrollHeight;}
