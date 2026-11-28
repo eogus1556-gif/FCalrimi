@@ -312,7 +312,8 @@
   .subpage h1{ font-family:var(--font-display); font-size:34px; margin-bottom:6px; }
   .subpage .page-sub{ color:var(--text-dim); font-size:14px; margin-bottom:30px; }
   .search-result-progress{ display:inline-flex; align-items:center; padding:4px 11px; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--lime); font-family:var(--font-mono); font-size:12px; font-weight:700; white-space:nowrap; }
-  .season-alias-info{ grid-column:1/-1; margin:10px 0; padding:15px 18px; background:var(--surface); border:1px solid var(--line); border-radius:12px; color:var(--text-dim); font-size:13px; line-height:1.7; }
+  .season-alias-info{ margin:24px 0 0; padding:15px 18px; background:var(--surface); border:1px solid var(--line); border-radius:12px; color:var(--text-dim); font-size:13px; line-height:1.7; }
+  .season-alias-info[hidden]{ display:none; }
   .season-alias-info strong{ color:var(--text); }
   .season-alias-tag{ display:inline-block; margin:3px 5px 3px 0; padding:2px 8px; border:1px solid var(--line); border-radius:7px; color:var(--text); background:var(--surface-2); }
   .home-season-alias-directory{ max-width:1060px; margin:28px auto 0; border:1px solid var(--line); border-radius:12px; background:var(--surface); }
@@ -1918,6 +1919,7 @@
       </select>
     </div>
     <div class="card-grid" id="playerCards"></div>
+    <div class="season-alias-info" id="resultsSeasonAlias" hidden></div>
   </main>
 
   <!-- 커뮤니티 허브 -->
@@ -4565,6 +4567,7 @@
       </div>
     `).join('');
     document.body.classList.remove('search-inline-ad-active');
+    document.getElementById('resultsSeasonAlias').hidden = true;
     switchView('viewPlayer');
   }
 
@@ -4678,18 +4681,6 @@
         const fifteenthCard = box.querySelectorAll('.p-card')[14];
         fifteenthCard.after(ad);
       }
-      if(!box.querySelector('.season-alias-info')){
-        const aliasEl = document.createElement('div');
-        aliasEl.className = 'season-alias-info';
-        const names = season ? seasonAliasesInHome(season) : [];
-        aliasEl.hidden = !names.length;
-        if(names.length) aliasEl.innerHTML = `<strong>${esc(season)}</strong> 시즌은 유저들 사이에서 `
-          + names.map(name => `<span class="season-alias-tag">${esc(name)}</span>`).join(', ')
-          + ' 등으로도 불립니다.';
-        const anchor = box.querySelector('#searchInlineAd') || box.querySelectorAll('.p-card')[14];
-        if(anchor) anchor.after(aliasEl);
-        else box.appendChild(aliasEl);
-      }
       if(idx < cards.length){
         const b = document.createElement('button');
         b.id = 'moreCardsBtn';
@@ -4701,6 +4692,12 @@
       }
     };
     appendChunk();
+    const aliasEl = document.getElementById('resultsSeasonAlias');
+    const names = season ? seasonAliasesInHome(season) : [];
+    aliasEl.hidden = !names.length;
+    aliasEl.innerHTML = names.length ? `<strong>${esc(season)}</strong> 시즌은 유저들 사이에서 `
+      + names.map(name => `<span class="season-alias-tag">${esc(name)}</span>`).join(', ')
+      + ' 등으로도 불립니다.' : '';
     switchView('viewPlayer');
     if(cards.length >= 15) requestAnimationFrame(() => mountAd('searchInlineAd'));
   }
