@@ -2127,13 +2127,10 @@ function careerTeamIndex(){
   return _careerTeamIndex={byNorm,playerTeams};
 }
 function careerKeyNorm(key){return String(key||'').startsWith('career:')?String(key).slice(7):'';}
+const EMPTY_CAREER_SET=new Set();
 function playerCareerSet(p){
-  if(!p)return new Set();const idx=careerTeamIndex(),key=jPlayerNameNorm(p[I.name]);
-  if(idx.playerTeams.has(key))return idx.playerTeams.get(key);
-  const rec=abilityJerseyRecord(p[I.name]),set=new Set();
-  for(const [name,t] of Object.entries((rec&&rec.teams)||{}))if(!t||t.kind!=='nation')set.add(jTeamNorm(name));
-  for(const name of jerseyPlayerRecord(p[I.name])?.career||[])set.add(jTeamNorm(name));
-  return set;
+  if(!p)return EMPTY_CAREER_SET;
+  return careerTeamIndex().playerTeams.get(jPlayerNameNorm(p[I.name]))||EMPTY_CAREER_SET;
 }
 function playerHasCareer(p,key){const norm=careerKeyNorm(key);return !!(norm&&playerCareerSet(p).has(norm));}
 function playerHasTeamFilter(p,key){
